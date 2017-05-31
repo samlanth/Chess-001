@@ -73,7 +73,6 @@ namespace chess
 					{
 						_Move mv = m[r];
 						board.apply_move(mv);
-						m = board.generate_moves();
 					}
 				}
 				std::list<_Move> h = board.get_history_moves();

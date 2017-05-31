@@ -27,9 +27,9 @@ namespace chess
 		enum struct FLAG { none = 0, conditional = 1 };
 		MoveUnit(int8_t _x, int8_t _y, uint8_t _len, FLAG _flag = FLAG::none, std::string _flag_param = "") : x(_x), y(_y), len(_len), flag(_flag), flag_spec(_flag_param) {}
 
-		int8_t		x;				// x direction
-		int8_t		y;				// y direction
-		uint8_t		len;			// max horizon 1..len
+		int8_t	    x;				// x direction
+		int8_t	    y;				// y direction
+		uint8_t	    len;			// max horizon 1..len
 		FLAG		flag;			// move category (normal or special) 
 		std::string flag_spec;		// special moveunit specification
 		std::string context_extra;	// extra info on moveunit from a position
