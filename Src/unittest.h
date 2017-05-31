@@ -1,3 +1,6 @@
+// --------------------------------
+// Author: Alain Lanthier, 2017
+// --------------------------------
 #ifndef _UNITTEST_H
 #define _UNITTEST_H
 

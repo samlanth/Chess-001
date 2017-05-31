@@ -1,3 +1,6 @@
+// --------------------------------
+// Author: Alain Lanthier, 2017
+// --------------------------------
 #ifndef _BOARDFUNC_H
 #define _BOARDFUNC_H
 

@@ -1,3 +1,6 @@
+// --------------------------------
+// Author: Alain Lanthier, 2017
+// --------------------------------
 #ifndef _PIECE_H
 #define _PIECE_H
 

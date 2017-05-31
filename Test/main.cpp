@@ -1,4 +1,6 @@
 // --------------------------------
+// Author: Alain Lanthier, 2017
+//
 // Unit testing for class Board
 // --------------------------------
 #include "testboard.h"

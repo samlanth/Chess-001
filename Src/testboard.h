@@ -1,3 +1,6 @@
+// --------------------------------
+// Author: Alain Lanthier, 2017
+// --------------------------------
 #ifndef _TESTBOARD_H
 #define _TESTBOARD_H
 
