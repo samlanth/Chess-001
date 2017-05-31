@@ -44,14 +44,14 @@ namespace chess
 		Board(Board&&) = default;
 		~Board() = default;
 
-		uint8_t index_at(uint8_t x, uint8_t y) { return _BoardSize * y + x; }
-		_Piece* piece_at(uint8_t x, uint8_t y) { return _Piece::get(b.at(index_at(x, y))); }
+		uint8_t index_at(uint8_t x, uint8_t y) const { return _BoardSize * y + x; }
+		_Piece* piece_at(uint8_t x, uint8_t y) const { return _Piece::get(b.at(index_at(x, y))); }
 
-		PieceID get_pieceid_at(uint8_t x, uint8_t y) { return b.at(index_at(x, y)); }
+		PieceID get_pieceid_at(uint8_t x, uint8_t y) const { return b.at(index_at(x, y)); }
 		void    set_pieceid_at(PieceID id, uint8_t x, uint8_t y) { b.at(index_at(x, y)) = id; }
 
-		PieceColor get_color() { return color_toplay; }
-		PieceColor get_opposite_color()
+		PieceColor get_color() const { return color_toplay; }
+		PieceColor get_opposite_color() const
 		{
 			if (color_toplay == PieceColor::B) return PieceColor::W;
 			else if (color_toplay == PieceColor::W) return PieceColor::B;
@@ -62,7 +62,7 @@ namespace chess
 			else if (color_toplay == PieceColor::W) color_toplay = PieceColor::B;
 		}
 
-		void apply_move(_Move& m)
+		void apply_move(const _Move& m)
 		{
 			b.at(index_at(m.dst_x, m.dst_y)) = b.at(index_at(m.src_x, m.src_y));
 			b.at(index_at(m.src_x, m.src_y)) = _Piece::empty_id();
@@ -102,7 +102,7 @@ namespace chess
 			set_opposite_color();
 		}
 
-		bool can_capture_opposite_king(std::vector<_Move>& m)
+		bool can_capture_opposite_king(const std::vector<_Move>& m) const
 		{
 			PieceID K_id = _Piece::get_id(PieceName::K, get_opposite_color());
 			for (auto &mv : m)
@@ -133,7 +133,7 @@ namespace chess
 			set_pieceid_at(_Piece::get_id(chess::PieceName::B, chess::PieceColor::W), 5, 0);
 			set_pieceid_at(_Piece::get_id(chess::PieceName::N, chess::PieceColor::W), 6, 0);
 			set_pieceid_at(_Piece::get_id(chess::PieceName::R, chess::PieceColor::W), 7, 0);
-			for (int i = 0; i<8; i++) set_pieceid_at(_Piece::get_id(chess::PieceName::P, chess::PieceColor::W), i, 1);
+			for (uint8_t i = 0; i<8; i++) set_pieceid_at(_Piece::get_id(chess::PieceName::P, chess::PieceColor::W), i, 1);
 
 			set_pieceid_at(_Piece::get_id(chess::PieceName::R, chess::PieceColor::B), 0, 7);
 			set_pieceid_at(_Piece::get_id(chess::PieceName::N, chess::PieceColor::B), 1, 7);
@@ -143,10 +143,10 @@ namespace chess
 			set_pieceid_at(_Piece::get_id(chess::PieceName::B, chess::PieceColor::B), 5, 7);
 			set_pieceid_at(_Piece::get_id(chess::PieceName::N, chess::PieceColor::B), 6, 7);
 			set_pieceid_at(_Piece::get_id(chess::PieceName::R, chess::PieceColor::B), 7, 7);
-			for (int i = 0; i<8; i++) set_pieceid_at(_Piece::get_id(chess::PieceName::P, chess::PieceColor::B), i, 6);
+			for (uint8_t i = 0; i<8; i++) set_pieceid_at(_Piece::get_id(chess::PieceName::P, chess::PieceColor::B), i, 6);
 		}
 
-		std::vector<_Move> generate_moves(bool remove_check = false)
+		std::vector<_Move> generate_moves(bool is_recursive_call = false)
 		{
 			_Piece*  p_src;
 			_Piece*  p_dst;
@@ -303,14 +303,18 @@ namespace chess
 				}
 			}
 
-			if (!_allow_self_check)  // Expensive - to be optimized if needed...
+            if (is_recursive_call)
+            {
+                // ok done
+            }
+            else if (!_allow_self_check)  // Expensive - to be optimized if needed...
 			{
 				std::vector<_Move> mm;
 				for(auto &mv : m)
 				{
 					apply_move(mv);
 					{
-						std::vector<_Move> m_oppon = generate_moves(false);
+                        std::vector<_Move> m_oppon = generate_moves(true);
 						if (!can_capture_opposite_king(m_oppon))
 						{
 							mm.push_back(mv);
@@ -320,10 +324,11 @@ namespace chess
 				}
 				return mm;
 			}
+
 			return m;
 		}
 
-		bool has_piece(PieceName n, PieceColor c)
+		bool has_piece(PieceName n, PieceColor c) const
 		{
 			PieceId id = Pieces::get_id(n, c);
 			for (auto &m : b)
@@ -331,7 +336,7 @@ namespace chess
 			return false;
 		}
 
-		bool is_fnal(std::vector<_Move>& m)
+		bool is_fnal(const std::vector<_Move>& m) const
 		{
 			if (!has_piece(PieceName::K, PieceColor:W)) return true;
 			if (!has_piece(PieceName::K, PieceColor:B)) return true;
@@ -341,7 +346,7 @@ namespace chess
 			{
 				if (can_capture_opposite_king())
 				{
-					//if (...) return true; // classic checkmate
+					// if (...) return true; // classic checkmate
 				}
 			}
 
@@ -357,7 +362,7 @@ namespace chess
 			return false;
 		}
 
-		std::list<_Move> get_history_moves() { return history_moves; }
+		std::list<_Move> get_history_moves() const { return history_moves; }
 
 	private:
 		PieceColor color_toplay;

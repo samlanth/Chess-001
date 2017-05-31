@@ -25,7 +25,7 @@ namespace chess
 		}
 
 	public:
-		size_t cnt_piece(PieceName n, PieceColor c)
+		size_t cnt_piece(PieceName n, PieceColor c) const
 		{
 			size_t cnt = 0;
 			PieceID id = _Piece::get_id(n, c);
@@ -36,7 +36,7 @@ namespace chess
 			return cnt;
 		}
 
-		std::string to_str()
+		std::string to_str() const
 		{
 			std::string s;
 			PieceID id;

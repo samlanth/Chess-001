@@ -15,7 +15,6 @@ namespace chess
 	template <typename PieceID, typename uint8_t _BoardSize> class Piece;
 	template <typename PieceID, typename uint8_t _BoardSize> class Board;
 	template <typename PieceID, typename uint8_t _BoardSize> class BoardFunc;
-
 	template <typename PieceID> struct Move;
 
 	enum class PieceName		{ R, N, B, Q, K, P, none };
@@ -25,14 +24,15 @@ namespace chess
 	struct MoveUnit
 	{
 		enum struct FLAG { none = 0, conditional = 1 };
-		MoveUnit(int8_t _x, int8_t _y, uint8_t _len, FLAG _flag = FLAG::none, std::string _flag_param = "") : x(_x), y(_y), len(_len), flag(_flag), flag_spec(_flag_param) {}
+		MoveUnit(int8_t _x, int8_t _y, uint8_t _len, FLAG _flag = FLAG::none, std::string _flag_param = "") 
+            : x(_x), y(_y), len(_len), flag(_flag), flag_spec(_flag_param) {}
 
-		int8_t	    x;				// x direction
-		int8_t	    y;				// y direction
-		uint8_t	    len;			// max horizon 1..len
-		FLAG		flag;			// move category (normal or special) 
-		std::string flag_spec;		// special moveunit specification
-		std::string context_extra;	// extra info on moveunit from a position
+        int8_t	    x;				// x direction
+        int8_t	    y;				// y direction
+        uint8_t	    len;			// max horizon 1..len
+        FLAG        flag;			// move category (normal or special) 
+        std::string flag_spec;		// special moveunit specification
+        std::string context_extra;	// extra info on moveunit from a position
 	};
 
 	template <typename PieceID>
@@ -101,7 +101,7 @@ namespace chess
 			return 0;
 		}
 
-		PieceID get_id() { return get_id(this->name, this->color); }
+		PieceID get_id() const { return get_id(this->name, this->color); }
 
 		static _Piece* get(PieceID id)
 		{
@@ -137,8 +137,8 @@ namespace chess
 		}
 
 	private:
-		std::vector<MoveUnit> moves;
-		static bool is_init;
+		std::vector<MoveUnit>   moves;
+		static bool             is_init;
 		static std::vector<std::unique_ptr<_Piece>> pieces;
 
 	public:

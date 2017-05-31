@@ -26,7 +26,7 @@ namespace chess
 			using _Board		= chess::Board<PieceID, _BoardSize>;
 			using _BoardFunc	= chess::BoardFunc<PieceID, _BoardSize>;
 
-			bool check_000(uint32_t)	// test default ct()
+			bool check_000(uint32_t) // test default ct()
 			{
 				_Board board;
 				return board.get_color() == chess::PieceColor::none;
@@ -37,7 +37,7 @@ namespace chess
 				_Board board(true);
 
 				std::vector<_Move> m;
-				m = board.generate_moves(false);
+				m = board.generate_moves();
 
 				if (_BoardSize == 8) return (m.size() == 20);
 				else return true; // ignore real count
@@ -64,7 +64,7 @@ namespace chess
 				m = board.generate_moves();
 				size_t cnt_move_beg = m.size();
 
-				for (int i = 0; i < 100; i++)
+				for (size_t i = 0; i < 100; i++)
 				{
 					m = board.generate_moves();
 					if (m.size() == 0) break;
@@ -75,6 +75,7 @@ namespace chess
 						board.apply_move(mv);
 					}
 				}
+
 				std::list<_Move> h = board.get_history_moves();
 				for (size_t i = 0; i < h.size(); i++)
 				{
@@ -87,7 +88,7 @@ namespace chess
 				return (cnt_move_beg == cnt_move_end);
 			}
 
-			bool check_004(uint32_t)	// test cnt piece
+			bool check_004(uint32_t) // test cnt piece
 			{
 				_Board board(true);
 				_BoardFunc bf(board);
@@ -96,15 +97,16 @@ namespace chess
 
 			bool do_test(bool display = true)
 			{
-				bool ret = true;
-				uint8_t id = 0;
+				bool        ret = true;
+				uint32_t    id = 0;
+                TestBoard   test_obj;
 				unit_test::TTest<TestBoard<PieceID, _BoardSize>> tester = unit_test::TTest<TestBoard<PieceID, _BoardSize>>();
-				TestBoard test_obj;
+
 				tester.add(&test_obj, &TestBoard::check_000, id++, "err000");
 				tester.add(&test_obj, &TestBoard::check_001, id++, "err001");
 				tester.add(&test_obj, &TestBoard::check_002, id++, "err002");
 				tester.add(&test_obj, &TestBoard::check_003, id++, "err003");
-				tester.add(&test_obj, &TestBoard::check_004, id++, "err004");
+				tester.add(new TestBoard(), &TestBoard::check_004, id++, "err004");
 				ret = tester.run();
 				if (display) { std::cout << tester.report(true) << std::endl; }
 				return ret;

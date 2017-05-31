@@ -45,12 +45,12 @@ namespace unit_test
 
 		struct check_test_def
 		{
-			T*			pT;			// a concrete object of T
-			bool (T::*f)(uint32_t);	// member function of T to test
-			uint32_t	id;
+			T*          pT;                 // a concrete object of T
+			bool        (T::*f)(uint32_t);  // member function of T to test
+			uint32_t    id;
 			std::string msg_err;
-			bool		result;
-			bool		is_except;
+			bool        result;
+			bool        is_except;
 		};
 
 		void reset() { m_checks_def.clear(); }
@@ -60,7 +60,7 @@ namespace unit_test
 			m_checks_def.push_back(check_test_def{ p, f, id, msg_err, true, false});
 		}
 
-		size_t num_failed()
+		size_t num_failed() const
 		{
 			size_t n = 0;
 			for (auto &v : m_checks_def)
@@ -70,7 +70,7 @@ namespace unit_test
 			return n;
 		}
 
-		size_t num_except()
+		size_t num_except() const
 		{
 			size_t n = 0;
 			for (auto &v : m_checks_def)
@@ -80,7 +80,7 @@ namespace unit_test
 			return n;
 		}
 
-		std::string report(bool detailed = false)
+		std::string report(bool detailed = false) const
 		{
 			std::stringstream s;
 			s << "Number check:  " << m_checks_def.size() << "\n";
@@ -103,21 +103,21 @@ namespace unit_test
 			return s.str();
 		}
 
-		std::vector<check_test_def> get_checks() { return m_checks_def; }
-		bool status()		{ return _status };
-		bool has_except()	{ return _has_except; }
-		std::string name()	{ return _name; }
+		std::vector<check_test_def> get_checks() const { return m_checks_def; }
+		bool status()       const   { return _status };
+		bool has_except()   const   { return _has_except; }
+		std::string name()  const   { return _name; }
 
 	private:
-		bool checkT(T* p, bool (T::*f)(uint32_t), uint32_t id)
+		bool checkT(T* p, bool (T::*f)(uint32_t), uint32_t id) const
 		{
 			return (p->*f)(id);
 		}
 
 	private:
 		std::string _name;
-		bool _status;
-		bool _has_except;
+		bool        _status;
+		bool        _has_except;
 		std::vector<check_test_def> m_checks_def;
 	};
 
