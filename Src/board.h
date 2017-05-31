@@ -16,20 +16,20 @@ namespace chess
 	template <typename PieceID, typename uint8_t _BoardSize>
 	class Board
 	{
-		using _Piece = Piece<PieceID, _BoardSize>;
-		using _Board = Board<PieceID, _BoardSize>;
-		using _Move = Move<PieceID>;
-		friend class BoardFunc<PieceID, _BoardSize>;
+        using _Piece = Piece<PieceID, _BoardSize>;
+        using _Board = Board<PieceID, _BoardSize>;
+        using _Move = Move<PieceID>;
+        friend class BoardFunc<PieceID, _BoardSize>;
 
-	public:
-    Board(      bool set_classic                = false,
+        public:
+        Board(  bool set_classic                = false,
                 bool allow_self_check           = true,
                 bool check_repeating_move_draw  = false,
-                bool check_50_moves_draw        = false
-			 )	:	b(_BoardSize*_BoardSize), 
-					_allow_self_check(allow_self_check),
-					_check_repeating_move_draw(check_repeating_move_draw),
-					_check_50_moves_draw(check_50_moves_draw)
+                bool check_50_moves_draw        = false)
+            : b(    _BoardSize*_BoardSize), 
+                    _allow_self_check(allow_self_check),
+                    _check_repeating_move_draw(check_repeating_move_draw),
+                    _check_50_moves_draw(check_50_moves_draw)
 		{
 			color_toplay = PieceColor::none;
 			for (uint8_t i = 0; i < _BoardSize; i++)
