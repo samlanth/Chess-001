@@ -22,9 +22,9 @@ namespace chess
 		friend class BoardFunc<PieceID, _BoardSize>;
 
 	public:
-        Board(  bool set_classic                = false,
-	            bool allow_self_check           = true,
-	            bool check_repeating_move_draw  = false,
+    Board(      bool set_classic                = false,
+                bool allow_self_check           = true,
+                bool check_repeating_move_draw  = false,
                 bool check_50_moves_draw        = false
 			 )	:	b(_BoardSize*_BoardSize), 
 					_allow_self_check(allow_self_check),
