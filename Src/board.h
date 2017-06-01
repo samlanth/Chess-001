@@ -18,9 +18,9 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     std::vector<Move<PieceID>> generate_moves_no_self_check(Board<PieceID, _BoardSize>&, std::vector<Move<PieceID>>& m, size_t from, size_t to);
 
-	template <typename PieceID, typename uint8_t _BoardSize>
-	class Board
-	{
+    template <typename PieceID, typename uint8_t _BoardSize>
+    class Board
+    {
         using _Piece = Piece<PieceID, _BoardSize>;
         using _Move = Move<PieceID>;
         friend class BoardFunc<PieceID, _BoardSize>;
