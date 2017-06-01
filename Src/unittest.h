@@ -1,14 +1,14 @@
 // --------------------------------
 // Author: Alain Lanthier, 2017
 // --------------------------------
-#ifndef _UNITTEST_H
-#define _UNITTEST_H
+#ifndef _AL_CHESS_UNITTEST_H
+#define _AL_CHESS_UNITTEST_H
 
 #include <vector>
 #include <string>
 #include <sstream>
 
-namespace unit_test
+namespace unittest
 {
 	template <typename T> class TTest; // Test on a Type
 

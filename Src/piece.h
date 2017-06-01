@@ -1,9 +1,10 @@
 // --------------------------------
 // Author: Alain Lanthier, 2017
 // --------------------------------
-#ifndef _PIECE_H
-#define _PIECE_H
+#ifndef _AL_CHESS_PIECE_H
+#define _AL_CHESS_PIECE_H
 
+#include "move.h"
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -12,184 +13,174 @@
 
 namespace chess
 {
-	template <typename PieceID, typename uint8_t _BoardSize> class Piece;
-	template <typename PieceID, typename uint8_t _BoardSize> class Board;
-	template <typename PieceID, typename uint8_t _BoardSize> class BoardFunc;
-	template <typename PieceID> struct Move;
+    template <typename PieceID, typename uint8_t _BoardSize> class Board;
 
-	enum class PieceName		{ R, N, B, Q, K, P, none };
-	enum class PieceColor		{ W, B, none };
-	enum class PieceMoveStyle	{ Sliding, Jumping, SlidingDiagonalCapturePromo, none };
+    enum class PieceName        { R, N, B, Q, K, P, none };
+    enum class PieceColor       { W, B, none };
+    enum class PieceMoveStyle   { Sliding, Jumping, SlidingDiagonalCapturePromo, none };
 
-	struct MoveUnit
-	{
-		enum struct FLAG { none = 0, conditional = 1 };
-		MoveUnit(int8_t _x, int8_t _y, uint8_t _len, FLAG _flag = FLAG::none, std::string _flag_param = "") 
-            : x(_x), y(_y), len(_len), flag(_flag), flag_spec(_flag_param) {}
+    template <typename PieceID, typename uint8_t _BoardSize>
+    class Piece
+    {
+        using _Piece = Piece<PieceID, _BoardSize>;
+        friend class Board<PieceID, _BoardSize>;
 
-        int8_t	    x;				// x direction
-        int8_t	    y;				// y direction
-        uint8_t	    len;			// max horizon 1..len
-        FLAG        flag;			// move category (normal or special) 
-        std::string flag_spec;		// special moveunit specification
-        std::string context_extra;	// extra info on moveunit from a position
-	};
+    public:
+        Piece(PieceName n = PieceName::none, PieceColor	c = PieceColor::none, PieceMoveStyle m = PieceMoveStyle::none);
+        ~Piece() = default;
 
-	template <typename PieceID>
-	struct Move
-	{
-		uint8_t src_x;
-		uint8_t src_y;
-		uint8_t dst_x;
-		uint8_t dst_y;
-		PieceID prev_src_id;
-		PieceID prev_dst_id;
-		MoveUnit mu;
-	};
+        Piece(const Piece&)                 = delete;
+        Piece & operator=(const Piece &)    = delete;
+        Piece(Piece&&)                      = delete;
 
-	template <typename PieceID, typename uint8_t _BoardSize>
-	class Piece
-	{
-		using _Piece = Piece<PieceID, _BoardSize>;
-		friend class Board<PieceID, _BoardSize>;
+        // static
+        static const PieceID empty_id();
+        static const PieceID get_id(PieceName _name, PieceColor _c);
+        static const _Piece* get(PieceID id);
+        static void init();
+        static const std::string to_str(PieceID id);
 
-	public:
-		Piece(PieceName n = PieceName::none, PieceColor	c = PieceColor::none, PieceMoveStyle m = PieceMoveStyle::none)
-			: name(n), color(c), move_style(m)
-		{
-		}
+        const PieceID           get_id()        const;
+        const PieceName         get_name()      const { return name; }
+        const PieceColor        get_color()     const { return color; }
+        const PieceMoveStyle    get_movestyle() const { return move_style; }
+        const PieceName         get_moves()     const { return moves; }
 
-		Piece(const Piece&) = delete;
-		Piece & operator=(const Piece &) = delete;
-		Piece(Piece&&) = delete;
+    private:
+        PieceName               name;
+        PieceColor              color;
+        PieceMoveStyle          move_style;
+        std::vector<MoveUnit>   moves;
 
-	public:
-		~Piece() = default;
+        static bool             is_init;
+        static std::vector<std::unique_ptr<_Piece>> pieces;
+    };
 
-		PieceName			name;
-		PieceColor			color;
-		PieceMoveStyle		move_style;
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline Piece<PieceID, _BoardSize>::Piece(PieceName n, PieceColor c, PieceMoveStyle m)
+        : name(n), color(c), move_style(m) {}
+    
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline const PieceID Piece<PieceID, _BoardSize>::empty_id() { return 0; }
 
-		constexpr static PieceID empty_id() { return 0; }
-		static PieceID get_id(PieceName _name, PieceColor _c)
-		{
-			if (_name == PieceName::none) return 0;
-			if (_c == PieceColor::B)
-			{
-				switch (_name) {
-				case PieceName::R: return 1;
-				case PieceName::N: return 2;
-				case PieceName::B: return 3;
-				case PieceName::Q: return 4;
-				case PieceName::K: return 5;
-				case PieceName::P: return 6;
-				default: return 0;
-				}
-			}
-			else
-			{
-				switch (_name) {
-				case PieceName::R: return 7;
-				case PieceName::N: return 8;
-				case PieceName::B: return 9;
-				case PieceName::Q: return 10;
-				case PieceName::K: return 11;
-				case PieceName::P: return 12;
-				default: return 0;
-				}
-			}
-			return 0;
-		}
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline const PieceID Piece<PieceID, _BoardSize>::get_id(PieceName _name, PieceColor _c)
+    {
+        if (_name == PieceName::none) return 0;
+        if (_c == PieceColor::B)
+        {
+            switch (_name) {
+            case PieceName::R: return 1;
+            case PieceName::N: return 2;
+            case PieceName::B: return 3;
+            case PieceName::Q: return 4;
+            case PieceName::K: return 5;
+            case PieceName::P: return 6;
+            default: return 0;
+            }
+        }
+        else if (_c == PieceColor::W)
+        {
+            switch (_name) {
+            case PieceName::R: return 7;
+            case PieceName::N: return 8;
+            case PieceName::B: return 9;
+            case PieceName::Q: return 10;
+            case PieceName::K: return 11;
+            case PieceName::P: return 12;
+            default: return 0;
+            }
+        }
+        return 0;
+    }
 
-		PieceID get_id() const { return get_id(this->name, this->color); }
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline const PieceID Piece<PieceID, _BoardSize>::get_id() const 
+    { 
+        return get_id(this->name, this->color); 
+    }
 
-		static _Piece* get(PieceID id)
-		{
-			assert(id >= 0);
-			assert(id < pieces.size());
-			return pieces[id].get();
-		}
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline const Piece<PieceID, _BoardSize>* Piece<PieceID, _BoardSize>::get(PieceID id)
+    {
+        assert(pieces.size() > 0);
+        assert(id >= 0);
+        assert(id < pieces.size());
+        return pieces[id].get();
+    }
 
-		static std::string to_str(PieceID id)
-		{
-			std::string s;
-			for (size_t i = 0; i < pieces.size(); i++)
-			{
-				if (_Piece::get_id(pieces[i]->name, pieces[i]->color) == id)
-				{
-					if (pieces[i]->color == PieceColor::W) s += "w";
-					else if (pieces[i]->color == PieceColor::B) s += "b";
-					else s += "-";
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline const std::string Piece<PieceID, _BoardSize>::to_str(PieceID id)
+    {
+        std::string s;
+        for (const auto &p : pieces)
+        {
+            if (_Piece::get_id(p->name, p->color) == id)
+            {
+                if (p->color == PieceColor::W) s += "w";
+                else if (p->color == PieceColor::B) s += "b";
+                else s += "-";
 
-					if (pieces[i]->name == PieceName::R) s += "R";
-					else if (pieces[i]->name == PieceName::N) s += "N";
-					else if (pieces[i]->name == PieceName::B) s += "B";
-					else if (pieces[i]->name == PieceName::Q) s += "Q";
-					else if (pieces[i]->name == PieceName::K) s += "K";
-					else if (pieces[i]->name == PieceName::P) s += "P";
-					else s += "-";
+                if (p->name == PieceName::R) s += "R";
+                else if (p->name == PieceName::N) s += "N";
+                else if (p->name == PieceName::B) s += "B";
+                else if (p->name == PieceName::Q) s += "Q";
+                else if (p->name == PieceName::K) s += "K";
+                else if (p->name == PieceName::P) s += "P";
+                else s += "-";
 
-					s += " ";
-					return s;
-				}
-			}
-			return "-- ";
-		}
+                s += " ";
+                return s;
+            }
+        }
+        return "-- ";
+    }
 
-	private:
-		std::vector<MoveUnit>   moves;
-		static bool             is_init;
-		static std::vector<std::unique_ptr<_Piece>> pieces;
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline void Piece<PieceID, _BoardSize>::init()
+    {
+        if (is_init) return;
 
-	public:
-		static void init()
-		{
-			if (is_init) return;
+        pieces.clear();
+        pieces.push_back(std::make_unique<_Piece>(PieceName::none, PieceColor::none, PieceMoveStyle::none));
+        pieces.push_back(std::make_unique<_Piece>(PieceName::R, PieceColor::B, PieceMoveStyle::Sliding));
+        pieces.push_back(std::make_unique<_Piece>(PieceName::N, PieceColor::B, PieceMoveStyle::Jumping));
+        pieces.push_back(std::make_unique<_Piece>(PieceName::B, PieceColor::B, PieceMoveStyle::Sliding));
+        pieces.push_back(std::make_unique<_Piece>(PieceName::Q, PieceColor::B, PieceMoveStyle::Sliding));
+        pieces.push_back(std::make_unique<_Piece>(PieceName::K, PieceColor::B, PieceMoveStyle::Sliding));
+        pieces.push_back(std::make_unique<_Piece>(PieceName::P, PieceColor::B, PieceMoveStyle::SlidingDiagonalCapturePromo));
+        pieces.push_back(std::make_unique<_Piece>(PieceName::R, PieceColor::W, PieceMoveStyle::Sliding));
+        pieces.push_back(std::make_unique<_Piece>(PieceName::N, PieceColor::W, PieceMoveStyle::Jumping));
+        pieces.push_back(std::make_unique<_Piece>(PieceName::B, PieceColor::W, PieceMoveStyle::Sliding));
+        pieces.push_back(std::make_unique<_Piece>(PieceName::Q, PieceColor::W, PieceMoveStyle::Sliding));
+        pieces.push_back(std::make_unique<_Piece>(PieceName::K, PieceColor::W, PieceMoveStyle::Sliding));
+        pieces.push_back(std::make_unique<_Piece>(PieceName::P, PieceColor::W, PieceMoveStyle::SlidingDiagonalCapturePromo));
 
-			pieces.clear();
-			pieces.push_back(std::make_unique<_Piece>(PieceName::none, PieceColor::none, PieceMoveStyle::none));
-			pieces.push_back(std::make_unique<_Piece>(PieceName::R, PieceColor::B, PieceMoveStyle::Sliding));
-			pieces.push_back(std::make_unique<_Piece>(PieceName::N, PieceColor::B, PieceMoveStyle::Jumping));
-			pieces.push_back(std::make_unique<_Piece>(PieceName::B, PieceColor::B, PieceMoveStyle::Sliding));
-			pieces.push_back(std::make_unique<_Piece>(PieceName::Q, PieceColor::B, PieceMoveStyle::Sliding));
-			pieces.push_back(std::make_unique<_Piece>(PieceName::K, PieceColor::B, PieceMoveStyle::Sliding));
-			pieces.push_back(std::make_unique<_Piece>(PieceName::P, PieceColor::B, PieceMoveStyle::SlidingDiagonalCapturePromo));
-			pieces.push_back(std::make_unique<_Piece>(PieceName::R, PieceColor::W, PieceMoveStyle::Sliding));
-			pieces.push_back(std::make_unique<_Piece>(PieceName::N, PieceColor::W, PieceMoveStyle::Jumping));
-			pieces.push_back(std::make_unique<_Piece>(PieceName::B, PieceColor::W, PieceMoveStyle::Sliding));
-			pieces.push_back(std::make_unique<_Piece>(PieceName::Q, PieceColor::W, PieceMoveStyle::Sliding));
-			pieces.push_back(std::make_unique<_Piece>(PieceName::K, PieceColor::W, PieceMoveStyle::Sliding));
-			pieces.push_back(std::make_unique<_Piece>(PieceName::P, PieceColor::W, PieceMoveStyle::SlidingDiagonalCapturePromo));
+        uint8_t n = _BoardSize - 1;
+        std::vector<MoveUnit> mv_R = { { 0,1, n },{ 0,-1, n },{ 1,0, n },{ -1,0, n } };
+        std::vector<MoveUnit> mv_N = { { 1,2, 1 },{ 1,-2, 1 },{ 2,1, 1 },{ 2,-1, 1 },{ -1,-2, 1 },{ -1,2, 1 },{ -2,1, 1 },{ -2,-1, 1 } };
+        std::vector<MoveUnit> mv_B = { { 1,1, n },{ -1,-1, n },{ 1,-1, n },{ -1,1, n } };
+        std::vector<MoveUnit> mv_Q = { { 0,1, n },{ 0,-1, n },{ 1,0, n },{ -1,0, n },{ 1,1, n },{ -1,-1, n },{ 1,-1, n },{ -1,1, n } };
+        std::vector<MoveUnit> mv_K = { { 0,1, 1 },{ 0,-1, 1 },{ 1,0, 1 },{ -1,0, 1 },{ 1,1, 1 },{ -1,-1, 1 },{ 1,-1, 1 },{ -1,1, 1 } };
+        std::vector<MoveUnit> mv_PW = { { 0,1, 1 } ,{ 1,1, 1 },{ -1,1, 1 } ,   { 0, 2, 1, MoveUnit::FLAG::conditional, "y1" } ,{ -1, 1,1, MoveUnit::FLAG::conditional, "y5_ep" } ,{ 1, 1,1, MoveUnit::FLAG::conditional, "y5_ep" } };
+        std::vector<MoveUnit> mv_PB = { { 0,-1, 1 } ,{ -1,-1, 1 },{ 1,-1, 1 } ,{ 0,-2, 1, MoveUnit::FLAG::conditional, "y6" } ,{ -1,-1,1, MoveUnit::FLAG::conditional, "y2_ep" } ,{ 1,-1,1, MoveUnit::FLAG::conditional, "y2_ep" } };
 
-			uint8_t n = _BoardSize - 1;
-			std::vector<MoveUnit> mv_R = { { 0,1, n },{ 0,-1, n },{ 1,0, n },{ -1,0, n } };
-			std::vector<MoveUnit> mv_N = { { 1,2, 1 },{ 1,-2, 1 },{ 2,1, 1 },{ 2,-1, 1 },{ -1,-2, 1 },{ -1,2, 1 },{ -2,1, 1 },{ -2,-1, 1 } };
-			std::vector<MoveUnit> mv_B = { { 1,1, n },{ -1,-1, n },{ 1,-1, n },{ -1,1, n } };
-			std::vector<MoveUnit> mv_Q = { { 0,1, n },{ 0,-1, n },{ 1,0, n },{ 0,-1, n },{ 1,1, n },{ -1,-1, n },{ 1,-1, n },{ -1,1, n } };
-			std::vector<MoveUnit> mv_K = { { 0,1, 1 },{ 0,-1, 1 },{ 1,0, 1 },{ 0,-1, 1 },{ 1,1, 1 },{ -1,-1, 1 },{ 1,-1, 1 },{ -1,1, 1 } };
-			std::vector<MoveUnit> mv_PW = { { 0,1, 1 } ,{ 1,1, 1 },{ -1,1, 1 } ,{ 0, 2, 1, MoveUnit::FLAG::conditional, "y1" } ,{ -1, 1,1, MoveUnit::FLAG::conditional, "y5_ep" } ,{ 1, 1,1, MoveUnit::FLAG::conditional, "y5_ep" } };
-			std::vector<MoveUnit> mv_PB = { { 0,-1, 1 } ,{ -1,-1, 1 },{ 1,-1, 1 } ,{ 0,-2, 1, MoveUnit::FLAG::conditional, "y6" } ,{ -1,-1,1, MoveUnit::FLAG::conditional, "y2_ep" } ,{ 1,-1,1, MoveUnit::FLAG::conditional, "y2_ep" } };
+        pieces.at(get_id(PieceName::R, PieceColor::W))->moves = mv_R;
+        pieces.at(get_id(PieceName::N, PieceColor::W))->moves = mv_N;
+        pieces.at(get_id(PieceName::B, PieceColor::W))->moves = mv_B;
+        pieces.at(get_id(PieceName::Q, PieceColor::W))->moves = mv_Q;
+        pieces.at(get_id(PieceName::K, PieceColor::W))->moves = mv_K;
+        pieces.at(get_id(PieceName::P, PieceColor::W))->moves = mv_PW;
 
-			{
-				_Piece* pR = get(get_id(PieceName::R, PieceColor::W)); pR->moves = mv_R;
-				_Piece* pN = get(get_id(PieceName::N, PieceColor::W)); pN->moves = mv_N;
-				_Piece* pB = get(get_id(PieceName::B, PieceColor::W)); pB->moves = mv_B;
-				_Piece* pQ = get(get_id(PieceName::Q, PieceColor::W)); pQ->moves = mv_Q;
-				_Piece* pK = get(get_id(PieceName::K, PieceColor::W)); pK->moves = mv_K;
-				_Piece* pP = get(get_id(PieceName::P, PieceColor::W)); pP->moves = mv_PW;
-			}
-			{
-				_Piece* pR = get(get_id(PieceName::R, PieceColor::B)); pR->moves = mv_R;
-				_Piece* pN = get(get_id(PieceName::N, PieceColor::B)); pN->moves = mv_N;
-				_Piece* pB = get(get_id(PieceName::B, PieceColor::B)); pB->moves = mv_B;
-				_Piece* pQ = get(get_id(PieceName::Q, PieceColor::B)); pQ->moves = mv_Q;
-				_Piece* pK = get(get_id(PieceName::K, PieceColor::B)); pK->moves = mv_K;
-				_Piece* pP = get(get_id(PieceName::P, PieceColor::B)); pP->moves = mv_PB;
-			}
+        pieces.at(get_id(PieceName::R, PieceColor::B))->moves = mv_R;
+        pieces.at(get_id(PieceName::N, PieceColor::B))->moves = mv_N;
+        pieces.at(get_id(PieceName::B, PieceColor::B))->moves = mv_B;
+        pieces.at(get_id(PieceName::Q, PieceColor::B))->moves = mv_Q;
+        pieces.at(get_id(PieceName::K, PieceColor::B))->moves = mv_K;
+        pieces.at(get_id(PieceName::P, PieceColor::B))->moves = mv_PB;
 
-			is_init = true;
-		}
-	};
+        is_init = true;
+    }
+
 };
-
 #endif
