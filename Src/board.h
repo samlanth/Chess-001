@@ -12,7 +12,7 @@
 namespace chess
 {
     template <typename PieceID, typename uint8_t _BoardSize> class Board;
-	template <typename PieceID, typename uint8_t _BoardSize> class BoardFunc;
+    template <typename PieceID, typename uint8_t _BoardSize> class BoardFunc;
 
     // Some async optimization function...
     template <typename PieceID, typename uint8_t _BoardSize>
@@ -25,22 +25,22 @@ namespace chess
         using _Move = Move<PieceID>;
         friend class BoardFunc<PieceID, _BoardSize>;
 
-        public:
-            Board(  bool set_classic = false,
-                    bool allow_self_check = true,
-                    bool check_repeating_move_draw = false,
-                    bool check_50_moves_draw = false);
+    public:
+        Board(  bool set_classic = false,
+                bool allow_self_check = true,
+                bool check_repeating_move_draw = false,
+                bool check_50_moves_draw = false);
 
-		Board(const Board&)                 = default;
-		Board & operator=(const Board &)    = default;
-		Board(Board&&)                      = default;
-		~Board()                            = default;
+        Board(const Board&)                 = default;
+        Board & operator=(const Board &)    = default;
+        Board(Board&&)                      = default;
+        ~Board()                            = default;
 
-		const uint8_t index_at(uint8_t x, uint8_t y) const { return _BoardSize * y + x; }
-		const _Piece* piece_at(uint8_t x, uint8_t y) const { return _Piece::get(b.at(index_at(x, y))); }
+        const uint8_t index_at(uint8_t x, uint8_t y) const { return _BoardSize * y + x; }
+        const _Piece* piece_at(uint8_t x, uint8_t y) const { return _Piece::get(b.at(index_at(x, y))); }
 
-		const PieceID get_pieceid_at(uint8_t x, uint8_t y) const { return b.at(index_at(x, y)); }
-		void          set_pieceid_at(PieceID id, uint8_t x, uint8_t y) { b.at(index_at(x, y)) = id; }
+        const PieceID get_pieceid_at(uint8_t x, uint8_t y) const { return b.at(index_at(x, y)); }
+        void          set_pieceid_at(PieceID id, uint8_t x, uint8_t y) { b.at(index_at(x, y)) = id; }
 
         const PieceColor get_color() const;
         const PieceColor get_opposite_color() const;
@@ -55,21 +55,20 @@ namespace chess
         bool is_final(const std::vector<_Move>& m) const;
 
         const std::vector<_Move>    generate_moves(bool is_recursive_call = false);
-		const std::list<_Move>      get_history_moves() const { return history_moves; }
+        const std::list<_Move>      get_history_moves() const { return history_moves; }
 
+    private:
+        PieceColor color_toplay;
+        std::vector<PieceID> b;
 
-	private:
-		PieceColor color_toplay;
-		std::vector<PieceID> b;
-
-		// Features
-		bool _allow_self_check;
-		bool _check_repeating_move_draw;
-		bool _check_50_moves_draw;
+        // Features
+        bool _allow_self_check;
+        bool _check_repeating_move_draw;
+        bool _check_50_moves_draw;
 		
         // History
-		std::list<_Move> history_moves; 
-	};
+        std::list<_Move> history_moves; 
+    };
 
     template <typename PieceID, typename uint8_t _BoardSize>
     Board<PieceID, _BoardSize>::Board(
