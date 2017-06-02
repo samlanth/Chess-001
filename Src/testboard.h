@@ -15,6 +15,7 @@
 #include "piece.h"
 #include "unittest.h"
 #include <conio.h>
+#include <sstream>
 
 namespace chess
 {
@@ -29,7 +30,19 @@ namespace chess
             bool _verbose;
             std::string _name;
 
-            TestBoard(std::string name) : _name(name) {}
+            TestBoard(std::string name) : _name(name) 
+            {
+                std::stringstream ss;
+                ss << "TestBoard (" << _name << ") enter";
+                unittest::Logger::instance()->log(ss.str() );
+            }
+
+            ~TestBoard()
+            {
+                std::stringstream ss;
+                ss << "TestBoard (" << _name << ") exit";
+                unittest::Logger::instance()->log(ss.str());
+            }
 
             using _Piece        = chess::Piece<PieceID, _BoardSize>;
             using _Move         = chess::Move<PieceID>;
@@ -139,11 +152,20 @@ namespace chess
                 bool ret = tester.run();
                 if (report) 
                 { 
-                    std::cout << _name << std::endl;
-                    std::cout << tester.report(true) << std::endl; 
-                    std::cout << "press any key to continu...";
-                    _getch();
-                    std::cout << std::endl;
+                    std::string rep = tester.report(true);
+
+                    std::stringstream ss;
+                    ss << rep;
+                    unittest::Logger::instance()->log(ss.str());
+
+                    if (verbose)
+                    {
+                        std::cout << _name << std::endl;
+                        std::cout << rep << std::endl;
+                        std::cout << "press any key to continu...";
+                        _getch();
+                        std::cout << std::endl;
+                    }
                 }
                 return ret;
             }

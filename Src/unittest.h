@@ -8,6 +8,7 @@
 // T a class containing multiple tests
 //
 // cmd_parser parse main() arguments
+// Logger log message to a file
 //
 //
 #ifndef _AL_CHESS_UNITTEST_H
@@ -17,6 +18,8 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include <fstream>
+#include <iostream>
 
 namespace unittest
 {
@@ -179,6 +182,52 @@ namespace unittest
     private:
         std::vector <std::string> tokens;
     };
+
+    //--------------
+    class Logger
+    {
+    public:
+        static Logger* instance()
+        {
+            if (_instance == nullptr)
+            {
+                _instance = new Logger();
+            }
+            return _instance;
+        }
+
+        void set_file(const std::string log_file)
+        {
+            if (_instance->_fstream.is_open())
+                _instance->_fstream.close();
+
+            _instance->_fstream.open(log_file.c_str(), std::ofstream::out | std::ofstream::app);
+            // if fail...
+        }
+
+        void log(const std::string s) const
+        {
+            //...timestamp...priority...
+            if (_instance->_fstream.is_open())
+                _instance->_fstream << s << std::endl;
+        }
+
+        ~Logger() 
+        {
+            if (_instance->_fstream.is_open())
+                _instance->_fstream.close();
+        }
+
+    private:
+        Logger()
+        {
+        }
+
+        std::ofstream   _fstream;
+        static Logger*  _instance;
+    };
+
+    Logger* Logger::_instance = nullptr;
 };
 
 #endif

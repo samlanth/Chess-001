@@ -8,6 +8,7 @@
 //
 #include "testboard.h"
 
+
 // Board type 1
 using PieceID_1 = uint8_t;
 const uint8_t B_SIZE_1 = 8;
@@ -30,6 +31,10 @@ using Piece_3 = chess::Piece<PieceID_3, B_SIZE_3>;
 //-----------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
+    unittest::Logger::instance()->set_file("C:\\tmp\\chess_log.txt");
+    unittest::Logger::instance()->log("---------------------");
+    unittest::Logger::instance()->log("Starting main testing");
+
     unittest::cmd_parser cmd(argc, argv);
     bool verbose = false;
     bool report = false;
@@ -39,19 +44,19 @@ int main(int argc, char* argv[])
         if (cmd.has_option("-v")) verbose = true;
         if (cmd.has_option("-r")) report = true;
 
-		// TEST Board type 1
-		{
-			Piece_1::init();
-			chess::test::TestBoard<PieceID_1, B_SIZE_1> test_board_1("TEST Board type 1");
-			test_board_1.do_test(verbose, report);
-		}
+        // TEST Board type 1
+        {
+            Piece_1::init();
+            chess::test::TestBoard<PieceID_1, B_SIZE_1> test_board_1("TEST Board type 1");
+            test_board_1.do_test(verbose, report);
+        }
 
-		// TEST Board type 2
-		{
-			Piece_2::init();
-			chess::test::TestBoard<PieceID_2, B_SIZE_2> test_board_2("TEST Board type 2");
-			test_board_2.do_test(verbose, report);
-		}
+        // TEST Board type 2
+        {
+            Piece_2::init();
+            chess::test::TestBoard<PieceID_2, B_SIZE_2> test_board_2("TEST Board type 2");
+            test_board_2.do_test(verbose, report);
+        }
 
         // TEST Board type 3
         {
@@ -59,11 +64,12 @@ int main(int argc, char* argv[])
             chess::test::TestBoard<PieceID_3, B_SIZE_3> test_board_3("TEST Board type 3");
             test_board_3.do_test(verbose, report);
         }
-
     }
     catch (...)
     {
+        unittest::Logger::instance()->log("Ending main testing - error - exception thrown");
         return -1;
     }
+    unittest::Logger::instance()->log("Ending main testing - successful");
     return 0;
 }

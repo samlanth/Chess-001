@@ -76,7 +76,7 @@ namespace chess
         bool _allow_self_check;
         bool _check_repeating_move_draw;
         bool _check_50_moves_draw;
-		
+
         // History
         std::list<_Move> history_moves; 
     };
