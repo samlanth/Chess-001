@@ -154,10 +154,6 @@ namespace chess
                 { 
                     std::string rep = tester.report(true);
 
-                    std::stringstream ss;
-                    ss << rep;
-                    unittest::Logger::instance()->log(ss.str());
-
                     if (verbose)
                     {
                         std::cout << _name << std::endl;

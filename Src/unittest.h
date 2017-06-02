@@ -14,12 +14,15 @@
 #ifndef _AL_CHESS_UNITTEST_H
 #define _AL_CHESS_UNITTEST_H
 
+#include <time.h>
 #include <vector>
 #include <string>
 #include <sstream>
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <chrono>
+
 
 namespace unittest
 {
@@ -98,10 +101,11 @@ namespace unittest
     template <typename T>
     inline const std::string TTest<T>::report(bool detailed) const
     {
-        std::stringstream s;
-        s << "Number check:  " << _checks_def.size() << "\n";
-        s << "Number failed: " << num_failed() << "\n";
-        s << "Number except: " << num_except() << "\n";
+        std::stringstream ss;
+        ss << "Number check/failed/except: " << _checks_def.size() << "-" << num_failed() << "-" << num_except();
+        unittest::Logger::instance()->log(ss.str());
+        ss << std::endl;
+
         if (detailed)
         {
             size_t n = 0;
@@ -109,14 +113,19 @@ namespace unittest
             {
                 if (v.result == false)
                 {
+                    std::stringstream ss_detail;
                     if (!v.is_except)
-                        s << "Failed error : (id=" << v.id << ") (msg=" << v.msg_err << ")\n";
+                        ss_detail << "Failed error : (id=" << v.id << ") (msg=" << v.msg_err << ");";
                     else
-                        s << "Failed except: (id=" << v.id << ") (msg=" << v.msg_err << ")\n";
+                        ss_detail << "Failed except: (id=" << v.id << ") (msg=" << v.msg_err << ")";
+                    unittest::Logger::instance()->log(ss_detail.str());
+
+                    ss_detail << std::endl;
+                    ss << ss_detail.str();
                 }
             }
         }
-        return s.str();
+        return ss.str();
     }
 
     template <typename T>
@@ -189,11 +198,11 @@ namespace unittest
     public:
         static Logger* instance()
         {
-            if (_instance == nullptr)
+            if (!_instance.operator bool())
             {
-                _instance = new Logger();
+                _instance = std::make_unique<Logger>();
             }
-            return _instance;
+            return _instance.get();
         }
 
         void set_file(const std::string log_file)
@@ -207,9 +216,18 @@ namespace unittest
 
         void log(const std::string s) const
         {
-            //...timestamp...priority...
             if (_instance->_fstream.is_open())
+            {
+                time_t rawtime;
+                struct tm * timeinfo;
+                char buffer[80];
+                time(&rawtime);
+                timeinfo = localtime(&rawtime);
+
+                if (strftime(buffer, 80, "%I:%M:%S:%p", timeinfo))
+                    _instance->_fstream << buffer << " : ";
                 _instance->_fstream << s << std::endl;
+            }
         }
 
         ~Logger() 
@@ -218,16 +236,14 @@ namespace unittest
                 _instance->_fstream.close();
         }
 
-    private:
-        Logger()
-        {
-        }
+        Logger() {}
 
+    private:
         std::ofstream   _fstream;
-        static Logger*  _instance;
+        static std::unique_ptr<Logger>  _instance;
     };
 
-    Logger* Logger::_instance = nullptr;
+    std::unique_ptr<Logger> Logger::_instance = nullptr;
 };
 
 #endif
