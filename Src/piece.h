@@ -1,11 +1,22 @@
-// --------------------------------
-// Author: Alain Lanthier, 2017
-// --------------------------------
+//=================================================================================================
+//                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
+//=================================================================================================
+//
+// Piece<PieceID, _BoardSize>
+//
+// Piece instance represent a chess piece
+// Piece class own and manage all chess pieces
+//
+// PieceID type is the piece identifier type
+// PieceID type must be integral type
+//
+//
 #ifndef _AL_CHESS_PIECE_H
 #define _AL_CHESS_PIECE_H
 
 #include "move.h"
 #include <iostream>
+#include <map>
 #include <vector>
 #include <memory>
 #include <string>
@@ -15,9 +26,24 @@ namespace chess
 {
     template <typename PieceID, typename uint8_t _BoardSize> class Board;
 
-    enum class PieceName        { R, N, B, Q, K, P, none };
-    enum class PieceColor       { W, B, none };
-    enum class PieceMoveStyle   { Sliding, Jumping, SlidingDiagonalCapturePromo, none };
+    enum class PieceName        { none, R, N, B, Q, K, P };
+    enum class PieceColor       { none, W, B };
+    enum class PieceMoveStyle   { none, Sliding, Jumping, SlidingDiagonalCapturePromo };
+
+    struct PieceKey
+    {
+        PieceName _n;
+        PieceColor _c;
+    };
+    struct PieceKeyLess
+    {
+        bool operator()(const PieceKey& lhs, const PieceKey& rhs) const 
+        { 
+            if (lhs._n < rhs._n) return true;
+            if (lhs._n == rhs._n) return (lhs._c < rhs._c);
+            return false;
+        }
+    };
 
     template <typename PieceID, typename uint8_t _BoardSize>
     class Piece
@@ -33,7 +59,6 @@ namespace chess
         Piece & operator=(const Piece &)    = delete;
         Piece(Piece&&)                      = delete;
 
-        // static
         static const PieceID empty_id();
         static const PieceID get_id(PieceName _name, PieceColor _c);
         static const _Piece* get(PieceID id);
@@ -54,7 +79,17 @@ namespace chess
 
         static bool             is_init;
         static std::vector<std::unique_ptr<_Piece>> pieces;
+        static std::map<PieceKey, PieceID, PieceKeyLess> _keyToID;
     };
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool Piece<PieceID, _BoardSize>::is_init = false;
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    std::map<PieceKey, PieceID, PieceKeyLess> Piece<PieceID, _BoardSize>::_keyToID;
+    
+    template <typename PieceID, typename uint8_t _BoardSize>
+    std::vector<std::unique_ptr<Piece<PieceID, _BoardSize>>> Piece<PieceID, _BoardSize>::pieces;
 
     template <typename PieceID, typename uint8_t _BoardSize>
     inline Piece<PieceID, _BoardSize>::Piece(PieceName n, PieceColor c, PieceMoveStyle m)
@@ -66,32 +101,9 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline const PieceID Piece<PieceID, _BoardSize>::get_id(PieceName _name, PieceColor _c)
     {
-        if (_name == PieceName::none) return 0;
-        if (_c == PieceColor::B)
-        {
-            switch (_name) {
-            case PieceName::R: return 1;
-            case PieceName::N: return 2;
-            case PieceName::B: return 3;
-            case PieceName::Q: return 4;
-            case PieceName::K: return 5;
-            case PieceName::P: return 6;
-            default: return 0;
-            }
-        }
-        else if (_c == PieceColor::W)
-        {
-            switch (_name) {
-            case PieceName::R: return 7;
-            case PieceName::N: return 8;
-            case PieceName::B: return 9;
-            case PieceName::Q: return 10;
-            case PieceName::K: return 11;
-            case PieceName::P: return 12;
-            default: return 0;
-            }
-        }
-        return 0;
+        auto &it = _keyToID.find(PieceKey{ _name,_c });
+        if (it != _keyToID.end()) return it->second;
+        return empty_id();
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
@@ -141,6 +153,21 @@ namespace chess
     {
         if (is_init) return;
 
+        uint8_t id = 0; 
+        _keyToID.insert(std::pair<PieceKey, PieceID>(PieceKey{ PieceName::none, PieceColor::none }, id++)); // implicit cast PieceID(id)
+        _keyToID.insert(std::pair<PieceKey, PieceID>(PieceKey{ PieceName::R, PieceColor::B }, id++));
+        _keyToID.insert(std::pair<PieceKey, PieceID>(PieceKey{ PieceName::N, PieceColor::B }, id++));
+        _keyToID.insert(std::pair<PieceKey, PieceID>(PieceKey{ PieceName::B, PieceColor::B }, id++));
+        _keyToID.insert(std::pair<PieceKey, PieceID>(PieceKey{ PieceName::Q, PieceColor::B }, id++));
+        _keyToID.insert(std::pair<PieceKey, PieceID>(PieceKey{ PieceName::K, PieceColor::B }, id++));
+        _keyToID.insert(std::pair<PieceKey, PieceID>(PieceKey{ PieceName::P, PieceColor::B }, id++));
+        _keyToID.insert(std::pair<PieceKey, PieceID>(PieceKey{ PieceName::R, PieceColor::W }, id++));
+        _keyToID.insert(std::pair<PieceKey, PieceID>(PieceKey{ PieceName::N, PieceColor::W }, id++));
+        _keyToID.insert(std::pair<PieceKey, PieceID>(PieceKey{ PieceName::B, PieceColor::W }, id++));
+        _keyToID.insert(std::pair<PieceKey, PieceID>(PieceKey{ PieceName::Q, PieceColor::W }, id++));
+        _keyToID.insert(std::pair<PieceKey, PieceID>(PieceKey{ PieceName::K, PieceColor::W }, id++));
+        _keyToID.insert(std::pair<PieceKey, PieceID>(PieceKey{ PieceName::P, PieceColor::W }, id++));
+
         pieces.clear();
         pieces.push_back(std::make_unique<_Piece>(PieceName::none, PieceColor::none, PieceMoveStyle::none));
         pieces.push_back(std::make_unique<_Piece>(PieceName::R, PieceColor::B, PieceMoveStyle::Sliding));
@@ -155,6 +182,9 @@ namespace chess
         pieces.push_back(std::make_unique<_Piece>(PieceName::Q, PieceColor::W, PieceMoveStyle::Sliding));
         pieces.push_back(std::make_unique<_Piece>(PieceName::K, PieceColor::W, PieceMoveStyle::Sliding));
         pieces.push_back(std::make_unique<_Piece>(PieceName::P, PieceColor::W, PieceMoveStyle::SlidingDiagonalCapturePromo));
+
+        for(size_t i = 0; i< pieces.size();i++)
+            assert(i == pieces[i]->get_id());
 
         uint8_t n = _BoardSize - 1;
         std::vector<MoveUnit> mv_R = { { 0,1, n },{ 0,-1, n },{ 1,0, n },{ -1,0, n } };

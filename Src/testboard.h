@@ -1,6 +1,12 @@
-// --------------------------------
-// Author: Alain Lanthier, 2017
-// --------------------------------
+//=================================================================================================
+//                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
+//=================================================================================================
+//
+// TestBoard<PieceID, _BoardSize>
+//
+// TestBoard contains unit tests for Board
+//
+//
 #ifndef _AL_CHESS_TEST_TESTBOARD_H
 #define _AL_CHESS_TEST_TESTBOARD_H
 
@@ -8,6 +14,7 @@
 #include "board.h"
 #include "piece.h"
 #include "unittest.h"
+#include <conio.h>
 
 namespace chess
 {
@@ -19,7 +26,10 @@ namespace chess
 		class TestBoard
 		{
 		public:
-			TestBoard() {}
+            bool _verbose;
+            std::string _name;
+
+			TestBoard(std::string name) : _name(name) {}
 
 			using _Piece		= chess::Piece<PieceID, _BoardSize>;
 			using _Move			= chess::Move<PieceID>;
@@ -73,7 +83,7 @@ namespace chess
                         break;
 
 					m = board.generate_moves();
-                    std::cout << "Moves=" << m.size() << std::endl;
+                    if (_verbose) std::cout << "Number moves = " << m.size() << std::endl;
 					if (m.size() == 0) break;
 
                     // if can capture K, shoud do it!
@@ -90,8 +100,7 @@ namespace chess
 					{
 						_Move mv = m[mv_index];
 						board.apply_move(mv);
-
-                        std::cout << bf.to_str() << std::endl; 
+                        if (_verbose) std::cout << bf.to_str() << std::endl;
 					}
 				}
 
@@ -99,8 +108,7 @@ namespace chess
 				for (size_t i = 0; i < h.size(); i++)
 				{
 					board.undo_move();
-
-                    std::cout << bf.to_str() << std::endl;
+                    if (_verbose) std::cout << bf.to_str() << std::endl;
 				}
 
 				m = board.generate_moves();
@@ -116,20 +124,27 @@ namespace chess
 				return (bf.cnt_piece(PieceName::P, PieceColor::W) == 8);
 			}
 
-			bool do_test(bool display = true)
+			bool do_test(bool verbose, bool report)
 			{
-				bool        ret = true;
-				uint32_t    id = 0;
 				unittest::TTest<TestBoard<PieceID, _BoardSize>> tester = unittest::TTest<TestBoard<PieceID, _BoardSize>>();
+                this->_verbose = verbose;
 
-                TestBoard test_obj{};
-				tester.add(&test_obj, &TestBoard::check_000, id++, "err000");
-				tester.add(&test_obj, &TestBoard::check_001, id++, "err001");
-				tester.add(&test_obj, &TestBoard::check_002, id++, "err002");
-				tester.add(&test_obj, &TestBoard::check_003, id++, "err003");
-				tester.add(&test_obj, &TestBoard::check_004, id++, "err004");
-				ret = tester.run();
-				if (display) { std::cout << tester.report(true) << std::endl; }
+                uint32_t    id = 0;
+				tester.add(this, &TestBoard::check_000, id++, "err000");
+				tester.add(this, &TestBoard::check_001, id++, "err001");
+				tester.add(this, &TestBoard::check_002, id++, "err002");
+				tester.add(this, &TestBoard::check_003, id++, "err003");
+				tester.add(this, &TestBoard::check_004, id++, "err004");
+
+				bool ret = tester.run();
+				if (report) 
+                { 
+                    std::cout << _name << std::endl;
+                    std::cout << tester.report(true) << std::endl; 
+                    std::cout << "press any key to continu...";
+                    _getch();
+                    std::cout << std::endl;
+                }
 				return ret;
 			}
 		};

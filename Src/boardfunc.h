@@ -1,6 +1,12 @@
-// --------------------------------
-// Author: Alain Lanthier, 2017
-// --------------------------------
+//=================================================================================================
+//                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
+//=================================================================================================
+//
+// BoardFunc<PieceID, _BoardSize>
+//
+// BoardFunc provide functions on a Board
+//
+//
 #ifndef _AL_CHESS_BOARDFUNC_H
 #define _AL_CHESS_BOARDFUNC_H
 
@@ -27,7 +33,7 @@ namespace chess
 		{
 			size_t cnt = 0;
 			PieceID id = _Piece::get_id(n, c);
-			for (const auto &v : _board.b)
+			for (const auto &v : _board._b)
 			{
 				if (v == id) cnt++;
 			}
