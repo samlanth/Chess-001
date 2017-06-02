@@ -34,8 +34,8 @@ int main(int argc, char* argv[])
     bool verbose = false;
     bool report = false;
 
-	try
-	{
+    try
+    {
         if (cmd.has_option("-v")) verbose = true;
         if (cmd.has_option("-r")) report = true;
 
@@ -61,9 +61,9 @@ int main(int argc, char* argv[])
         }
 
     }
-	catch (...)
-	{
-		return -1;
-	}
-	return 0;
+    catch (...)
+    {
+        return -1;
+    }
+    return 0;
 }

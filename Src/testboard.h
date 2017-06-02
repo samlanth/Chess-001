@@ -68,17 +68,17 @@ namespace chess
 
 			bool check_003(uint32_t) // test undo_move
 			{
-				_Board board(true,true);
+                _Board board(true,true);
                 _BoardFunc bf(board);
 
-				std::vector<_Move> m;
-				m = board.generate_moves();
-				size_t cnt_move_beg = m.size();
+                std::vector<_Move> m;
+                m = board.generate_moves();
+                size_t cnt_move_beg = m.size();
 
                 size_t ret_index;
                 size_t mv_index;
-				for (size_t i = 0; i < 100; i++)
-				{
+                for (size_t i = 0; i < 100; i++)
+                {
                     if (board.is_final(m)) 
                         break;
 
@@ -126,18 +126,18 @@ namespace chess
 
 			bool do_test(bool verbose, bool report)
 			{
-				unittest::TTest<TestBoard<PieceID, _BoardSize>> tester = unittest::TTest<TestBoard<PieceID, _BoardSize>>();
+                unittest::TTest<TestBoard<PieceID, _BoardSize>> tester = unittest::TTest<TestBoard<PieceID, _BoardSize>>();
                 this->_verbose = verbose;
 
                 uint32_t    id = 0;
-				tester.add(this, &TestBoard::check_000, id++, "err000");
-				tester.add(this, &TestBoard::check_001, id++, "err001");
-				tester.add(this, &TestBoard::check_002, id++, "err002");
-				tester.add(this, &TestBoard::check_003, id++, "err003");
-				tester.add(this, &TestBoard::check_004, id++, "err004");
+                tester.add(this, &TestBoard::check_000, id++, "err000");
+                tester.add(this, &TestBoard::check_001, id++, "err001");
+                tester.add(this, &TestBoard::check_002, id++, "err002");
+                tester.add(this, &TestBoard::check_003, id++, "err003");
+                tester.add(this, &TestBoard::check_004, id++, "err004");
 
-				bool ret = tester.run();
-				if (report) 
+                bool ret = tester.run();
+                if (report) 
                 { 
                     std::cout << _name << std::endl;
                     std::cout << tester.report(true) << std::endl; 
@@ -145,9 +145,9 @@ namespace chess
                     _getch();
                     std::cout << std::endl;
                 }
-				return ret;
-			}
-		};
-	};
+                return ret;
+            }
+        };
+    };
 };
 #endif
