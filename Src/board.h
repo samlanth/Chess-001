@@ -78,7 +78,7 @@ namespace chess
         std::list<_Move> _history_moves; 
     };
 
-    // Multi thread move generation f()
+    // f()
     template <typename PieceID, typename uint8_t _BoardSize>
     std::vector<Move<PieceID>> generate_moves_no_self_check(Board<PieceID, _BoardSize>&, std::vector<Move<PieceID>>& m, size_t from, size_t to);
 
@@ -219,6 +219,7 @@ namespace chess
         else if (m.mu.context_extra == "R") _b.at(index_at(m.dst_x, m.dst_y)) = _Piece::get_id(PieceName::R, _color_toplay);
         else if (m.mu.context_extra == "B") _b.at(index_at(m.dst_x, m.dst_y)) = _Piece::get_id(PieceName::B, _color_toplay);
         else if (m.mu.context_extra == "N") _b.at(index_at(m.dst_x, m.dst_y)) = _Piece::get_id(PieceName::N, _color_toplay);
+        // castling...
         _history_moves.push_back(m);
         set_opposite_color();
     }
@@ -260,12 +261,12 @@ namespace chess
                 p_src = this->piece_at(i, j);
 
                 if (p_src->color != this->_color_toplay) continue;
-                if (p_src->name != PieceName::none) // src piece exist
+                if (p_src->name != PieceName::none) // valid src piece
                 {
                     for (auto &mu : p_src->moves)
                     {
                         bool prev_path_empty = true;
-                        for (uint8_t n = 1; n <= mu.len; n++)
+                        for (uint8_t n = 1; n <= mu.len; n++) // follow mu direction
                         {
                             if ((prev_path_empty) &&
                                 (i + mu.x*n >= 0) && (i + mu.x*n < _BoardSize) &&
@@ -287,42 +288,21 @@ namespace chess
                                     {
                                         if (mu.flag == MoveUnit::FLAG::conditional)
                                         {
-                                            if ((mu.flag_spec == "y1") && (j == 1))
+                                            if ( ((mu.flag_spec == "y1") && (j == 1)) ||
+                                                 ((mu.flag_spec == "y6") && (j == 6)) )
                                             {
                                                 uint8_t prev_x = (mu.x > 1) ? 1 : mu.x;
                                                 uint8_t prev_y = (mu.y > 1) ? 1 : mu.y;
                                                 uint8_t prev_mv_dst_x = (uint8_t)(i + prev_x * 1);
                                                 uint8_t prev_mv_dst_y = (uint8_t)(j + prev_y * 1);
-                                                PieceID id = get_pieceid_at(prev_mv_dst_x, prev_mv_dst_y);
-                                                if (id == _Piece::empty_id()) // empty path
+                                                if (get_pieceid_at(prev_mv_dst_x, prev_mv_dst_y) == _Piece::empty_id()) // empty path
                                                 {
                                                     m.push_back(mv);
                                                 }
                                             }
-                                            else if ((mu.flag_spec == "y6") && (j == 6))
-                                            {
-                                                uint8_t prev_x = (mu.x > 1) ? 1 : mu.x;
-                                                uint8_t prev_y = (mu.y > 1) ? 1 : mu.y;
-                                                uint8_t prev_mv_dst_x = (uint8_t)(i + prev_x * 1);
-                                                uint8_t prev_mv_dst_y = (uint8_t)(j + prev_y * 1);
-                                                PieceID id = get_pieceid_at(prev_mv_dst_x, prev_mv_dst_y);
-                                                if (id == _Piece::empty_id()) // empty path
-                                                {
-                                                    m.push_back(mv);
-                                                }
-                                            }
-                                            else if ((mu.flag_spec == "y5_ep") && (j == 5) && (get_color() == PieceColor::W) && (_history_moves.size() > 0)) // en passant
-                                            {
-                                                _Move mh = _history_moves.back();
-                                                if (mh.prev_src_id == _Piece::get_id(PieceName::P, get_opposite_color()))
-                                                {
-                                                    if ((mh.src_x == i + mu.x) && (mh.src_y == j + mu.y) && (abs(mh.dst_y - mh.src_y) == 2))
-                                                    {
-                                                        m.push_back(mv);
-                                                    }
-                                                }
-                                            }
-                                            else if ((mu.flag_spec == "y2_ep") && (j == 2) && (get_color() == PieceColor::B) && (_history_moves.size() > 0))  // en passant
+                                            // en passant
+                                            else if ( ((mu.flag_spec == "y5_ep") && (j == 5) && (get_color() == PieceColor::W) && (_history_moves.size() > 0)) ||
+                                                      ((mu.flag_spec == "y2_ep") && (j == 2) && (get_color() == PieceColor::B) && (_history_moves.size() > 0)) )
                                             {
                                                 _Move mh = _history_moves.back();
                                                 if (mh.prev_src_id == _Piece::get_id(PieceName::P, get_opposite_color()))

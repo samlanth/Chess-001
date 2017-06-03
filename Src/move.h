@@ -26,9 +26,9 @@ namespace chess
         int8_t	    x;				// x direction
         int8_t	    y;				// y direction
         uint8_t	    len;			// max horizon 1..len
-        FLAG        flag;			// move category (normal or special) 
-        std::string flag_spec;		// special moveunit specification
-        std::string context_extra;	// extra info for move from a contextual position
+        FLAG        flag;			// move category (normal or conditional) 
+        std::string flag_spec;		// conditional moveunit specification
+        std::string context_extra;	// extra info for move from a chess position
     };
 
     template <typename PieceID>
