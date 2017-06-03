@@ -78,9 +78,17 @@ namespace chess
                 else return true; // ignore
             }
 
-            bool check_003(uint32_t) // test undo_move
+            bool check_003a(uint32_t param) // test undo_move (allow_self_check = true)
             {
-                _Board board(true,true);
+                return check_003(param, true);
+            }
+            bool check_003b(uint32_t param) // test undo_move (allow_self_check = false)
+            {
+                return check_003(param, false);
+            }
+            bool check_003(uint32_t param, bool allow_self_check) // test undo_move
+            {
+                _Board board(true, allow_self_check);
                 _BoardFunc bf(board);
 
                 std::vector<_Move> m;
@@ -145,18 +153,19 @@ namespace chess
                 tester.add(this, &TestBoard::check_000, id++, "err000");
                 tester.add(this, &TestBoard::check_001, id++, "err001");
                 tester.add(this, &TestBoard::check_002, id++, "err002");
-                tester.add(this, &TestBoard::check_003, id++, "err003");
+                tester.add(this, &TestBoard::check_003a, id++, "err003a");
+                tester.add(this, &TestBoard::check_003b, id++, "err003b");
                 tester.add(this, &TestBoard::check_004, id++, "err004");
 
                 bool ret = tester.run();
                 if (cmd.has_option("-r"))
                 { 
                     std::string rep = tester.report(true);
+                    std::cout << _name << std::endl;
+                    std::cout << rep << std::endl;
 
                     if (_verbose)
                     {
-                        std::cout << _name << std::endl;
-                        std::cout << rep << std::endl;
                         std::cout << "press any key to continu...";
                         _getch();
                         std::cout << std::endl;

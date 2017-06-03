@@ -36,7 +36,9 @@ namespace unittest
         uint32_t    id;
         std::string msg_err;
         bool        result;
-        bool        is_except;
+        bool        is_exception;
+        std::chrono::time_point<std::chrono::system_clock> _start;
+        std::chrono::time_point<std::chrono::system_clock> _end;
     };
 
     template <typename T>
@@ -82,7 +84,7 @@ namespace unittest
         size_t n = 0;
         for (auto &v : _checks_def)
         {
-            if (v.is_except == true) n++;
+            if (v.is_exception == true) n++;
         }
         return n;
     }
@@ -111,18 +113,23 @@ namespace unittest
             size_t n = 0;
             for (auto &v : _checks_def)
             {
-                if (v.result == false)
+                std::chrono::duration<double> elapsed_seconds = v._end - v._start;
+                std::stringstream ss_detail;
+                if (v.result)
+                {
+                    ss_detail << "OK: (id=" << v.id << ") (elapsed sec= " << elapsed_seconds.count() << ")";
+                }
+                else
                 {
                     std::stringstream ss_detail;
-                    if (!v.is_except)
-                        ss_detail << "Failed error : (id=" << v.id << ") (msg=" << v.msg_err << ");";
+                    if (!v.is_exception)
+                        ss_detail << "Error: (id=" << v.id << ") (msg=" << v.msg_err << ") (elapsed sec= " << elapsed_seconds.count() << ")";
                     else
-                        ss_detail << "Failed except: (id=" << v.id << ") (msg=" << v.msg_err << ")";
-                    unittest::Logger::instance()->log(ss_detail.str());
-
-                    ss_detail << std::endl;
-                    ss << ss_detail.str();
-                }
+                        ss_detail << "Except: (id=" << v.id << ") (msg=" << v.msg_err << ") (elapsed sec= " << elapsed_seconds.count() << ")";
+                }        
+                unittest::Logger::instance()->log(ss_detail.str());
+                ss_detail << std::endl;
+                ss << ss_detail.str();
             }
         }
         return ss.str();
@@ -137,15 +144,19 @@ namespace unittest
         {
             try
             {
+                v._start = std::chrono::system_clock::now();
                 bool result = checkT(v.pT, v.f, v.id);
+                v._end = std::chrono::system_clock::now();
+
                 v.result = result;
-                v.is_except = false;
+                v.is_exception = false;
                 if (result == false)  _status = false;
             }
             catch (...)
             {
+                v._end = std::chrono::system_clock::now();
                 v.result = false;
-                v.is_except = true;
+                v.is_exception = true;
                 _status = false;
                 _has_except = true;
             }

@@ -47,7 +47,7 @@ int main(int argc, char* argv[])
             using Piece_1 = chess::Piece<PieceID_1, B_SIZE_1>;
 
             Piece_1::init();
-            chess::test::TestBoard<PieceID_1, B_SIZE_1> test_board_1("Board type 1");
+            chess::test::TestBoard<PieceID_1, B_SIZE_1> test_board_1("Board type 1 <uint8_t, 8>");
             test_board_1.do_test(cmd);
         }
 
@@ -58,18 +58,18 @@ int main(int argc, char* argv[])
             using Piece_2 = chess::Piece<PieceID_2, B_SIZE_2>;
 
             Piece_2::init();
-            chess::test::TestBoard<PieceID_2, B_SIZE_2> test_board_2("Board type 2");
+            chess::test::TestBoard<PieceID_2, B_SIZE_2> test_board_2("Board type 2 <uint16_t, 16>");
             test_board_2.do_test(cmd);
         }
 
         // TEST Board type 3
         {
-            using PieceID_3 = long;
+            using PieceID_3 = int;
             const uint8_t B_SIZE_3 = 10;
             using Piece_3 = chess::Piece<PieceID_3, B_SIZE_3>;
 
             Piece_3::init();
-            chess::test::TestBoard<PieceID_3, B_SIZE_3> test_board_3("Board type 3");
+            chess::test::TestBoard<PieceID_3, B_SIZE_3> test_board_3("Board type 3 <int, 8>");
             test_board_3.do_test(cmd);
         }
     }

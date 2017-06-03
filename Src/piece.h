@@ -83,22 +83,28 @@ namespace chess
         static std::map<PieceKey, PieceID, PieceKeyLess> _keyToID;
     };
 
+    // static is_init
     template <typename PieceID, typename uint8_t _BoardSize>
     bool Piece<PieceID, _BoardSize>::is_init = false;
 
+    // static _keyToID
     template <typename PieceID, typename uint8_t _BoardSize>
     std::map<PieceKey, PieceID, PieceKeyLess> Piece<PieceID, _BoardSize>::_keyToID;
     
+    // static pieces
     template <typename PieceID, typename uint8_t _BoardSize>
     std::vector<std::unique_ptr<Piece<PieceID, _BoardSize>>> Piece<PieceID, _BoardSize>::pieces;
 
+    // Piece()
     template <typename PieceID, typename uint8_t _BoardSize>
     inline Piece<PieceID, _BoardSize>::Piece(PieceName n, PieceColor c, PieceMoveStyle m)
         : name(n), color(c), move_style(m) {}
     
+    // empty_id()
     template <typename PieceID, typename uint8_t _BoardSize>
     inline const PieceID Piece<PieceID, _BoardSize>::empty_id() { return 0; }
 
+    // get_id()
     template <typename PieceID, typename uint8_t _BoardSize>
     inline const PieceID Piece<PieceID, _BoardSize>::get_id(PieceName _name, PieceColor _c)
     {
@@ -107,12 +113,14 @@ namespace chess
         return empty_id();
     }
 
+    // get_id()
     template <typename PieceID, typename uint8_t _BoardSize>
     inline const PieceID Piece<PieceID, _BoardSize>::get_id() const 
     { 
         return get_id(this->name, this->color); 
     }
 
+    // get()
     template <typename PieceID, typename uint8_t _BoardSize>
     inline const Piece<PieceID, _BoardSize>* Piece<PieceID, _BoardSize>::get(PieceID id)
     {
@@ -122,6 +130,7 @@ namespace chess
         return pieces[id].get();
     }
 
+    // to_str()
     template <typename PieceID, typename uint8_t _BoardSize>
     inline const std::string Piece<PieceID, _BoardSize>::to_str(PieceID id)
     {
@@ -149,6 +158,7 @@ namespace chess
         return "-- ";
     }
 
+    // init()
     template <typename PieceID, typename uint8_t _BoardSize>
     inline void Piece<PieceID, _BoardSize>::init()
     {
@@ -192,10 +202,9 @@ namespace chess
         std::vector<MoveUnit> mv_N = { { 1,2, 1 },{ 1,-2, 1 },{ 2,1, 1 },{ 2,-1, 1 },{ -1,-2, 1 },{ -1,2, 1 },{ -2,1, 1 },{ -2,-1, 1 } };
         std::vector<MoveUnit> mv_B = { { 1,1, n },{ -1,-1, n },{ 1,-1, n },{ -1,1, n } };
         std::vector<MoveUnit> mv_Q = { { 0,1, n },{ 0,-1, n },{ 1,0, n },{ -1,0, n },{ 1,1, n },{ -1,-1, n },{ 1,-1, n },{ -1,1, n } };
-        std::vector<MoveUnit> mv_K = { { 0,1, 1 },{ 0,-1, 1 },{ 1,0, 1 },{ -1,0, 1 },{ 1,1, 1 },{ -1,-1, 1 },{ 1,-1, 1 },{ -1,1, 1 } };
+        std::vector<MoveUnit> mv_K = { { 0,1, 1 },{ 0,-1, 1 },{ 1,0, 1 },{ -1,0, 1 },{ 1,1, 1 },{ -1,-1, 1 },{ 1,-1, 1 },{ -1,1, 1 } ,{ 3, 0, 1, MoveUnit::FLAG::conditional, "castlingK" } ,{ -2, 0, 1, MoveUnit::FLAG::conditional, "castlingQ" } };
         std::vector<MoveUnit> mv_PW = { { 0,1, 1 } ,{ 1,1, 1 },{ -1,1, 1 } ,   { 0, 2, 1, MoveUnit::FLAG::conditional, "y1" } ,{ -1, 1,1, MoveUnit::FLAG::conditional, "y5_ep" } ,{ 1, 1,1, MoveUnit::FLAG::conditional, "y5_ep" } };
         std::vector<MoveUnit> mv_PB = { { 0,-1, 1 } ,{ -1,-1, 1 },{ 1,-1, 1 } ,{ 0,-2, 1, MoveUnit::FLAG::conditional, "y6" } ,{ -1,-1,1, MoveUnit::FLAG::conditional, "y2_ep" } ,{ 1,-1,1, MoveUnit::FLAG::conditional, "y2_ep" } };
-        // castling...
 
         pieces.at(get_id(PieceName::R, PieceColor::W))->moves = mv_R;
         pieces.at(get_id(PieceName::N, PieceColor::W))->moves = mv_N;

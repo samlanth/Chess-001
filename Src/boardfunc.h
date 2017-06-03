@@ -25,7 +25,7 @@ namespace chess
 		using _Board = Board<PieceID, _BoardSize>;
 
 	public:
-		BoardFunc(_Board& b) : _board(b)
+		BoardFunc(_Board& b) : _b(b)
 		{
 		}
 
@@ -34,7 +34,7 @@ namespace chess
 		{
 			size_t cnt = 0;
 			PieceID id = _Piece::get_id(n, c);
-			for (const auto &v : _board._b)
+			for (const auto &v : _b._cells)
 			{
 				if (v == id) cnt++;
 			}
@@ -49,7 +49,7 @@ namespace chess
 			{
 				for (uint8_t i = 0; i < _BoardSize; i++)
 				{
-					id = _board.get_pieceid_at(i, j - 1);
+					id = _b.get_pieceid_at(i, j - 1);
 					s += _Piece::to_str(id);
 				}
 				s += "\n";
@@ -58,7 +58,7 @@ namespace chess
 		}
 
 	private:
-		_Board& _board;
+		_Board& _b;
 	};
 }
 #endif
