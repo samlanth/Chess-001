@@ -1,3 +1,4 @@
+#pragma once
 //=================================================================================================
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
@@ -22,7 +23,6 @@
 #include <fstream>
 #include <iostream>
 #include <chrono>
-
 
 namespace unittest
 {
@@ -180,7 +180,8 @@ namespace unittest
             {
                 return *itr;
             }
-            return "";
+            static const std::string s_empty = std::string("");
+            return s_empty;
         }
 
         bool has_option(const std::string &option) const 
@@ -189,13 +190,19 @@ namespace unittest
         }
 
     private:
-        std::vector <std::string> tokens;
+        std::vector<std::string> tokens;
     };
 
     //--------------
     class Logger
     {
     public:
+        Logger() = default;
+
+        Logger(const Logger&) = delete;
+        Logger & operator=(const Logger &) = delete;
+        Logger(Logger&&) = delete;
+
         static Logger* instance()
         {
             if (!_instance.operator bool())
@@ -205,40 +212,64 @@ namespace unittest
             return _instance.get();
         }
 
-        void set_file(const std::string log_file)
+        bool set_file(const std::string log_file)
         {
-            if (_instance->_fstream.is_open())
-                _instance->_fstream.close();
+            if (_instance.operator bool())
+            {
+                if (_instance->_fstream.is_open())
+                    _instance->_fstream.close();
 
-            _instance->_fstream.open(log_file.c_str(), std::ofstream::out | std::ofstream::app);
-            // if fail...
+                _instance->_fstream.open(log_file.c_str(), std::ofstream::out | std::ofstream::app);
+                if (_instance->_fstream.good()) 
+                    return true;
+            }
+            return false;
+        }
+
+        void close()
+        {
+            if (_instance.operator bool())
+            {
+                if (_instance->_fstream.is_open())
+                    _instance->_fstream.close();
+
+                Logger* p = _instance.release();
+                delete p;
+            }
         }
 
         void log(const std::string s) const
         {
-            if (_instance->_fstream.is_open())
+            if (_instance.operator bool())
             {
-                time_t rawtime;
-                struct tm * timeinfo;
-                char buffer[80];
-                time(&rawtime);
-                timeinfo = localtime(&rawtime);
+                if (_instance->_fstream.is_open())
+                {
+                    time(&_instance->_rawtime);
+                    _instance->_timeinfo = localtime(&_instance->_rawtime);
+                    if (strftime(_instance->_time_buffer, 80, "%I:%M:%S:%p", _instance->_timeinfo))
+                        _instance->_fstream << _instance->_time_buffer << " : ";
 
-                if (strftime(buffer, 80, "%I:%M:%S:%p", timeinfo))
-                    _instance->_fstream << buffer << " : ";
-                _instance->_fstream << s << std::endl;
+                    _instance->_fstream << s << std::endl;
+                }
             }
         }
 
         ~Logger() 
         {
-            if (_instance->_fstream.is_open())
-                _instance->_fstream.close();
+            if (_instance.operator bool())
+            {
+                if (_instance->_fstream.is_open())
+                    _instance->_fstream.close();
+
+                _instance.release();
+            }
         }
 
-        Logger() {}
-
     private:
+        time_t          _rawtime;
+        struct tm *     _timeinfo;
+        char            _time_buffer[80];
+
         std::ofstream   _fstream;
         static std::unique_ptr<Logger>  _instance;
     };

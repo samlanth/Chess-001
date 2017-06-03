@@ -1,3 +1,4 @@
+#pragma once
 //=================================================================================================
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
@@ -24,10 +25,6 @@ namespace chess
 {
     template <typename PieceID, typename uint8_t _BoardSize> class Board;
     template <typename PieceID, typename uint8_t _BoardSize> class BoardFunc;
-
-    // Multi thread move generation f()
-    template <typename PieceID, typename uint8_t _BoardSize>
-    std::vector<Move<PieceID>> generate_moves_no_self_check(Board<PieceID, _BoardSize>&, std::vector<Move<PieceID>>& m, size_t from, size_t to);
 
     template <typename PieceID, typename uint8_t _BoardSize>
     class Board
@@ -66,7 +63,7 @@ namespace chess
         bool is_final(const std::vector<_Move>& m) const;
 
         const std::vector<_Move>    generate_moves(bool is_recursive_call = false);
-        const std::list<_Move>      get_history_moves() const { return history_moves; }
+        const std::list<_Move>      get_history_moves() const { return _history_moves; }
 
     private:
         PieceColor              _color_toplay;
@@ -78,8 +75,12 @@ namespace chess
         bool _check_50_moves_draw;
 
         // History
-        std::list<_Move> history_moves; 
+        std::list<_Move> _history_moves; 
     };
+
+    // Multi thread move generation f()
+    template <typename PieceID, typename uint8_t _BoardSize>
+    std::vector<Move<PieceID>> generate_moves_no_self_check(Board<PieceID, _BoardSize>&, std::vector<Move<PieceID>>& m, size_t from, size_t to);
 
     template <typename PieceID, typename uint8_t _BoardSize>
     Board<PieceID, _BoardSize>::Board(
@@ -100,13 +101,13 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    const PieceColor Board<PieceID, _BoardSize>::get_color() const 
+    inline const PieceColor Board<PieceID, _BoardSize>::get_color() const
     { 
         return _color_toplay;
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    const PieceColor Board<PieceID, _BoardSize>::get_opposite_color() const
+    inline const PieceColor Board<PieceID, _BoardSize>::get_opposite_color() const
     {
         if (_color_toplay == PieceColor::B) return PieceColor::W;
         else if (_color_toplay == PieceColor::W) return PieceColor::B;
@@ -114,7 +115,7 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    void Board<PieceID, _BoardSize>::set_opposite_color() {
+    inline void Board<PieceID, _BoardSize>::set_opposite_color() {
         if (_color_toplay == PieceColor::B) _color_toplay = PieceColor::W;
         else if (_color_toplay == PieceColor::W) _color_toplay = PieceColor::B;
     }
@@ -125,7 +126,7 @@ namespace chess
         if (_BoardSize < 8) return;	// throw...
 
         _color_toplay = PieceColor::W;
-        history_moves.clear();
+        _history_moves.clear();
 
         PieceID emptyid = _Piece::empty_id();
         for (auto &v : _b) v = emptyid;
@@ -218,30 +219,26 @@ namespace chess
         else if (m.mu.context_extra == "R") _b.at(index_at(m.dst_x, m.dst_y)) = _Piece::get_id(PieceName::R, _color_toplay);
         else if (m.mu.context_extra == "B") _b.at(index_at(m.dst_x, m.dst_y)) = _Piece::get_id(PieceName::B, _color_toplay);
         else if (m.mu.context_extra == "N") _b.at(index_at(m.dst_x, m.dst_y)) = _Piece::get_id(PieceName::N, _color_toplay);
-        history_moves.push_back(m);
+        _history_moves.push_back(m);
         set_opposite_color();
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
     inline void Board<PieceID, _BoardSize>::undo_move()
     {
-        if (history_moves.size() == 0) return;
+        if (_history_moves.size() == 0) return;
 
-        _Move m = history_moves.back();
-        history_moves.pop_back();
+        _Move m = _history_moves.back();
+        _history_moves.pop_back();
 
         _b.at(index_at(m.src_x, m.src_y)) = m.prev_src_id;
         _b.at(index_at(m.dst_x, m.dst_y)) = m.prev_dst_id;
         if ((m.mu.flag_spec == "y5_ep") || (m.mu.flag_spec == "y2_ep"))
         {
-            if (history_moves.size() > 0)
+            if (_history_moves.size() > 0)
             {
-                _Move mh = history_moves.back();
+                _Move mh = _history_moves.back();
                 _b.at(index_at(mh.dst_x, mh.dst_y)) = mh.prev_src_id;
-            }
-            else
-            {
-                //..
             }
         }
         set_opposite_color();
@@ -250,6 +247,8 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline const std::vector<Move<PieceID>> Board<PieceID, _BoardSize>::generate_moves(bool is_recursive_call)
     {
+        using _Board = Board<PieceID, _BoardSize>;
+
         const _Piece*  p_src;
         const _Piece*  p_dst;
         std::vector<_Move> m;
@@ -312,9 +311,9 @@ namespace chess
                                                     m.push_back(mv);
                                                 }
                                             }
-                                            else if ((mu.flag_spec == "y5_ep") && (j == 5) && (get_color() == PieceColor::W) && (history_moves.size() > 0)) // en passant
+                                            else if ((mu.flag_spec == "y5_ep") && (j == 5) && (get_color() == PieceColor::W) && (_history_moves.size() > 0)) // en passant
                                             {
-                                                _Move mh = history_moves.back();
+                                                _Move mh = _history_moves.back();
                                                 if (mh.prev_src_id == _Piece::get_id(PieceName::P, get_opposite_color()))
                                                 {
                                                     if ((mh.src_x == i + mu.x) && (mh.src_y == j + mu.y) && (abs(mh.dst_y - mh.src_y) == 2))
@@ -323,9 +322,9 @@ namespace chess
                                                     }
                                                 }
                                             }
-                                            else if ((mu.flag_spec == "y2_ep") && (j == 2) && (get_color() == PieceColor::B) && (history_moves.size() > 0))  // en passant
+                                            else if ((mu.flag_spec == "y2_ep") && (j == 2) && (get_color() == PieceColor::B) && (_history_moves.size() > 0))  // en passant
                                             {
-                                                _Move mh = history_moves.back();
+                                                _Move mh = _history_moves.back();
                                                 if (mh.prev_src_id == _Piece::get_id(PieceName::P, get_opposite_color()))
                                                 {
                                                     if ((mh.src_x == i + mu.x) && (mh.src_y == j + mu.y) && (abs(mh.dst_y - mh.src_y) == 2))
@@ -411,30 +410,30 @@ namespace chess
         }
         else if (!_allow_self_check)  // Splitting computation into multi thread
         {
-            unsigned concurentThreadsSupported = std::thread::hardware_concurrency();
-            if (concurentThreadsSupported < 2) concurentThreadsSupported = 2;
+            unsigned concurrenty = std::thread::hardware_concurrency();
+            if (concurrenty < 2) concurrenty = 2;
 
-            Board<PieceID, _BoardSize>* bb = new Board<PieceID, _BoardSize>[concurentThreadsSupported];
-            std::vector<_Move>*         bm = new std::vector<_Move>[concurentThreadsSupported];
-            std::future<std::vector<_Move>>* fut = new std::future<std::vector<_Move>>[concurentThreadsSupported];
+            _Board*                          bb  = new _Board[concurrenty];
+            std::vector<_Move>*              bm  = new std::vector<_Move>[concurrenty];
+            std::future<std::vector<_Move>>* fut = new std::future<std::vector<_Move>>[concurrenty];
 
-            size_t n = (size_t)m.size() / concurentThreadsSupported;
+            size_t n = (size_t)m.size() / concurrenty;
             if (n < 1) n = 1;
-            for (size_t i = 0; i < concurentThreadsSupported; i++)
+            for (size_t i = 0; i < concurrenty; i++)
             {
                 bb[i] = *this; // Get a copy of board per thread
-                if (i<concurentThreadsSupported-1)
+                if (i<concurrenty-1)
                     fut[i] = std::async(generate_moves_no_self_check<PieceID, _BoardSize>, bb[i], m, i*n, (i+1)*n-1);
                 else
                     fut[i] = std::async(generate_moves_no_self_check<PieceID, _BoardSize>, bb[i], m, i*n, m.size()-1);
             }
 
-            for (size_t i = 0; i < concurentThreadsSupported; i++)
+            for (size_t i = 0; i < concurrenty; i++)
                 bm[i]=fut[i].get();
 
             // reuse bm[0]
             bm[0].reserve(m.size()+1);
-            for (size_t i = 1; i < concurentThreadsSupported; i++)
+            for (size_t i = 1; i < concurrenty; i++)
                 bm[0].insert(bm[0].end(), bm[i].begin(), bm[i].end());
 
             std::vector<_Move> mm = bm[0];
@@ -448,7 +447,7 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    std::vector<Move<PieceID>> generate_moves_no_self_check(Board<PieceID, _BoardSize>& bb, std::vector<Move<PieceID>>& m, size_t from, size_t to)
+    inline std::vector<Move<PieceID>> generate_moves_no_self_check(Board<PieceID, _BoardSize>& bb, std::vector<Move<PieceID>>& m, size_t from, size_t to)
     {
         std::vector<Move<PieceID>> mm;
         if (to < from) return mm;

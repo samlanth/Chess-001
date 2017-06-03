@@ -1,3 +1,4 @@
+#pragma once
 //=================================================================================================
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
@@ -11,8 +12,6 @@
 #define _AL_CHESS_TEST_TESTBOARD_H
 
 #include "boardfunc.h"
-#include "board.h"
-#include "piece.h"
 #include "unittest.h"
 #include <conio.h>
 #include <sstream>
@@ -137,10 +136,10 @@ namespace chess
                 return (bf.cnt_piece(PieceName::P, PieceColor::W) == 8);
             }
 
-            bool do_test(bool verbose, bool report)
+            bool do_test(const unittest::cmd_parser& cmd)
             {
                 unittest::TTest<TestBoard<PieceID, _BoardSize>> tester = unittest::TTest<TestBoard<PieceID, _BoardSize>>();
-                this->_verbose = verbose;
+                this->_verbose = cmd.has_option("-v");
 
                 uint32_t    id = 0;
                 tester.add(this, &TestBoard::check_000, id++, "err000");
@@ -150,11 +149,11 @@ namespace chess
                 tester.add(this, &TestBoard::check_004, id++, "err004");
 
                 bool ret = tester.run();
-                if (report) 
+                if (cmd.has_option("-r"))
                 { 
                     std::string rep = tester.report(true);
 
-                    if (verbose)
+                    if (_verbose)
                     {
                         std::cout << _name << std::endl;
                         std::cout << rep << std::endl;
