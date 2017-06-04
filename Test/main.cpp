@@ -6,7 +6,7 @@
 // Unit testing for class Board
 //
 //
-#include "testboard.h"
+#include "testboard.hpp"
 
 const std::string default_logfile = "C:\\tmp\\chess_test_log.txt";
 

@@ -15,22 +15,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Src\board.h">
+    <ClInclude Include="..\Src\move.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Src\boardfunc.h">
+    <ClInclude Include="..\Src\board.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Src\piece.h">
+    <ClInclude Include="..\Src\boardfunc.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Src\testboard.h">
+    <ClInclude Include="..\Src\piece.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Src\unittest.h">
+    <ClInclude Include="..\Src\testboard.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Src\move.h">
+    <ClInclude Include="..\Src\unittest.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

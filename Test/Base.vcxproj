@@ -19,12 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Src\board.h" />
-    <ClInclude Include="..\Src\boardfunc.h" />
-    <ClInclude Include="..\Src\move.h" />
-    <ClInclude Include="..\Src\piece.h" />
-    <ClInclude Include="..\Src\testboard.h" />
-    <ClInclude Include="..\Src\unittest.h" />
+    <ClInclude Include="..\Src\board.hpp" />
+    <ClInclude Include="..\Src\boardfunc.hpp" />
+    <ClInclude Include="..\Src\move.hpp" />
+    <ClInclude Include="..\Src\piece.hpp" />
+    <ClInclude Include="..\Src\testboard.hpp" />
+    <ClInclude Include="..\Src\unittest.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
