@@ -13,30 +13,66 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\Src\move.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Src\board.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Src\boardfunc.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Src\piece.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Src\testboard.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Src\unittest.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <Filter Include="Core">
+      <UniqueIdentifier>{21a1b043-8d39-4ead-b4bf-fbfa35f24d75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GA">
+      <UniqueIdentifier>{019b5365-6cd4-4c97-b014-d8d6250e3928}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Core\board.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\boardfunc.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\move.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\piece.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\testboard.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\unittest.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GA\Chromosome.hpp">
+      <Filter>GA</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GA\Converter.hpp">
+      <Filter>GA</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GA\Evolution.hpp">
+      <Filter>GA</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GA\Galgo.hpp">
+      <Filter>GA</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GA\GeneticAlgorithm.hpp">
+      <Filter>GA</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GA\Parameter.hpp">
+      <Filter>GA</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GA\Population.hpp">
+      <Filter>GA</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GA\Randomize.hpp">
+      <Filter>GA</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GA\random.hpp">
+      <Filter>GA</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GA\galgo_example.hpp">
+      <Filter>GA</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

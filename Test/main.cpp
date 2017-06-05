@@ -7,6 +7,7 @@
 //
 //
 #include "testboard.hpp"
+#include "galgo_example.hpp"
 
 const std::string default_logfile = "C:\\tmp\\chess_test_log.txt";
 
@@ -18,6 +19,10 @@ const std::string default_logfile = "C:\\tmp\\chess_test_log.txt";
 //-----------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
+    // Test integration with galgo
+    galgo_example::galgo_example_001();
+
+    // Test Board
     unittest::cmd_parser cmd(argc, argv);
 
     bool use_def_log = true;
