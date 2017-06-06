@@ -92,14 +92,17 @@
     <ClInclude Include="..\Domain\domain.hpp">
       <Filter>Domain</Filter>
     </ClInclude>
-    <ClInclude Include="..\Persistence\Persist.hpp">
-      <Filter>Persistence</Filter>
-    </ClInclude>
     <ClInclude Include="..\Domain\partition.hpp">
       <Filter>Domain</Filter>
     </ClInclude>
     <ClInclude Include="..\Feature\feature.hpp">
       <Filter>Feature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Persistence\persist.hpp">
+      <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Domain\partitionmanager.hpp">
+      <Filter>Domain</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

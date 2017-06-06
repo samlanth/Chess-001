@@ -58,3 +58,21 @@
 01:00:46:AM : OK: (id=5) (elapsed sec= 0.0002275) [cnt_piece()]
 01:00:47:AM : TestBoard (Board type 1 <uint8_t, 8>) exit
 01:00:47:AM : TestBoard (Board type 2 <uint16_t, 16>) enter
+06:53:48:AM : ---------------------
+06:53:48:AM : Starting main        
+06:53:48:AM : TestBoard (Board type 1 <uint8_t, 8>) enter
+06:58:33:AM : ---------------------
+06:58:33:AM : Starting main        
+06:58:33:AM : TestBoard (Board type 1 <uint8_t, 8>) enter
+06:59:38:AM : ---------------------
+06:59:38:AM : Starting main        
+06:59:38:AM : TestBoard (Board type 1 <uint8_t, 8>) enter
+08:53:34:AM : ---------------------
+08:53:34:AM : Starting main        
+08:53:34:AM : TestBoard (Board type 1 <uint8_t, 8>) enter
+12:21:26:PM : ---------------------
+12:21:26:PM : Starting main        
+12:21:26:PM : TestBoard (Board type 1 <uint8_t, 8>) enter
+12:25:13:PM : ---------------------
+12:25:13:PM : Starting main        
+12:25:13:PM : TestBoard (Board type 1 <uint8_t, 8>) enter

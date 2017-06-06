@@ -16,6 +16,7 @@
 #include "core/piece.hpp"
 #include "core/move.hpp"
 #include "domain/partition.hpp"
+#include "domain/partitionmanager.hpp"
 
 namespace chess
 {

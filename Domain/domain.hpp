@@ -5,19 +5,16 @@
 //
 // <... work in progress ...>
 //
-// Partiton<...>    : A partition of the chess space into hiearchical domains
 // Domain<...>      : Base chess domain interface
-// Domain_KQvK      : KQvK chess domain
-// Domain_KvK       : KvK  chess domain
+// DomainKQvK       : KQvK chess domain
+// DomainKvK        : KvK  chess domain
 //
 //
 #ifndef _AL_CHESS_DOMAIN_H
 #define _AL_CHESS_DOMAIN_H
 
-#include "core/board.hpp"
-#include "core/piece.hpp"
-#include "core/move.hpp"
-#include "player/player.hpp"
+#include "domain/partition.hpp"
+#include "domain/partitionmanager.hpp"
 
 namespace chess
 {
@@ -31,19 +28,33 @@ namespace chess
         using _Board = Board<PieceID, _BoardSize>;
         using _Move = Move<PieceID>;
         using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _Partition = Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _PartitionManager = PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
-    private:
-        std::string             _name;
+    protected:
+        std::string             _partition_key;
+        std::string             _classname_key;
+        std::string             _instance_key;
         std::vector<_Domain*>   _children;
 
     public:
-        Domain(const std::string aname) : _name(aname) {}
+        Domain( const std::string partition_key,
+                const std::string classname_key,
+                const std::string instance_key) :
+            _partition_key(partition_key), _classname_key(classname_key), _instance_key(instance_key)  {}
 
         virtual bool has_known_score_move()  const = 0;
         virtual ExactScore get_known_score_move(const _Board& position, const std::vector<_Move>& m, size_t& ret_mv_idx) const = 0;
 
-        const std::vector<_Domain*>& children()  const { return _children;}
-        const std::string name()                 const { return _name; }
+        const std::vector<_Domain*>& children() const { return _children;}
+
+        const std::string partition_key()   const { return _partition_key; }
+        const std::string classname_key()   const { return _classname_key; }
+        const std::string instance_key()    const { return _instance_key;  }
+
+        const std::string domain_key()      const { return _classname_key+"_"+_instance_key; }
+        static const std::string domain_key(const std::string& k1, const std::string& k2) { return k1 + "_" + k2; }
+        const std::string persist_key()      const { return _partition_key + "_" + domain_key(); }
 
         virtual bool isInDomain(const _Board& position) const = 0;
 
@@ -51,11 +62,119 @@ namespace chess
         virtual bool save() const = 0;
         virtual bool load() = 0;
 
+    protected:
+        bool save_root() const
+        {
+            std::string f = PersistManager::instance()->get_stream_name("domain", persist_key());
+            std::ofstream   filestream;
+            filestream.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
+            if (save_detail(filestream))
+            {
+                filestream.close();
+                return true;
+            }
+            filestream.close();
+            return false;
+        }
+
+        bool save_detail(std::ofstream& filestream) const
+        {
+            if (filestream.good())
+            {
+                filestream << _partition_key; filestream << std::endl;
+                filestream << _classname_key; filestream << std::endl;
+                filestream << _instance_key;  filestream << std::endl;
+
+                filestream << _children.size(); filestream << std::endl;
+                for (auto& v : _children)
+                {
+                    filestream << v->partition_key(); filestream << std::endl;
+                    filestream << v->classname_key(); filestream << std::endl;
+                    filestream << v->instance_key();  filestream << std::endl;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        bool load_root() const
+        {
+            std::string f = PersistManager::instance()->get_stream_name("domain", persist_key());
+            std::ifstream   filestream;
+            filestream.open(f.c_str(), std::ofstream::in);
+            if (load_detail(filestream))
+            {
+                filestream.close();
+                return true;
+            }
+            filestream.close();
+            return false;
+        }
+
+        bool load_detail(std::ifstream& filestream) const
+        {
+            if (filestream.good())
+            {
+                size_t n_child;
+                std::string partition_key;
+                std::string classname_key;
+                std::string instance_key;
+
+                filestream >> partition_key;
+                filestream >> classname_key;
+                filestream >> instance_key;
+
+                // check
+                assert(partition_key == _partition_key);
+                assert(classname_key == _classname_key);
+                assert(instance_key == _instance_key);
+
+                filestream >> n_child;
+
+                _Partition* p_partition = _PartitionManager::instance()->find_partition(partition_key);
+                if (p_partition == nullptr) return false;
+                _Domain* ptr_dom = p_partition->find_domain(domain_key(classname_key, instance_key));
+                if (ptr_dom == nullptr) return false;
+
+                // reloading or creating
+                ptr_dom->_children.clear(); //...
+
+                bool ok = true;
+                for (size_t i = 0; i < n_child; i++)
+                {
+                    ok = false;
+                    filestream >> partition_key;
+                    filestream >> classname_key;
+                    filestream >> instance_key;
+                    
+                    {
+                        _Domain* ptr_dom_child = p_partition->find_domain(domain_key(classname_key,instance_key));
+                        if (ptr_dom_child != nullptr)
+                        {
+                            if (ptr_dom->add_child(ptr_dom_child))
+                            {
+                                ok = true;                              
+                            }
+                        }
+                    }
+                    if (!ok)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+
         // Hold a database of the best position/move so far [So can evolved score Predictor]
         // ...
 
+    public:
         bool add_child(_Domain* p)
         {
+            // check already exist
+            // ...
             _children.push_back(p);
             return true;
         }
@@ -71,14 +190,15 @@ namespace chess
     };
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    class Domain_KvK : public Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
+    class DomainKvK : public Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
     {
         using _Board  = Board<PieceID, _BoardSize>;
         using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _Move = Move<PieceID>;
 
     public:
-        Domain_KvK() : _Domain("KvK") {}
+        DomainKvK(const std::string partition_key) 
+            : _Domain(partition_key, "DomainKvK", "0") {}
 
         bool isInDomain(const _Board& position) const override 
         { 
@@ -96,25 +216,31 @@ namespace chess
             {
                 if (position.can_capture_opposite_king(m, ret_mv_idx))
                     return ExactScore::WIN;
-               // else
-               //     return ExactScore::DRAW; // must know also the move
+               // else  return ExactScore::DRAW; // must know also the move
             }
             return ExactScore::UNKNOWN;
         }
 
-        virtual bool save() const override  { return false; } //...
-        virtual bool load() override        { return false; } //...
+        virtual bool save() const override
+        {
+            return save_root();
+        }
+        virtual bool load() override 
+        {
+            return load_root();
+        }
     };
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    class Domain_KQvK : public Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
+    class DomainKQvK : public Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
     {
         using _Board = Board<PieceID, _BoardSize>;
         using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _Move = Move<PieceID>;
 
     public:
-        Domain_KQvK() : _Domain("KQvK") 
+        DomainKQvK(const std::string partition_key) 
+            : _Domain(partition_key, "DomainKQvK", "0")
         {
         }
 
@@ -134,8 +260,14 @@ namespace chess
             return ExactScore::UNKNOWN;
         }
 
-        virtual bool save() const override  { return false; } //...
-        virtual bool load() override        { return false; } //...
+        virtual bool save() const override  
+        {
+            return save_root();
+        }
+        virtual bool load() override
+        {
+            return load_root();
+        }
     };
 
 };

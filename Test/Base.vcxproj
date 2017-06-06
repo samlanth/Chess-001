@@ -30,6 +30,7 @@
     <ClInclude Include="..\Core\unittest.hpp" />
     <ClInclude Include="..\Domain\domain.hpp" />
     <ClInclude Include="..\Domain\partition.hpp" />
+    <ClInclude Include="..\Domain\partitionmanager.hpp" />
     <ClInclude Include="..\Feature\feature.hpp" />
     <ClInclude Include="..\GA\Chromosome.hpp" />
     <ClInclude Include="..\GA\Converter.hpp" />
@@ -41,7 +42,7 @@
     <ClInclude Include="..\GA\Population.hpp" />
     <ClInclude Include="..\GA\random.hpp" />
     <ClInclude Include="..\GA\Randomize.hpp" />
-    <ClInclude Include="..\Persistence\Persist.hpp" />
+    <ClInclude Include="..\Persistence\persist.hpp" />
     <ClInclude Include="..\Player\player.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
