@@ -37,6 +37,8 @@ namespace chess
     {
     public:
         BaseFeature(const std::string aname, const FeatureType atype) : _name(aname), _featureType(atype){ }
+        virtual ~BaseFeature() {}
+
         const std::string name()   const { return _name; }
 
         // Persistence
@@ -84,7 +86,7 @@ namespace chess
         using _Move = Move<PieceID>;
 
     public:
-        ValuationFeature(std::string aname) : BaseFeature(aname, FeatureType::valuation), _PARAM_NBIT(PARAM_NBIT){ }
+        ValuationFeature(const std::string aname) : BaseFeature(aname, FeatureType::valuation), _PARAM_NBIT(PARAM_NBIT){ }
         virtual TYPE_PARAM compute(const _Board& position, const std::vector<_Move>& m) const = 0;
 
     protected:
@@ -100,7 +102,7 @@ namespace chess
         using _Piece = Piece<PieceID, _BoardSize>;
 
     public:
-        ValuationFeature_numberMoveForPiece(PieceName p, PieceColor c) : ValuationFeature("numberMoveForPiece") ,
+        ValuationFeature_numberMoveForPiece(const PieceName p, const PieceColor c) : ValuationFeature("numberMoveForPiece") ,
             _p(p), _c(c)
         { 
             // make name unique
@@ -125,6 +127,7 @@ namespace chess
 
     private:
         FeatureManager() {}
+
         FeatureManager(const FeatureManager&) = delete;
         FeatureManager & operator=(const FeatureManager &) = delete;
         FeatureManager(FeatureManager&&) = delete;

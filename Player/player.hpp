@@ -30,7 +30,7 @@ namespace chess
         using _Move = Move<PieceID>;
 
     public:
-        BasePlayer(std::string aname) : _name(aname) , _PARAM_NBIT(PARAM_NBIT){}
+        BasePlayer(const std::string aname) : _name(aname) , _PARAM_NBIT(PARAM_NBIT){}
         virtual ~BasePlayer() {}
 
         virtual bool train(/*...time_limit...*/) = 0;
@@ -40,8 +40,8 @@ namespace chess
         virtual bool save() const = 0;
         virtual bool load() = 0;
 
-        const std::string name()                        { return _name; }
-        const size_t param_NBIT()                       { return _PARAM_NBIT; }
+        const std::string name()                const   { return _name; }
+        const size_t param_NBIT()               const   { return _PARAM_NBIT; }
         const std::vector<TYPE_PARAM>& params() const   { return _params; }
 
     protected:
@@ -59,7 +59,7 @@ namespace chess
         using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _PartitionManager = PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
-        DomainPlayer(std::string aname, std::string partition_key, std::string domain_key)
+        DomainPlayer(const std::string aname, const std::string partition_key, const std::string domain_key)
             : _name(aname), _partition_key(partition_key), _domain_key(domain_key), _domain(nullptr)
         {
             _Partition* p = _PartitionManager::instance()->find_partition(_partition_key);
@@ -72,7 +72,7 @@ namespace chess
         virtual ~DomainPlayer() {}
 
         virtual bool train() = 0;
-        virtual size_t select_move(const _Board& pos, const std::vector<_Move>& m)
+        virtual size_t select_move(const _Board& pos, const std::vector<_Move>& m) const override
         {
             if (_domain != nullptr)
             {
