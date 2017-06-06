@@ -59,8 +59,8 @@ namespace chess
         using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _PartitionManager = PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
-        DomainPlayer(std::string aname, std::string domain_key) 
-            : _name(aname), _domain_key(domain_key), _domain(nullptr)
+        DomainPlayer(std::string aname, std::string partition_key, std::string domain_key)
+            : _name(aname), _partition_key(partition_key), _domain_key(domain_key), _domain(nullptr)
         {
             _Partition* p = _PartitionManager::instance()->find_partition(_partition_key);
             if (p != nullptr)
