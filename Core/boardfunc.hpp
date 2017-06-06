@@ -11,7 +11,7 @@
 #ifndef _AL_CHESS_BOARDFUNC_H
 #define _AL_CHESS_BOARDFUNC_H
 
-#include "board.hpp"
+#include "core/board.hpp"
 
 namespace chess
 {
@@ -30,17 +30,6 @@ namespace chess
 		}
 
 	public:
-		const size_t cnt_piece(PieceName n, PieceColor c) const
-		{
-			size_t cnt = 0;
-			PieceID id = _Piece::get_id(n, c);
-			for (const auto &v : _b._cells)
-			{
-				if (v == id) cnt++;
-			}
-			return cnt;
-		}
-
 		const std::string to_str() const
 		{
 			std::string s;

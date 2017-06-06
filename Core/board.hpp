@@ -16,8 +16,8 @@
 #ifndef _AL_CHESS_BOARD_H
 #define _AL_CHESS_BOARD_H
 
-#include "piece.hpp"
-#include "move.hpp"
+#include "core/piece.hpp"
+#include "core/move.hpp"
 #include <list>
 #include <future>
 
@@ -61,6 +61,8 @@ namespace chess
         bool can_capture_opposite_king(const std::vector<_Move>& m, size_t& ret_index) const;
         void set_classic_pos();
         bool has_piece(PieceName n, PieceColor c) const;
+        size_t cnt_piece(PieceName n, PieceColor c) const;
+        size_t cnt_all_piece() const;
         bool is_final(const std::vector<_Move>& m) const;
 
         const std::vector<_Move>    generate_moves(bool is_recursive_call = false);
@@ -168,6 +170,31 @@ namespace chess
         return false;
     }
 
+    // cnt_piece
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline size_t Board<PieceID, _BoardSize>::cnt_piece(PieceName n, PieceColor c) const
+    {
+        size_t cnt = 0;
+        PieceID id = _Piece::get_id(n, c);
+        for (const auto &v : _cells)
+        {
+            if (v == id) cnt++;
+        }
+        return cnt;
+    }
+
+    // cnt_all_piece
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline size_t Board<PieceID, _BoardSize>::cnt_all_piece() const
+    {
+        size_t cnt = 0;
+        for (const auto &v : _cells)
+        {
+            cnt++;
+        }
+        return cnt;
+    }
+
     // can_capture_opposite_king()
     template <typename PieceID, typename uint8_t _BoardSize>
     inline bool Board<PieceID, _BoardSize>::can_capture_opposite_king(const std::vector<_Move>& m, size_t& ret_index) const
@@ -253,6 +280,7 @@ namespace chess
                 _cells.at(index_at(mh.dst_x, mh.dst_y)) = mh.prev_src_id;
             }
         }
+        //castling...
         set_opposite_color();
     }
 

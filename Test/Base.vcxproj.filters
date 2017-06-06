@@ -19,6 +19,15 @@
     <Filter Include="GA">
       <UniqueIdentifier>{019b5365-6cd4-4c97-b014-d8d6250e3928}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Player">
+      <UniqueIdentifier>{0f185f59-f346-4580-b3a0-a20f10b180f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domain">
+      <UniqueIdentifier>{46bae090-7537-4f0e-a106-01dedd788b7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Persistence">
+      <UniqueIdentifier>{2d087bf5-9114-4486-af16-13772d77d35e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -73,6 +82,15 @@
     </ClInclude>
     <ClInclude Include="..\GA\galgo_example.hpp">
       <Filter>GA</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Player\player.hpp">
+      <Filter>Player</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Domain\domain.hpp">
+      <Filter>Domain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Persistence\Persist.hpp">
+      <Filter>Persistence</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

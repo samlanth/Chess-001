@@ -210,9 +210,11 @@ namespace unittest
     //--------------
     class Logger
     {
-    public:
+    private:
         Logger() = default;
+        static const std::string default_logfile;
 
+    public:
         Logger(const Logger&) = delete;
         Logger & operator=(const Logger &) = delete;
         Logger(Logger&&) = delete;
@@ -221,7 +223,13 @@ namespace unittest
         {
             if (!_instance.operator bool())
             {
-                _instance = std::make_unique<Logger>();
+                std::unique_ptr<Logger> _instance(new Logger);
+
+                _instance->_fstream.open(default_logfile.c_str(), std::ofstream::out | std::ofstream::app);
+                if (!_instance->_fstream.good())
+                {
+                    //...
+                }
             }
             return _instance.get();
         }
@@ -234,8 +242,16 @@ namespace unittest
                     _instance->_fstream.close();
 
                 _instance->_fstream.open(log_file.c_str(), std::ofstream::out | std::ofstream::app);
-                if (_instance->_fstream.good()) 
+                if (_instance->_fstream.good())
+                {
                     return true;
+                }
+                else
+                {
+                    _instance->_fstream.open(default_logfile.c_str(), std::ofstream::out | std::ofstream::app);
+                    if (_instance->_fstream.good())
+                        return true;
+                }
             }
             return false;
         }
@@ -289,6 +305,7 @@ namespace unittest
     };
 
     std::unique_ptr<Logger> Logger::_instance = nullptr;
+    const std::string Logger::default_logfile = ".\\chess_test_log.txt";
 };
 
 #endif

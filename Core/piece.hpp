@@ -15,7 +15,7 @@
 #ifndef _AL_CHESS_PIECE_H
 #define _AL_CHESS_PIECE_H
 
-#include "move.hpp"
+#include "core/move.hpp"
 #include <iostream>
 #include <map>
 #include <vector>

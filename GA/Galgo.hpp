@@ -48,14 +48,13 @@ namespace galgo
     static const int MAX_THREADS = omp_get_max_threads();
 #endif
 
-#include "Randomize.hpp"
-#include "Converter.hpp"
-#include "Parameter.hpp"
-#include "Evolution.hpp"
-#include "Chromosome.hpp"
-#include "Population.hpp"
-#include "GeneticAlgorithm.hpp"
-
+#include "ga/Randomize.hpp"
+#include "ga/Converter.hpp"
+#include "ga/Parameter.hpp"
+#include "ga/Evolution.hpp"
+#include "ga/Chromosome.hpp"
+#include "ga/Population.hpp"
+#include "ga/GeneticAlgorithm.hpp"
 
 #endif
 

@@ -11,8 +11,8 @@
 #ifndef _AL_CHESS_TEST_TESTBOARD_H
 #define _AL_CHESS_TEST_TESTBOARD_H
 
-#include "boardfunc.hpp"
-#include "unittest.hpp"
+#include "core/boardfunc.hpp"
+#include "core/unittest.hpp"
 #include <conio.h>
 #include <sstream>
 
@@ -140,8 +140,8 @@ namespace chess
             bool check_004(uint32_t) // test cnt_piece
             {
                 _Board board(true);
-                _BoardFunc bf(board);
-                return (bf.cnt_piece(PieceName::P, PieceColor::W) == 8);
+                //_BoardFunc bf(board);
+                return (board.cnt_piece(PieceName::P, PieceColor::W) == 8);
             }
 
             bool do_test(const unittest::cmd_parser& cmd)

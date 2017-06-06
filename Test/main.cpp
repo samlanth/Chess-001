@@ -6,10 +6,13 @@
 // Unit testing for class Board
 //
 //
-#include "testboard.hpp"
-#include "galgo_example.hpp"
+#include "core/testboard.hpp"
+#include "ga/galgo_example.hpp"
+#include "player/player.hpp"
+#include "domain/domain.hpp"
+#include "persistence/persist.hpp"
+#include <cassert>
 
-const std::string default_logfile = "C:\\tmp\\chess_test_log.txt";
 
 //-----------------------------------------------------------------------
 // test.exe -v -r -f logfile
@@ -19,25 +22,32 @@ const std::string default_logfile = "C:\\tmp\\chess_test_log.txt";
 //-----------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
+    // Test player class instantiation
+    chess::NullPlayer<uint8_t, 8, double, 16> player;
+    std::string aname = player.name();
+    assert(aname == "NULLPlayer");
+
+    // Test PartitionManager class instantiation
+    chess::PartitionManager<uint8_t, 8, double, 16>::instance()->make_classic();
+    chess::Partition<uint8_t, 8, double, 16>* p_classic = chess::PartitionManager<uint8_t, 8, double, 16>::instance()->find_partition("classic");
+    assert(p_classic != nullptr);
+
+    // Test PersisteManager class instantiation
+    chess::PersistManager::instance();
+
     // Test integration with galgo
     galgo_example::galgo_example_001();
 
     // Test Board
     unittest::cmd_parser cmd(argc, argv);
 
-    bool use_def_log = true;
     if (cmd.has_option("-f"))
     {
         std::string f = cmd.get_option("-f");
         if (f.size() > 0)
         {
-            if (unittest::Logger::instance()->set_file(f))
-                use_def_log = false;
+            unittest::Logger::instance()->set_file(f);
         }
-    }
-    if (use_def_log)
-    {
-        unittest::Logger::instance()->set_file(default_logfile);
     }
 
     unittest::Logger::instance()->log("---------------------");

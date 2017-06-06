@@ -28,6 +28,7 @@
     <ClInclude Include="..\Core\piece.hpp" />
     <ClInclude Include="..\Core\testboard.hpp" />
     <ClInclude Include="..\Core\unittest.hpp" />
+    <ClInclude Include="..\Domain\domain.hpp" />
     <ClInclude Include="..\GA\Chromosome.hpp" />
     <ClInclude Include="..\GA\Converter.hpp" />
     <ClInclude Include="..\GA\Evolution.hpp" />
@@ -38,6 +39,8 @@
     <ClInclude Include="..\GA\Population.hpp" />
     <ClInclude Include="..\GA\random.hpp" />
     <ClInclude Include="..\GA\Randomize.hpp" />
+    <ClInclude Include="..\Persistence\Persist.hpp" />
+    <ClInclude Include="..\Player\player.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3A1269FE-3B8D-44BF-9899-3D95F9F6488D}</ProjectGuid>
@@ -96,7 +99,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\000Chess\000Base\Core\Chess-001\Core;C:\000Chess\000Base\Core\Chess-001\GA;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\000Chess\000Base\Core\Chess-001;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -105,7 +108,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\000Chess\000Base\Core\Chess-001\Core;C:\000Chess\000Base\Core\Chess-001\GA;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\000Chess\000Base\Core\Chess-001;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
