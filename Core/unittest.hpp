@@ -223,7 +223,7 @@ namespace unittest
         {
             if (!_instance.operator bool())
             {
-                std::unique_ptr<Logger> _instance(new Logger);
+                _instance = std::unique_ptr<Logger>(new Logger);
 
                 _instance->_fstream.open(default_logfile.c_str(), std::ofstream::out | std::ofstream::app);
                 if (!_instance->_fstream.good())
@@ -281,6 +281,9 @@ namespace unittest
 
                     _instance->_fstream << s << std::endl;
                 }
+            }
+            else
+            {
             }
         }
 

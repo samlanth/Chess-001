@@ -22,6 +22,9 @@ namespace chess
     {
     private:
         PersistManager() = default;
+        PersistManager(const PersistManager&) = delete;
+        PersistManager & operator=(const PersistManager &) = delete;
+        PersistManager(PersistManager&&) = delete;
 
     public:
         ~PersistManager()

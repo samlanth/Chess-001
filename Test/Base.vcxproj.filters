@@ -28,6 +28,9 @@
     <Filter Include="Persistence">
       <UniqueIdentifier>{2d087bf5-9114-4486-af16-13772d77d35e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Feature">
+      <UniqueIdentifier>{05aafc9e-614b-456e-96ab-ec2234a30713}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -91,6 +94,12 @@
     </ClInclude>
     <ClInclude Include="..\Persistence\Persist.hpp">
       <Filter>Persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Domain\partition.hpp">
+      <Filter>Domain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Feature\feature.hpp">
+      <Filter>Feature</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

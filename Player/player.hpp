@@ -15,13 +15,7 @@
 #include "core/board.hpp"
 #include "core/piece.hpp"
 #include "core/move.hpp"
-
-#include <iostream>
-#include <map>
-#include <vector>
-#include <memory>
-#include <string>
-#include <cassert>
+#include "domain/partition.hpp"
 
 namespace chess
 {
@@ -36,7 +30,7 @@ namespace chess
         using _Move = Move<PieceID>;
 
     public:
-        BasePlayer(std::string aname) : _name(aname) {}
+        BasePlayer(std::string aname) : _name(aname) , _PARAM_NBIT(PARAM_NBIT){}
         virtual ~BasePlayer() {}
 
         virtual bool train(/*...time_limit...*/) = 0;
@@ -47,12 +41,66 @@ namespace chess
         virtual bool load() = 0;
 
         const std::string name()                        { return _name; }
+        const size_t param_NBIT()                       { return _PARAM_NBIT; }
         const std::vector<TYPE_PARAM>& params() const   { return _params; }
 
     protected:
         std::string             _name;
+        size_t                  _PARAM_NBIT;
         std::vector<TYPE_PARAM> _params;
     };
+
+    // DomainPlayer
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    class DomainPlayer
+    {
+        using _Board = Board<PieceID, _BoardSize>;
+        using _Move = Move<PieceID>;
+        using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _PartitionManager = PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+
+        DomainPlayer(std::string aname, std::string domain_key) 
+            : _name(aname), _domain_key(domain_key), _domain(nullptr)
+        {
+            _Partition* p = _PartitionManager::instance()->find_partition(_partition_key);
+            if (p != nullptr)
+            {
+                _domain = p->find_domain(_domain_key);
+            }
+        }
+
+        virtual ~DomainPlayer() {}
+
+        virtual bool train() = 0;
+        virtual size_t select_move(const _Board& pos, const std::vector<_Move>& m)
+        {
+            if (_domain != nullptr)
+            {
+                if (_domain->has_known_score_move())
+                {
+                    size_t ret_mv_idx;
+                    ExactScore sc = get_known_score_move(pos, m, size_t ret_mv_idx);
+                    if (sc != ExactScore::UNKNOWN)
+                        return ret_mv_idx;
+                }
+            }
+            //...
+            return 0;
+        }
+
+        virtual bool save() const = 0;
+        virtual bool load() = 0;
+
+        std::string get_partition_key() const { return _partition_key; }
+        std::string get_domain_key()    const { return _domain_key; }
+        _Domain*    get_domain()        const { return _domain; }
+
+    private:
+        std::string _partition_key;
+        std::string _domain_key;
+        _Domain*    _domain;
+    };
+
 
     // Exemple
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>

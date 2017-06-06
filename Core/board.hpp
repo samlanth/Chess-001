@@ -68,6 +68,10 @@ namespace chess
         const std::vector<_Move>    generate_moves(bool is_recursive_call = false);
         const std::list<_Move>      get_history_moves() const { return _history_moves; }
 
+        bool is_allow_self_check()          const { return _allow_self_check; }
+        bool is_check_repeating_move_draw() const { return _check_repeating_move_draw; }
+        bool is_check_50_moves_draw()       const { return _check_50_moves_draw; }
+
     private:
         PieceColor              _color_toplay;
         std::vector<PieceID>    _cells;

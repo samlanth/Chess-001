@@ -29,6 +29,8 @@
     <ClInclude Include="..\Core\testboard.hpp" />
     <ClInclude Include="..\Core\unittest.hpp" />
     <ClInclude Include="..\Domain\domain.hpp" />
+    <ClInclude Include="..\Domain\partition.hpp" />
+    <ClInclude Include="..\Feature\feature.hpp" />
     <ClInclude Include="..\GA\Chromosome.hpp" />
     <ClInclude Include="..\GA\Converter.hpp" />
     <ClInclude Include="..\GA\Evolution.hpp" />

@@ -10,7 +10,9 @@
 #include "ga/galgo_example.hpp"
 #include "player/player.hpp"
 #include "domain/domain.hpp"
+#include "domain/partition.hpp"
 #include "persistence/persist.hpp"
+#include "feature/feature.hpp"
 #include <cassert>
 
 
@@ -34,6 +36,10 @@ int main(int argc, char* argv[])
 
     // Test PersisteManager class instantiation
     chess::PersistManager::instance();
+
+    //
+    chess::ConditionFeature_isOppositeKinCheck<uint8_t, 8, double, 16> fc;
+    chess::ValuationFeature_numberMoveForPiece<uint8_t, 8, double, 16> fv(chess::PieceName::K, chess::PieceColor::W);
 
     // Test integration with galgo
     galgo_example::galgo_example_001();
