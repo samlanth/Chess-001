@@ -114,7 +114,7 @@ namespace chess
             {
                 return false;
             }
-            ret_eval = get_sigmoid_valuations(position, m);
+            ret_eval = terminal_node->get_sigmoid_valuations(position, m);
             return true;
         }
 
