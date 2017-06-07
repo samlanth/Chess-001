@@ -142,11 +142,13 @@ namespace chess
             bool ret = _root.eval_position(pos, m, max_num_position, ret_eval);
             if (ret == true) return ret_eval;
 
+            // This is first layer of children (ok 99% time)
             for (size_t i = 0; i < _domain->_children.size(); i++)
             {
                 ret = _domain->_children[i]->_attached_domain_player->_root.eval_position(pos, m, max_num_position, ret_eval);
                 if (ret == true) return ret_eval;
             }
+            // TODO cover all child domain tree...
            
             // Failure if hole in the hiearchy of the domains of the partition
             // throw...
