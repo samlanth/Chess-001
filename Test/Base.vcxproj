@@ -31,6 +31,7 @@
     <ClInclude Include="..\Domain\domain.hpp" />
     <ClInclude Include="..\Domain\partition.hpp" />
     <ClInclude Include="..\Domain\partitionmanager.hpp" />
+    <ClInclude Include="..\Feature\CondValNode.hpp" />
     <ClInclude Include="..\Feature\feature.hpp" />
     <ClInclude Include="..\GA\Chromosome.hpp" />
     <ClInclude Include="..\GA\Converter.hpp" />

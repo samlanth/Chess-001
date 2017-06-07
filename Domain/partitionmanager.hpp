@@ -3,9 +3,7 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// <... work in progress ...>
-//
-// PartitionManger  : Manage multiple partitions
+// PartitionManger  : Manage the multiple partitions
 //
 //
 #ifndef _AL_CHESS_PARTITIONMANAGER_H
@@ -40,22 +38,22 @@ namespace chess
         {
             if (_instance.operator bool())
             {
-                // heap cleanup ...
+                _partitions.clear();
                 _instance.release();
             }
         }
 
     public:
-        static bool             add_partition(const _Partition& p);
+        static bool             add_partition(_Partition* p);
         static _Partition*      find_partition(const std::string partition_name);
 
         static const PartitionManager* instance();
 
         // Exemple
-        static bool make_classic();
+        static bool make_classic_partition();
 
     private:
-        std::map<std::string, _Partition>           _partitions;
+        std::map<std::string, _Partition*>          _partitions;    // TODO std_unique<> ...
         static std::unique_ptr<PartitionManager>    _instance;
     };
 
@@ -63,10 +61,11 @@ namespace chess
     std::unique_ptr<PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>>
     PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::_instance = nullptr;
 
+    // make_classic_partition
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    bool PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::make_classic()
+    bool PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::make_classic_partition()
     {
-        _Partition p("classic");
+        _Partition* p = new _Partition("classic");
         if (!PartitionManager::instance()->add_partition(p)) return false;
 
         _Partition* p_classic = PartitionManager::instance()->find_partition("classic");
@@ -85,42 +84,50 @@ namespace chess
         // set children relationship
         if (!ptr_dom_KQvK->add_child(ptr_dom_KK)) return false;
 
+        // test persistence
         ptr_dom_KK->save();
         ptr_dom_KQvK->save();
 
         ptr_dom_KK->load();
         ptr_dom_KQvK->load();
+
+        p_classic->save();
+        p_classic->load();
         return true;
     }
 
-    
+    // find_partition
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>* PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::find_partition(const std::string partition_name)
+    Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>* 
+    PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::find_partition(const std::string partition_name)
     {
         if (_instance == nullptr) return nullptr;
 
         auto& iter = _instance->_partitions.find(partition_name);
         if (iter != _instance->_partitions.end())
         {
-            return &(iter->second);
+            return (iter->second);
         }
         return nullptr;
     }
 
+    // add_partition
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    bool PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::add_partition(const _Partition& p)
+    bool PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::add_partition(_Partition* p)
     {
         if (_instance == nullptr) return false;
 
-        auto iter = _instance->_partitions.find(p.name());
+        auto iter = _instance->_partitions.find(p->name());
         if (iter == _instance->_partitions.end())
         {
-            _instance->_partitions.insert({ p.name(), p });
+            _instance->_partitions.insert(std::pair<std::string, _Partition*>(p->name(), p));
+            //_instance->_partitions[p->name()] = p;
             return true;
         }
         return false;
     }
 
+    // instance()
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     const PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>* 
     PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::instance()

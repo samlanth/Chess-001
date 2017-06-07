@@ -26,11 +26,11 @@ int main(int argc, char* argv[])
 {
     // Test player class instantiation
     chess::NullPlayer<uint8_t, 8, double, 16> player;
-    std::string aname = player.name();
+    std::string aname = player.playername();
     assert(aname == "NULLPlayer");
 
     // Test PartitionManager class instantiation
-    chess::PartitionManager<uint8_t, 8, double, 16>::instance()->make_classic();
+    chess::PartitionManager<uint8_t, 8, double, 16>::instance()->make_classic_partition();
     chess::Partition<uint8_t, 8, double, 16>* p_classic = chess::PartitionManager<uint8_t, 8, double, 16>::instance()->find_partition("classic");
     assert(p_classic != nullptr);
 
@@ -41,6 +41,11 @@ int main(int argc, char* argv[])
     chess::ConditionFeature_isOppositeKinCheck<uint8_t, 8, double, 16> fc;
     chess::ValuationFeature_numberMoveForPiece<uint8_t, 8, double, 16> fv(chess::PieceName::K, chess::PieceColor::W);
 
+    //
+    chess::DomainPlayer<uint8_t, 8, double, 16>* play1 = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("zeromind"), p_classic->name(), "DomainKQvK", "0");
+
+
+    //
     // Test integration with galgo
     galgo_example::galgo_example_001();
 

@@ -3,8 +3,6 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// <... work in progress ...>
-//
 // Domain<...>      : Base chess domain interface
 // DomainKQvK       : KQvK chess domain
 // DomainKvK        : KvK  chess domain
@@ -21,6 +19,11 @@ namespace chess
     using ScoreType = int8_t;
     enum class ExactScore :ScoreType { LOSS = -1, DRAW = 0, WIN=1, UNKNOWN=2};
 
+    // forward
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class DomainKvK;
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class DomainKQvK;
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class DomainPlayer;
+
     // Domain interface
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     class Domain 
@@ -30,6 +33,8 @@ namespace chess
         using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _Partition = Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _PartitionManager = PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _DomainPlayer = DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        friend class _DomainPlayer;
 
     protected:
         std::string             _partition_key;
@@ -37,13 +42,17 @@ namespace chess
         std::string             _instance_key;
         std::vector<_Domain*>   _children;
 
+        _DomainPlayer*          _attached_domain_player;
+
     public:
         Domain( const std::string partition_key,
                 const std::string classname_key,
                 const std::string instance_key) :
-            _partition_key(partition_key), _classname_key(classname_key), _instance_key(instance_key)  {}
+            _partition_key(partition_key), _classname_key(classname_key), _instance_key(instance_key),
+            _attached_domain_player(nullptr)
+        {}
 
-        virtual bool has_known_score_move()  const = 0;
+        virtual bool       has_known_score_move()  const = 0;
         virtual ExactScore get_known_score_move(const _Board& position, const std::vector<_Move>& m, size_t& ret_mv_idx) const = 0;
 
         const std::vector<_Domain*>& children() const { return _children;}
@@ -61,6 +70,15 @@ namespace chess
         // Persistence
         virtual bool save() const = 0;
         virtual bool load() = 0;
+
+        static _Domain* make(const std::string& partition_key, const std::string& classname_key, const std::string& instance_key)
+        {
+            if      (classname_key == "DomainKvK")  return new DomainKvK <PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(partition_key);
+            else if (classname_key == "DomainKQvK") return new DomainKQvK<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(partition_key);
+            return nullptr;
+        }
+
+        void attach_domain_player(_DomainPlayer* player) { _attached_domain_player = player; }
 
     protected:
         bool save_root() const
@@ -133,11 +151,12 @@ namespace chess
 
                 _Partition* p_partition = _PartitionManager::instance()->find_partition(partition_key);
                 if (p_partition == nullptr) return false;
+
                 _Domain* ptr_dom = p_partition->find_domain(domain_key(classname_key, instance_key));
                 if (ptr_dom == nullptr) return false;
 
                 // reloading or creating
-                ptr_dom->_children.clear(); //...
+                ptr_dom->_children.clear();
 
                 bool ok = true;
                 for (size_t i = 0; i < n_child; i++)
@@ -145,8 +164,7 @@ namespace chess
                     ok = false;
                     filestream >> partition_key;
                     filestream >> classname_key;
-                    filestream >> instance_key;
-                    
+                    filestream >> instance_key;              
                     {
                         _Domain* ptr_dom_child = p_partition->find_domain(domain_key(classname_key,instance_key));
                         if (ptr_dom_child != nullptr)
@@ -167,7 +185,7 @@ namespace chess
             return false;
         }
 
-        // Hold a database of the best position/move so far [So can evolved score Predictor]
+        // Hold a database of the best position/move so far [So can evolved a score Predictor]
         // ...
 
     public:
@@ -181,7 +199,7 @@ namespace chess
 
         Domain* get_child(size_t idx) const
         {
-            if (idx < _children.size())
+            if ((idx>=0) && (idx < _children.size()))
                 return _children.at(idx);
             return nullptr;
         }
@@ -195,6 +213,8 @@ namespace chess
         using _Board  = Board<PieceID, _BoardSize>;
         using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _Move = Move<PieceID>;
+        using _DomainPlayer = DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        friend class _DomainPlayer;
 
     public:
         DomainKvK(const std::string partition_key) 
@@ -237,6 +257,8 @@ namespace chess
         using _Board = Board<PieceID, _BoardSize>;
         using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _Move = Move<PieceID>;
+        using _DomainPlayer = DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        friend class _DomainPlayer;
 
     public:
         DomainKQvK(const std::string partition_key) 

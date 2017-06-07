@@ -3,9 +3,7 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// <... work in progress ...>
-//
-// PersistManager<>   : Provide io fstream for [class, name] 
+// PersistManager<>   : Provide io fstream for [class, instance_key] 
 //
 //
 #ifndef _AL_CHESS_PERSIST_H
@@ -32,10 +30,11 @@ namespace chess
         {
             if (_instance.operator bool())
             {
-                // ...
                 _instance.release();
             }
         }
+
+        void set_root_folder(const std::string& s) { _root_folder = s; }
 
         static const PersistManager* instance()
         {
@@ -47,18 +46,15 @@ namespace chess
             return _instance.get();
         }
 
-        bool load() { return false; }   // ...
-        bool save() { return false; }   // ...
-
-        const std::string get_stream_name(const std::string class_name, const std::string object_key) const
+        const std::string get_stream_name(const std::string class_name, const std::string instance_key) const
         { 
-            std::string filename = _root_folder + class_name + "_ " + object_key + ".txt";
+            std::string filename = _root_folder + class_name + "_ " + instance_key + ".txt";
             return filename;
         } 
 
     private:
         std::string                                 _root_folder;
-        std::map<std::string, std::string>          _files;   // key=class_name+object_name, value=stream file name
+        std::map<std::string, std::string>          _files;   // key=class_name+instance_key, value=stream file name
         static std::unique_ptr<PersistManager>      _instance;
         static std::string                          _default_root_folder;
     };

@@ -17,11 +17,15 @@
 #include "core/move.hpp"
 #include "domain/partition.hpp"
 #include "domain/partitionmanager.hpp"
+#include "feature/CondValNode.hpp"
 
 namespace chess
 {
     template <typename PieceID, typename uint8_t _BoardSize> class Board;
     template <typename PieceID> struct Move;
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class BasePlayer;
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class CondValNode;
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class DomainPlayer;
 
     // BasePlayer interface
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
@@ -29,77 +33,144 @@ namespace chess
     {
         using _Board = Board<PieceID, _BoardSize>;
         using _Move = Move<PieceID>;
+        using _BasePlayer = BasePlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
     public:
-        BasePlayer(const std::string aname) : _name(aname) , _PARAM_NBIT(PARAM_NBIT){}
+        BasePlayer(const std::string& playername) : _playername(playername) , _PARAM_NBIT(PARAM_NBIT){}
         virtual ~BasePlayer() {}
 
-        virtual bool train(/*...time_limit...*/) = 0;
-        virtual size_t select_move(const _Board& board, const std::vector<_Move>& m /*...time_limit...*/) const = 0;
+        virtual size_t      select_move_algo(    const _Board& board, const std::vector<_Move>& m, size_t max_num_position) const = 0;
+        virtual TYPE_PARAM  eval_position_algo(  const _Board& board, const std::vector<_Move>& m, size_t max_num_position) const = 0;
 
         // Persistence
         virtual bool save() const = 0;
         virtual bool load() = 0;
 
-        const std::string name()                const   { return _name; }
+        const std::string playername()          const   { return _playername; }
         const size_t param_NBIT()               const   { return _PARAM_NBIT; }
-        const std::vector<TYPE_PARAM>& params() const   { return _params; }
+
 
     protected:
-        std::string             _name;
+        std::string             _playername;
         size_t                  _PARAM_NBIT;
-        std::vector<TYPE_PARAM> _params;
     };
 
     // DomainPlayer
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    class DomainPlayer
+    class DomainPlayer : public BasePlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
     {
         using _Board = Board<PieceID, _BoardSize>;
         using _Move = Move<PieceID>;
         using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _PartitionManager = PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _CondValNode = CondValNode<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _BasePlayer = BasePlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _Partition = Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
-        DomainPlayer(const std::string aname, const std::string partition_key, const std::string domain_key)
-            : _name(aname), _partition_key(partition_key), _domain_key(domain_key), _domain(nullptr)
+    public:
+        DomainPlayer(   const std::string playername, 
+                        const std::string partition_key, 
+                        const std::string classname_key, 
+                        const std::string instance_key)
+            : _BasePlayer(playername),
+            _partition_key(partition_key), 
+            _classname_key(classname_key), 
+            _instance_key(instance_key), 
+            _domain(nullptr),
+            _root(nullptr, true, false)
         {
-            _Partition* p = _PartitionManager::instance()->find_partition(_partition_key);
-            if (p != nullptr)
+            _Partition* partition_ptr = _PartitionManager::instance()->find_partition(_partition_key);
+            if (partition_ptr != nullptr)
             {
-                _domain = p->find_domain(_domain_key);
+                _domain = partition_ptr->find_domain(_Domain::domain_key(_classname_key, instance_key));
+                if (_domain != nullptr)
+                {
+                    if (_domain->_attached_domain_player == nullptr)
+                    {
+                        _domain->attach_domain_player(this);
+                    }
+
+                    _Domain*        children_domain_ptr;
+                    DomainPlayer*   children_domain_player_ptr;
+                    for (size_t i = 0; i < _domain->_children.size(); i++)
+                    {
+                        children_domain_ptr = partition_ptr->find_domain(_Domain::domain_key(_domain->_children[i]->_classname_key, _domain->_children[i]->_instance_key));
+                        if (children_domain_ptr != nullptr)
+                        {
+                            if (children_domain_ptr->_attached_domain_player == nullptr)
+                            {
+                                children_domain_player_ptr = new DomainPlayer(playername, children_domain_ptr->_partition_key, children_domain_ptr->_classname_key, children_domain_ptr->_instance_key);
+                                // recursion
+                            }
+                        }
+                    }
+                }
             }
+
         }
 
-        virtual ~DomainPlayer() {}
+        ~DomainPlayer()
+        {
+        }
 
-        virtual bool train() = 0;
-        virtual size_t select_move(const _Board& pos, const std::vector<_Move>& m) const override
+        virtual size_t select_move_algo(const _Board& pos, const std::vector<_Move>& m, size_t max_num_position) const override
         {
             if (_domain != nullptr)
             {
                 if (_domain->has_known_score_move())
                 {
                     size_t ret_mv_idx;
-                    ExactScore sc = get_known_score_move(pos, m, size_t ret_mv_idx);
+                    ExactScore sc = _domain->get_known_score_move(pos, m, ret_mv_idx);
                     if (sc != ExactScore::UNKNOWN)
                         return ret_mv_idx;
                 }
             }
             //...
+            // select best of minmax ( eval_position_algo, max_num_position, ...)
+            //...
+            TYPE_PARAM e = eval_position_algo(pos, m, max_num_position);
+
             return 0;
         }
 
-        virtual bool save() const = 0;
-        virtual bool load() = 0;
+        virtual TYPE_PARAM eval_position_algo(const _Board& pos, const std::vector<_Move>& m, size_t max_num_position) const override
+        {
+            // if position is in this Domain then _root.eval()
+            // else locate children_domain player then try _root.eval()
 
-        std::string get_partition_key() const { return _partition_key; }
-        std::string get_domain_key()    const { return _domain_key; }
-        _Domain*    get_domain()        const { return _domain; }
+            TYPE_PARAM ret_eval = 0.5;
+            bool ret = _root.eval_position(pos, m, max_num_position, ret_eval);
+            if (ret == true) return ret_eval;
 
-    private:
-        std::string _partition_key;
-        std::string _domain_key;
-        _Domain*    _domain;
+            for (size_t i = 0; i < _domain->_children.size(); i++)
+            {
+                ret = _domain->_children[i]->_attached_domain_player->_root.eval_position(pos, m, max_num_position, ret_eval);
+                if (ret == true) return ret_eval;
+            }
+           
+            // Failure if hole in the hiearchy of the domains of the partition
+            // throw...
+            return ret_eval;
+        }
+
+        // ...
+        virtual bool save() const   { return false; }
+        virtual bool load()         { return false; }
+
+        std::string get_partition_key()     const { return _partition_key; }
+        std::string get_classname_key()     const { return _classname_key; }
+        std::string get_instance_key()      const { return _instance_key; }
+        _Domain*    get_domain()            const { return _domain; }
+        _CondValNode& get_root()            const { return _root; }
+
+    protected:
+        // domain
+        std::string             _partition_key;
+        std::string             _classname_key;
+        std::string             _instance_key;
+        _Domain*                _domain;
+
+        _CondValNode            _root;    // The brain of the player!
     };
 
 
@@ -113,10 +184,11 @@ namespace chess
     public:
         NullPlayer() : BasePlayer("NULLPlayer"){}
 
-        size_t select_move(const _Board& board, const std::vector<_Move>&  m) const override { return 0; }
+        size_t      select_move_algo(   const _Board& board, const std::vector<_Move>& m, size_t max_position) const override { return 0; }
+        TYPE_PARAM  eval_position_algo( const _Board& board, const std::vector<_Move>& m, size_t max_position) const override { return 0; }
+
         bool save() const           override { return false; }
         bool load()                 override { return false; }
-        bool train()                override { return false; }
     };
 };
 

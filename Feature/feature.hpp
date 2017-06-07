@@ -9,22 +9,16 @@
 // Condition feature:   Detect if something is on/off on the board 
 // Valuation feature:   Compute some value
 //
-// First evaluation model:
-// A player evalution function can be as follow (KEEPING condition features "independent" (and space exhaustive) for refinement through genetical evolution)
-//  Eval (generation 0) =   FcondA()*{SUM Fvalue()*weight()} + !FcondA()*{SUM Fvalue()*weight()} - at most 2 terms
-//                          Space is split in 2 : FcondA()[we found some gain here] and !FcondA()[we dont know about the rest so far]
-//  Eval (generation 1) = (FcondA() and FcondAA)*{...} + (FcondA() and !FcondAA)*{...}] + !FcondB()... - at most 4 terms
-//                          The sub space FcondA() is again split if found some extra gain, but we keep previous acquired gain on FcondA() space
-//  ...8 terms, 16 terms, ...
-//  Various splitting, merging, mutation are possible on the terms
+// Model
+//  Fc = conditional term = [Fcond() and/or Fcond() and/or ...]
+//  Fv =   valuation term = Sigmoid([Fval()*w + Fval()*w + ...]) range(0 to 1) 0==Black_winning 1==white_winning
+//
 //
 #ifndef _AL_CHESS_FEATURE_H
 #define _AL_CHESS_FEATURE_H
 
 #include "core/board.hpp"
-#include "core/piece.hpp"
 #include "core/move.hpp"
-#include "player/player.hpp"
 #include "domain/domain.hpp"
 
 namespace chess
