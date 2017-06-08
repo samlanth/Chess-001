@@ -76,3 +76,18 @@
 12:25:13:PM : ---------------------
 12:25:13:PM : Starting main        
 12:25:13:PM : TestBoard (Board type 1 <uint8_t, 8>) enter
+09:47:55:PM : ---------------------
+09:47:55:PM : Starting main        
+09:47:55:PM : TestBoard (Board type 1 <uint8_t, 8>) enter
+09:50:43:PM : ---------------------
+09:50:43:PM : Starting main        
+09:50:43:PM : TestBoard (Board type 1 <uint8_t, 8>) enter
+10:02:06:PM : ---------------------
+10:02:06:PM : Starting main        
+10:02:06:PM : TestBoard (Board type 1 <uint8_t, 8>) enter
+10:15:51:PM : ---------------------
+10:15:51:PM : Starting main        
+10:15:51:PM : TestBoard (Board type 1 <uint8_t, 8>) enter
+10:37:01:PM : ---------------------
+10:37:01:PM : Starting main        
+10:37:01:PM : TestBoard (Board type 1 <uint8_t, 8>) enter
