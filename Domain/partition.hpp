@@ -100,7 +100,7 @@ namespace chess
     {
         std::string f = PersistManager::instance()->get_stream_name("partition", _name);
         std::ifstream   filestream;
-        filestream.open(f.c_str(), std::ofstream::in);
+        filestream.open(f.c_str(), std::fstream::in);
         if (filestream.good())
         {
             size_t n_child;

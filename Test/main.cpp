@@ -13,6 +13,7 @@
 #include "domain/partition.hpp"
 #include "persistence/persist.hpp"
 #include "feature/feature.hpp"
+#include "feature/CondValNode.hpp"
 #include <cassert>
 
 
@@ -25,9 +26,11 @@
 int main(int argc, char* argv[])
 {
     // Test player class instantiation
-    chess::NullPlayer<uint8_t, 8, double, 16> player;
-    std::string aname = player.playername();
-    assert(aname == "NULLPlayer");
+    {
+        chess::NullPlayer<uint8_t, 8, double, 16> player;
+        std::string aname = player.playername();
+        assert(aname == "NULLPlayer");
+    }
 
     // Test PartitionManager class instantiation
     chess::PartitionManager<uint8_t, 8, double, 16>::instance()->make_classic_partition();
@@ -38,12 +41,33 @@ int main(int argc, char* argv[])
     chess::PersistManager::instance();
 
     //
-    chess::ConditionFeature_isOppositeKinCheck<uint8_t, 8, double, 16> fc;
-    chess::ValuationFeature_numberMoveForPiece<uint8_t, 8, double, 16> fv(chess::PieceName::K, chess::PieceColor::W);
+    {
+        chess::ConditionFeature_isOppositeKinCheck<uint8_t, 8, double, 16> fc;
+        chess::ValuationFeature_numberMoveForPiece<uint8_t, 8, double, 16> fv(chess::PieceName::K, chess::PieceColor::W);
+    }
 
     //
-    chess::DomainPlayer<uint8_t, 8, double, 16>* play1 = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("zeromind"), p_classic->name(), "DomainKQvK", "0");
+    {
+        chess::DomainPlayer<uint8_t, 8, double, 16>* play1 = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("zeromind"), p_classic->name(), "DomainKQvK", "0");
+        play1->save();
+        delete play1;
 
+        chess::DomainPlayer<uint8_t, 8, double, 16>* play2 = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("zeromind"), p_classic->name(), "DomainKQvK", "0");
+        play2->load();
+    }
+
+    //
+    {
+        chess::CondValNode<uint8_t, 8, double, 16>* root_node = new chess::CondValNode<uint8_t, 8, double, 16>(nullptr, true, false);
+        chess::CondValNode<uint8_t, 8, double, 16>* child_node1 = new chess::CondValNode<uint8_t, 8, double, 16>(root_node, true, false);
+        chess::CondValNode<uint8_t, 8, double, 16>* child_node2 = new chess::CondValNode<uint8_t, 8, double, 16>(root_node, false, false);
+        delete root_node;
+
+        chess::CondValNode<uint8_t, 8, double, 16>* root_nodea = new chess::CondValNode<uint8_t, 8, double, 16>(nullptr, true, true);
+        delete root_nodea; 
+
+        int debug = 1;
+    }
 
     //
     // Test integration with galgo

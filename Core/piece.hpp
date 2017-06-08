@@ -65,6 +65,7 @@ namespace chess
         static const _Piece* get(PieceID id);
         static void init();
         static const std::string to_str(PieceID id);
+        static const uint8_t Piece<PieceID, _BoardSize>::to_uint8(PieceID id);
 
         const PieceID           get_id()        const;
         const PieceName         get_name()      const { return name; }
@@ -156,6 +157,12 @@ namespace chess
             }
         }
         return "-- ";
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline const uint8_t Piece<PieceID, _BoardSize>::to_uint8(PieceID id)
+    {
+        return (uint8_t)id;
     }
 
     // init()

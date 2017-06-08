@@ -119,7 +119,7 @@ namespace chess
         {
             std::string f = PersistManager::instance()->get_stream_name("domain", persist_key());
             std::ifstream   filestream;
-            filestream.open(f.c_str(), std::ofstream::in);
+            filestream.open(f.c_str(), std::fstream::in);
             if (load_detail(filestream))
             {
                 filestream.close();
@@ -152,11 +152,11 @@ namespace chess
                 _Partition* p_partition = _PartitionManager::instance()->find_partition(partition_key);
                 if (p_partition == nullptr) return false;
 
-                _Domain* ptr_dom = p_partition->find_domain(domain_key(classname_key, instance_key));
-                if (ptr_dom == nullptr) return false;
+                _Domain* p_dom = p_partition->find_domain(domain_key(classname_key, instance_key));
+                if (p_dom == nullptr) return false;
 
-                // reloading or creating
-                ptr_dom->_children.clear();
+                // reloading
+                p_dom->_children.clear();
 
                 bool ok = true;
                 for (size_t i = 0; i < n_child; i++)
@@ -166,10 +166,10 @@ namespace chess
                     filestream >> classname_key;
                     filestream >> instance_key;              
                     {
-                        _Domain* ptr_dom_child = p_partition->find_domain(domain_key(classname_key,instance_key));
-                        if (ptr_dom_child != nullptr)
+                        _Domain* p_dom_child = p_partition->find_domain(domain_key(classname_key,instance_key));
+                        if (p_dom_child != nullptr)
                         {
-                            if (ptr_dom->add_child(ptr_dom_child))
+                            if (p_dom->add_child(p_dom_child))
                             {
                                 ok = true;                              
                             }
@@ -191,16 +191,14 @@ namespace chess
     public:
         bool add_child(_Domain* p)
         {
-            // check already exist
-            // ...
+            // check already exist...
             _children.push_back(p);
             return true;
         }
 
         Domain* get_child(size_t idx) const
         {
-            if ((idx>=0) && (idx < _children.size()))
-                return _children.at(idx);
+            if ((idx>=0) && (idx < _children.size())) return _children.at(idx);
             return nullptr;
         }
 
