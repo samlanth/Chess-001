@@ -171,7 +171,7 @@ namespace chess
             return 1 / (1 + std::exp(-a * x));
         }
 
-        bool eval_position(const _Board& position, const std::vector<_Move>& m, size_t max_node, TYPE_PARAM& ret_eval) const
+        bool eval_position(const _Board& position, const std::vector<_Move>& m, TYPE_PARAM& ret_eval) const
         {
             _CondValNode* terminal_node = get_terminal_node(position, m);
             if (terminal_node == nullptr)
