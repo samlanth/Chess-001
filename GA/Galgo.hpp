@@ -55,6 +55,7 @@ namespace galgo
 #include "ga/Chromosome.hpp"
 #include "ga/Population.hpp"
 #include "ga/GeneticAlgorithm.hpp"
+#include "random.hpp"
 
 #endif
 

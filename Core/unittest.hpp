@@ -15,14 +15,6 @@
 #ifndef _AL_CHESS_UNITTEST_H
 #define _AL_CHESS_UNITTEST_H
 
-#include <vector>
-#include <string>
-#include <sstream>
-#include <algorithm>
-#include <fstream>
-#include <iostream>
-#include <chrono>
-
 namespace unittest
 {
     template <typename T> class TTest;

@@ -11,20 +11,17 @@
 #ifndef _AL_CHESS_TEST_TESTBOARD_H
 #define _AL_CHESS_TEST_TESTBOARD_H
 
-#include "core/boardfunc.hpp"
-#include "core/unittest.hpp"
-#include <conio.h>
-#include <sstream>
-
 namespace chess
 {
     namespace test
     {
-        using namespace unittest;
-
         template <typename PieceID, typename uint8_t _BoardSize>
         class TestBoard
         {
+            using _Piece = Piece<PieceID, _BoardSize>;
+            using _Move = Move<PieceID>;
+            using _Board = Board<PieceID, _BoardSize>;
+
         public:
             bool _verbose;
             std::string _name;
@@ -42,11 +39,6 @@ namespace chess
                 ss << "TestBoard (" << _name << ") exit";
                 unittest::Logger::instance()->log(ss.str());
             }
-
-            using _Piece        = chess::Piece<PieceID, _BoardSize>;
-            using _Move         = chess::Move<PieceID>;
-            using _Board        = chess::Board<PieceID, _BoardSize>;
-            using _BoardFunc    = chess::BoardFunc<PieceID, _BoardSize>;
 
             bool check_000(uint32_t) // test default ct()
             {
@@ -89,8 +81,7 @@ namespace chess
             bool check_003(uint32_t param, bool allow_self_check) // test undo_move
             {
                 _Board board(true, allow_self_check);
-                _BoardFunc bf(board);
-
+ 
                 std::vector<_Move> m;
                 m = board.generate_moves();
                 size_t cnt_move_beg = m.size();
@@ -120,7 +111,7 @@ namespace chess
                     {
                         _Move mv = m[mv_index];
                         board.apply_move(mv);
-                        if (_verbose) std::cout << bf.to_str() << std::endl;
+                        if (_verbose) std::cout << board.to_str() << std::endl;
                     }
                 }
 
@@ -128,7 +119,7 @@ namespace chess
                 for (size_t i = 0; i < h.size(); i++)
                 {
                     board.undo_move();
-                    if (_verbose) std::cout << bf.to_str() << std::endl;
+                    if (_verbose) std::cout << board.to_str() << std::endl;
                 }
 
                 m = board.generate_moves();

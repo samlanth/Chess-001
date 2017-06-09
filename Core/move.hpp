@@ -10,13 +10,8 @@
 #ifndef _AL_CHESS_MOVE_H
 #define _AL_CHESS_MOVE_H
 
-#include <string>
-
 namespace chess
 {
-    enum class PieceName;
-    enum class PieceColor;
-
     struct MoveUnit
     {
         enum struct FLAG { none = 0, conditional = 1 };

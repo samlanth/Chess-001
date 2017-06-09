@@ -23,7 +23,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Core\board.hpp" />
-    <ClInclude Include="..\Core\boardfunc.hpp" />
+    <ClInclude Include="..\Core\chess.hpp" />
     <ClInclude Include="..\Core\move.hpp" />
     <ClInclude Include="..\Core\piece.hpp" />
     <ClInclude Include="..\Core\testboard.hpp" />

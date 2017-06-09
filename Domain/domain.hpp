@@ -13,12 +13,7 @@
 
 namespace chess
 {
-    enum class ExactScore :int8_t { LOSS = -1, DRAW = 0, WIN = 1, UNKNOWN=2}; // white win is +1, black win is -1
-
-    // forward
-    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class DomainKvK;
-    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class DomainKQvK;
-    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class DomainPlayer;
+    enum class ExactScore :int8_t { LOSS = -1, DRAW = 0, WIN = 1, UNKNOWN=2}; // white win is WIN, black win is LOSS
 
     // Domain interface
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
@@ -234,7 +229,7 @@ namespace chess
                 if (position.can_capture_opposite_king(m, ret_mv_idx))
                 {
                     if (position.get_color() == PieceColor::W) return ExactScore::WIN;
-                    else return ExactScore::LOSS;
+                    else if (position.get_color() == PieceColor::B) return ExactScore::LOSS;
                 }
                // else  return ExactScore::DRAW; // must know also the move
             }
@@ -301,7 +296,7 @@ namespace chess
                 if (position.can_capture_opposite_king(m, ret_mv_idx))
                 {
                     if (position.get_color() == PieceColor::W) return ExactScore::WIN;
-                    else return ExactScore::LOSS;
+                    else if (position.get_color() == PieceColor::B) return ExactScore::LOSS;
                 }
             }
             return ExactScore::UNKNOWN;

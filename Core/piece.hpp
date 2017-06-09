@@ -15,18 +15,8 @@
 #ifndef _AL_CHESS_PIECE_H
 #define _AL_CHESS_PIECE_H
 
-#include "core/move.hpp"
-#include <iostream>
-#include <map>
-#include <vector>
-#include <memory>
-#include <string>
-#include <cassert>
-
 namespace chess
 {
-    template <typename PieceID, typename uint8_t _BoardSize> class Board;
-
     enum class PieceName        { none, R, N, B, Q, K, P };
     enum class PieceColor       { none, W, B };
     enum class PieceMoveStyle   { none, Sliding, Jumping, SlidingDiagonalCapturePromo };

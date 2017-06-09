@@ -11,9 +11,6 @@
 #ifndef _AL_CHESS_GA_RANDOMIZE_H
 #define _AL_CHESS_GA_RANDOMIZE_H
 
-#include "random.hpp"
-#include <cassert>
-
 namespace galgo 
 {
     std::random_device  rnd_dev;                    // uniformly - distributed integer random number generator

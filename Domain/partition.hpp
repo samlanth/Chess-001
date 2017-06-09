@@ -9,16 +9,8 @@
 #ifndef _AL_CHESS_PARTITION_H
 #define _AL_CHESS_PARTITION_H
 
-#include <map>
-#include <string>
-#include <memory>
-
 namespace chess
 {
-    // forward
-    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class Domain;
-    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class Partition;
-
     // Partition
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     class Partition

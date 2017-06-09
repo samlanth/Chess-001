@@ -15,21 +15,8 @@
 #ifndef _AL_CHESS_PLAYER_H
 #define _AL_CHESS_PLAYER_H
 
-#include "core/board.hpp"
-#include "core/piece.hpp"
-#include "core/move.hpp"
-#include "domain/partition.hpp"
-#include "domain/partitionmanager.hpp"
-#include "feature/CondValNode.hpp"
-
 namespace chess
 {
-    template <typename PieceID, typename uint8_t _BoardSize> class Board;
-    template <typename PieceID> struct Move;
-    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class BasePlayer;
-    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class CondValNode;
-    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class DomainPlayer;
-
     // BasePlayer interface
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     class BasePlayer

@@ -9,13 +9,6 @@
 #ifndef _AL_CHESS_PERSIST_H
 #define _AL_CHESS_PERSIST_H
 
-#include <iostream>
-#include <fstream>
-#include <map>
-#include <memory>
-#include <string>
-#include <sstream>
-
 namespace chess
 {
     class PersistManager

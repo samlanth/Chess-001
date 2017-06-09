@@ -44,9 +44,6 @@
     <ClInclude Include="..\Core\board.hpp">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="..\Core\boardfunc.hpp">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="..\Core\move.hpp">
       <Filter>Core</Filter>
     </ClInclude>
@@ -112,6 +109,9 @@
     </ClInclude>
     <ClInclude Include="..\Game\game.hpp">
       <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Core\chess.hpp">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

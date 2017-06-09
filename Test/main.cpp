@@ -6,17 +6,7 @@
 // Unit testing for class Board
 //
 //
-#include "core/testboard.hpp"
-#include "ga/galgo_example.hpp"
-#include "player/player.hpp"
-#include "domain/domain.hpp"
-#include "domain/partition.hpp"
-#include "persistence/persist.hpp"
-#include "feature/feature.hpp"
-#include "feature/CondValNode.hpp"
-#include "game/game.hpp"
-#include <cassert>
-
+#include "core/chess.hpp"
 
 //-----------------------------------------------------------------------
 // test.exe -v -r -f logfile
@@ -26,8 +16,6 @@
 //-----------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
-//    chess::Piece<uint8_t, 8>::init();
-
     // Test player class instantiation
     {
         chess::NullPlayer<uint8_t, 8, double, 16> player;
@@ -58,6 +46,9 @@ int main(int argc, char* argv[])
         chess::DomainPlayer<uint8_t, 8, double, 16>* play2 = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("zeromind"), p_classic->name(), "DomainKQvK", "0");
         play2->load();
 
+        // PLAY games
+        chess::ExactScore sc;
+        double fit = 0;
         for(size_t i=0;i<40;i++)
         {
             chess::DomainPlayer<uint8_t, 8, double, 16>* playW = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("wmind"), p_classic->name(), "DomainKQvK", "0");
@@ -65,7 +56,11 @@ int main(int argc, char* argv[])
             chess::BaseGame<uint8_t, 8, double, 16> game(*playW, *playB);
             game.set_constraints(1000, 2, 1000, 2, 50);
             game.set_board(play1->get_domain()->get_random_position());
-            game.play(true);
+            sc = game.play(false);
+            if (sc == chess::ExactScore::WIN) fit += 1.0;
+            else if (sc == chess::ExactScore::LOSS) fit -= 1.0;
+            else if (sc == chess::ExactScore::DRAW) fit += 0.5;
+            std::cout << "score= " << fit << " / " << i+1 << std::endl;
         }
         int debug = 1;
     }

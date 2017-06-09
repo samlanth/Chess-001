@@ -16,23 +16,13 @@
 #ifndef _AL_CHESS_BOARD_H
 #define _AL_CHESS_BOARD_H
 
-#include "core/piece.hpp"
-#include <list>
-#include <future>
-
 namespace chess
 {
-    template <typename PieceID, typename uint8_t _BoardSize> class Board;
-    template <typename PieceID, typename uint8_t _BoardSize> class BoardFunc;
-    template <typename PieceID, typename uint8_t _BoardSize> class Piece;
-    template <typename PieceID> struct Move;
-
     template <typename PieceID, typename uint8_t _BoardSize>
     class Board
     {
         using _Piece = Piece<PieceID, _BoardSize>;
         using _Move = Move<PieceID>;
-        friend class BoardFunc<PieceID, _BoardSize>;
 
     public:
         Board(  bool set_classic = false,
@@ -66,6 +56,7 @@ namespace chess
         size_t cnt_piece(PieceName n, PieceColor c) const;
         size_t cnt_all_piece() const;
         bool is_final(const std::vector<_Move>& m) const;
+        ExactScore final_score(const std::vector<_Move>& m) const;
 
         const std::vector<_Move>    generate_moves(bool is_recursive_call = false);
         const std::list<_Move>      get_history_moves() const { return _history_moves; }
@@ -219,6 +210,16 @@ namespace chess
             index++;
         }
         return false;
+    }
+
+    // final_score()
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline ExactScore Board<PieceID, _BoardSize>::final_score(const std::vector<_Move>& m) const
+    {
+        if (!has_piece(PieceName::K, PieceColor::W)) return ExactScore::LOSS;
+        if (!has_piece(PieceName::K, PieceColor::B)) return ExactScore::WIN;
+        if (m.size() == 0) return ExactScore::DRAW;
+        return ExactScore::UNKNOWN;
     }
 
     // is_final()
