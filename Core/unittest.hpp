@@ -15,7 +15,6 @@
 #ifndef _AL_CHESS_UNITTEST_H
 #define _AL_CHESS_UNITTEST_H
 
-#include <time.h>
 #include <vector>
 #include <string>
 #include <sstream>

@@ -134,7 +134,7 @@ namespace chess
     {
         if (_instance == nullptr)
         {
-            _instance = std::unique_ptr<PartitionManager>(new PartitionManager); // work around std::make_unique public ct()
+            _instance = std::unique_ptr<PartitionManager>(new PartitionManager);
             return _instance.get();
         }
         return  _instance.get();;

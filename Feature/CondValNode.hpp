@@ -13,8 +13,6 @@
 #ifndef _AL_CHESS_CONDVALNODE_H
 #define _AL_CHESS_CONDVALNODE_H
 
-#include "feature/feature.hpp"
-
 namespace chess
 {
     // forward
@@ -111,10 +109,21 @@ namespace chess
             }
         }
 
-        bool isRoot() {return (_parent == nullptr);}
+        bool isRoot() const {return (_parent == nullptr);}
 
         bool get_condition_value(const _Board& position, const std::vector<_Move>& m) const
         {
+            if (isRoot()) return true;
+            if (!_is_positive_node)
+            {
+                if (_link_to_mirror != nullptr) return !(_link_to_mirror->get_condition_value(position, m));
+                else
+                {
+                    // May assume conditions of negative node were copied from positive node...
+                    assert(false);
+                }
+            }
+
             bool cond = true;
             for (size_t i = 0; i < _conditions.size(); i++)
             {

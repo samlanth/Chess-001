@@ -11,13 +11,9 @@
 #ifndef _AL_CHESS_DOMAIN_H
 #define _AL_CHESS_DOMAIN_H
 
-#include "domain/partition.hpp"
-#include "domain/partitionmanager.hpp"
-
 namespace chess
 {
-    using ScoreType = int8_t;
-    enum class ExactScore :ScoreType { LOSS = -1, DRAW = 0, WIN=1, UNKNOWN=2};
+    enum class ExactScore :int8_t { LOSS = -1, DRAW = 0, WIN = 1, UNKNOWN=2}; // white win is +1, black win is -1
 
     // forward
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class DomainKvK;
@@ -38,7 +34,7 @@ namespace chess
 
     protected:
         std::string             _partition_key;
-        std::string             _classname_key;
+        std::string             _domainname_key;
         std::string             _instance_key;
         std::vector<_Domain*>   _children;
 
@@ -46,9 +42,9 @@ namespace chess
 
     public:
         Domain( const std::string partition_key,
-                const std::string classname_key,
+                const std::string domainname_key,
                 const std::string instance_key) :
-            _partition_key(partition_key), _classname_key(classname_key), _instance_key(instance_key),
+            _partition_key(partition_key), _domainname_key(domainname_key), _instance_key(instance_key),
             _attached_domain_player(nullptr)
         {}
 
@@ -58,10 +54,10 @@ namespace chess
         const std::vector<_Domain*>& children() const { return _children;}
 
         const std::string partition_key()   const { return _partition_key; }
-        const std::string classname_key()   const { return _classname_key; }
+        const std::string domainname_key()   const { return _domainname_key; }
         const std::string instance_key()    const { return _instance_key;  }
 
-        const std::string domain_key()      const { return _classname_key+"_"+_instance_key; }
+        const std::string domain_key()      const { return _domainname_key+"_"+_instance_key; }
         static const std::string domain_key(const std::string& k1, const std::string& k2) { return k1 + "_" + k2; }
         const std::string persist_key()      const { return _partition_key + "_" + domain_key(); }
 
@@ -71,10 +67,12 @@ namespace chess
         virtual bool save() const = 0;
         virtual bool load() = 0;
 
-        static _Domain* make(const std::string& partition_key, const std::string& classname_key, const std::string& instance_key)
+        virtual _Board get_random_position() const = 0;
+
+        static _Domain* make(const std::string& partition_key, const std::string& domainname_key, const std::string& instance_key)
         {
-            if      (classname_key == "DomainKvK")  return new DomainKvK <PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(partition_key);
-            else if (classname_key == "DomainKQvK") return new DomainKQvK<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(partition_key);
+            if      (domainname_key == "DomainKvK")  return new DomainKvK <PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(partition_key);
+            else if (domainname_key == "DomainKQvK") return new DomainKQvK<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(partition_key);
             return nullptr;
         }
 
@@ -100,14 +98,14 @@ namespace chess
             if (filestream.good())
             {
                 filestream << _partition_key; filestream << std::endl;
-                filestream << _classname_key; filestream << std::endl;
+                filestream << _domainname_key; filestream << std::endl;
                 filestream << _instance_key;  filestream << std::endl;
 
                 filestream << _children.size(); filestream << std::endl;
                 for (auto& v : _children)
                 {
                     filestream << v->partition_key(); filestream << std::endl;
-                    filestream << v->classname_key(); filestream << std::endl;
+                    filestream << v->domainname_key(); filestream << std::endl;
                     filestream << v->instance_key();  filestream << std::endl;
                 }
                 return true;
@@ -135,16 +133,16 @@ namespace chess
             {
                 size_t n_child;
                 std::string partition_key;
-                std::string classname_key;
+                std::string domainname_key;
                 std::string instance_key;
 
                 filestream >> partition_key;
-                filestream >> classname_key;
+                filestream >> domainname_key;
                 filestream >> instance_key;
 
                 // check
                 assert(partition_key == _partition_key);
-                assert(classname_key == _classname_key);
+                assert(domainname_key == _domainname_key);
                 assert(instance_key == _instance_key);
 
                 filestream >> n_child;
@@ -152,7 +150,7 @@ namespace chess
                 _Partition* p_partition = _PartitionManager::instance()->find_partition(partition_key);
                 if (p_partition == nullptr) return false;
 
-                _Domain* p_dom = p_partition->find_domain(domain_key(classname_key, instance_key));
+                _Domain* p_dom = p_partition->find_domain(domain_key(domainname_key, instance_key));
                 if (p_dom == nullptr) return false;
 
                 // reloading
@@ -163,10 +161,10 @@ namespace chess
                 {
                     ok = false;
                     filestream >> partition_key;
-                    filestream >> classname_key;
+                    filestream >> domainname_key;
                     filestream >> instance_key;              
                     {
-                        _Domain* p_dom_child = p_partition->find_domain(domain_key(classname_key,instance_key));
+                        _Domain* p_dom_child = p_partition->find_domain(domain_key(domainname_key,instance_key));
                         if (p_dom_child != nullptr)
                         {
                             if (p_dom->add_child(p_dom_child))
@@ -209,6 +207,7 @@ namespace chess
     class DomainKvK : public Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
     {
         using _Board  = Board<PieceID, _BoardSize>;
+        using _Piece = Piece<PieceID, _BoardSize>;
         using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _Move = Move<PieceID>;
         using _DomainPlayer = DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
@@ -233,7 +232,10 @@ namespace chess
             if (position.is_allow_self_check())
             {
                 if (position.can_capture_opposite_king(m, ret_mv_idx))
-                    return ExactScore::WIN;
+                {
+                    if (position.get_color() == PieceColor::W) return ExactScore::WIN;
+                    else return ExactScore::LOSS;
+                }
                // else  return ExactScore::DRAW; // must know also the move
             }
             return ExactScore::UNKNOWN;
@@ -247,12 +249,29 @@ namespace chess
         {
             return load_root();
         }
+
+        _Board get_random_position() const override
+        {     
+            uint8_t wK = 0; 
+            uint8_t bK = 0;
+            while (wK == bK)
+            {
+                wK = (std::rand() % _BoardSize*_BoardSize);
+                bK = (std::rand() % _BoardSize*_BoardSize);
+            }
+            _Board b; 
+            b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::W), wK % _BoardSize, ((uint8_t)(wK / _BoardSize)));
+            b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::B), bK % _BoardSize, ((uint8_t)(bK / _BoardSize)));
+            b.set_color(PieceColor::W); 
+            return b;
+        }
     };
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     class DomainKQvK : public Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
     {
         using _Board = Board<PieceID, _BoardSize>;
+        using _Piece = Piece<PieceID, _BoardSize>;
         using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _Move = Move<PieceID>;
         using _DomainPlayer = DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
@@ -274,9 +293,17 @@ namespace chess
             return false;
         }
 
-        virtual bool has_known_score_move() const { return false; }
+        virtual bool has_known_score_move() const { return true; }
         virtual ExactScore get_known_score_move(const _Board& position, const std::vector<_Move>& m, size_t& ret_mv_idx) const
         {
+            if (position.is_allow_self_check())
+            {
+                if (position.can_capture_opposite_king(m, ret_mv_idx))
+                {
+                    if (position.get_color() == PieceColor::W) return ExactScore::WIN;
+                    else return ExactScore::LOSS;
+                }
+            }
             return ExactScore::UNKNOWN;
         }
 
@@ -287,6 +314,25 @@ namespace chess
         virtual bool load() override
         {
             return load_root();
+        }
+
+        _Board get_random_position() const override
+        {
+            uint8_t wQ = 0;
+            uint8_t wK = 0;
+            uint8_t bK = 0;
+            while ((wK == bK)||(wK==wQ)||(bK==wQ))
+            {
+                wQ = (std::rand() % (_BoardSize*_BoardSize));
+                wK = (std::rand() % (_BoardSize*_BoardSize));
+                bK = (std::rand() % (_BoardSize*_BoardSize));
+            }
+            _Board b;
+            b.set_pieceid_at(_Piece::get_id(PieceName::Q, PieceColor::W), wQ % _BoardSize, ((uint8_t)(wQ / _BoardSize)));
+            b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::W), wK % _BoardSize, ((uint8_t)(wK / _BoardSize)));
+            b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::B), bK % _BoardSize, ((uint8_t)(bK / _BoardSize)));
+            b.set_color(PieceColor::W);
+            return b;
         }
     };
 

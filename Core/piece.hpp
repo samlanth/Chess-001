@@ -99,7 +99,10 @@ namespace chess
     // Piece()
     template <typename PieceID, typename uint8_t _BoardSize>
     inline Piece<PieceID, _BoardSize>::Piece(PieceName n, PieceColor c, PieceMoveStyle m)
-        : name(n), color(c), move_style(m) {}
+        : name(n), color(c), move_style(m) 
+    {
+        if (!Piece::is_init) init();
+    }
     
     // empty_id()
     template <typename PieceID, typename uint8_t _BoardSize>
@@ -109,6 +112,8 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline const PieceID Piece<PieceID, _BoardSize>::get_id(PieceName _name, PieceColor _c)
     {
+        if (!Piece::is_init) init();
+
         auto &it = _keyToID.find(PieceKey{ _name,_c });
         if (it != _keyToID.end()) return it->second;
         return empty_id();
@@ -118,6 +123,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline const PieceID Piece<PieceID, _BoardSize>::get_id() const 
     { 
+        if (!Piece::is_init) init();
         return get_id(this->name, this->color); 
     }
 
@@ -125,6 +131,8 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline const Piece<PieceID, _BoardSize>* Piece<PieceID, _BoardSize>::get(PieceID id)
     {
+        if (!Piece::is_init) init();
+
         assert(pieces.size() > 0);
         assert(id >= 0);
         assert(id < pieces.size());
@@ -135,6 +143,8 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline const std::string Piece<PieceID, _BoardSize>::to_str(PieceID id)
     {
+        if (!Piece::is_init) init();
+
         std::string s;
         for (const auto &p : pieces)
         {
@@ -170,6 +180,7 @@ namespace chess
     inline void Piece<PieceID, _BoardSize>::init()
     {
         if (is_init) return;
+        is_init = true; // prevent re-entry
 
         uint8_t id = 0; 
         _keyToID.insert(std::pair<PieceKey, PieceID>(PieceKey{ PieceName::none, PieceColor::none }, id++)); // implicit cast PieceID(id)

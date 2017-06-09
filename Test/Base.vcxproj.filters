@@ -31,6 +31,9 @@
     <Filter Include="Feature">
       <UniqueIdentifier>{05aafc9e-614b-456e-96ab-ec2234a30713}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{fd96f8fb-099a-4632-870a-ac3beb6fb543}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -86,9 +89,6 @@
     <ClInclude Include="..\GA\galgo_example.hpp">
       <Filter>GA</Filter>
     </ClInclude>
-    <ClInclude Include="..\Player\player.hpp">
-      <Filter>Player</Filter>
-    </ClInclude>
     <ClInclude Include="..\Domain\domain.hpp">
       <Filter>Domain</Filter>
     </ClInclude>
@@ -106,6 +106,12 @@
     </ClInclude>
     <ClInclude Include="..\Feature\CondValNode.hpp">
       <Filter>Feature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Player\player.hpp">
+      <Filter>Player</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\game.hpp">
+      <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

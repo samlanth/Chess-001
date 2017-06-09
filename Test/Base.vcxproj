@@ -33,6 +33,7 @@
     <ClInclude Include="..\Domain\partitionmanager.hpp" />
     <ClInclude Include="..\Feature\CondValNode.hpp" />
     <ClInclude Include="..\Feature\feature.hpp" />
+    <ClInclude Include="..\Game\game.hpp" />
     <ClInclude Include="..\GA\Chromosome.hpp" />
     <ClInclude Include="..\GA\Converter.hpp" />
     <ClInclude Include="..\GA\Evolution.hpp" />

@@ -10,7 +10,6 @@
 #ifndef _AL_CHESS_MOVE_H
 #define _AL_CHESS_MOVE_H
 
-#include "core/piece.hpp"
 #include <string>
 
 namespace chess

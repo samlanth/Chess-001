@@ -15,10 +15,6 @@
 #ifndef _AL_CHESS_FEATURE_H
 #define _AL_CHESS_FEATURE_H
 
-#include "core/board.hpp"
-#include "core/move.hpp"
-#include "domain/domain.hpp"
-
 namespace chess
 {
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class FeatureManager;

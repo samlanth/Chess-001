@@ -14,6 +14,7 @@
 #include "persistence/persist.hpp"
 #include "feature/feature.hpp"
 #include "feature/CondValNode.hpp"
+#include "game/game.hpp"
 #include <cassert>
 
 
@@ -25,6 +26,8 @@
 //-----------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
+//    chess::Piece<uint8_t, 8>::init();
+
     // Test player class instantiation
     {
         chess::NullPlayer<uint8_t, 8, double, 16> player;
@@ -54,6 +57,17 @@ int main(int argc, char* argv[])
 
         chess::DomainPlayer<uint8_t, 8, double, 16>* play2 = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("zeromind"), p_classic->name(), "DomainKQvK", "0");
         play2->load();
+
+        for(size_t i=0;i<40;i++)
+        {
+            chess::DomainPlayer<uint8_t, 8, double, 16>* playW = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("wmind"), p_classic->name(), "DomainKQvK", "0");
+            chess::DomainPlayer<uint8_t, 8, double, 16>* playB = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("bmind"), p_classic->name(), "DomainKQvK", "0");
+            chess::BaseGame<uint8_t, 8, double, 16> game(*playW, *playB);
+            game.set_constraints(1000, 2, 1000, 2, 50);
+            game.set_board(play1->get_domain()->get_random_position());
+            game.play(true);
+        }
+        int debug = 1;
     }
 
     //

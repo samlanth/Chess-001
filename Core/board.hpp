@@ -17,7 +17,6 @@
 #define _AL_CHESS_BOARD_H
 
 #include "core/piece.hpp"
-#include "core/move.hpp"
 #include <list>
 #include <future>
 
@@ -25,6 +24,8 @@ namespace chess
 {
     template <typename PieceID, typename uint8_t _BoardSize> class Board;
     template <typename PieceID, typename uint8_t _BoardSize> class BoardFunc;
+    template <typename PieceID, typename uint8_t _BoardSize> class Piece;
+    template <typename PieceID> struct Move;
 
     template <typename PieceID, typename uint8_t _BoardSize>
     class Board
@@ -51,9 +52,10 @@ namespace chess
         const PieceID get_pieceid_at(uint8_t x, uint8_t y) const { return _cells.at(index_at(x, y)); }
         void          set_pieceid_at(PieceID id, uint8_t x, uint8_t y) { _cells.at(index_at(x, y)) = id; }
 
-        const PieceColor get_color() const;
-        const PieceColor get_opposite_color() const;
-        void set_opposite_color();
+        const PieceColor    get_color() const;
+        void                set_color(PieceColor c) { _color_toplay = c; }
+        const PieceColor    get_opposite_color() const;
+        void                set_opposite_color();
 
         void apply_move(const _Move& m);
         void undo_move();
@@ -71,6 +73,8 @@ namespace chess
         bool is_allow_self_check()          const { return _allow_self_check; }
         bool is_check_repeating_move_draw() const { return _check_repeating_move_draw; }
         bool is_check_50_moves_draw()       const { return _check_50_moves_draw; }
+        size_t get_histo_size()             const { return _history_moves.size(); }
+        const std::string to_str() const;
 
     private:
         PieceColor              _color_toplay;
@@ -539,6 +543,23 @@ namespace chess
             bb.undo_move();
         }
         return mm;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline const std::string Board<PieceID, _BoardSize>::to_str() const
+    {
+        std::string s;
+        PieceID id;
+        for (uint8_t j = _BoardSize; j >= 1; j--)
+        {
+            for (uint8_t i = 0; i < _BoardSize; i++)
+            {
+                id = get_pieceid_at(i, j - 1);
+                s += _Piece::to_str(id);
+            }
+            s += "\n";
+        }
+        return s;
     }
 
 };

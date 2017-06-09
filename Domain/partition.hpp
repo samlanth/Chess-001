@@ -58,9 +58,9 @@ namespace chess
             }
             return nullptr;
         }
-        _Domain* find_domain(const std::string& classname_key, const std::string& instance_key) const
+        _Domain* find_domain(const std::string& domainname_key, const std::string& instance_key) const
         {
-            return find_domain(_Domain::domain_key(classname_key, instance_key));
+            return find_domain(_Domain::domain_key(domainname_key, instance_key));
         }
 
     private:
@@ -81,7 +81,7 @@ namespace chess
             filestream << _domains.size(); filestream << std::endl;
             for (auto& v : _domains)
             {
-                filestream << v.second->classname_key(); filestream << std::endl;
+                filestream << v.second->domainname_key(); filestream << std::endl;
                 filestream << v.second->instance_key(); filestream << std::endl;
             }
         }
@@ -105,7 +105,7 @@ namespace chess
         {
             size_t n_child;
             std::string partition_key;
-            std::string classname_key;
+            std::string domainname_key;
             std::string instance_key;
 
             filestream >> partition_key;
@@ -119,10 +119,10 @@ namespace chess
             for (size_t i = 0; i < n_child; i++)
             {
                 ok = false;
-                filestream >> classname_key;
+                filestream >> domainname_key;
                 filestream >> instance_key;
                 {
-                    _Domain* ptr_dom = _Domain::make(partition_key, classname_key, instance_key);
+                    _Domain* ptr_dom = _Domain::make(partition_key, domainname_key, instance_key);
                     if (ptr_dom != nullptr)
                     {
                         if (add_domain(ptr_dom))
