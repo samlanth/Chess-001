@@ -40,9 +40,7 @@ namespace chess
         static _Partition*      find_partition(const std::string partition_name);
 
         static const PartitionManager* instance();
-
-        // Exemple
-        static bool make_classic_partition();
+        static bool make_classic_partition();       // Exemple
 
     private:
         std::map<std::string, _Partition*>          _partitions;    // TODO std_unique<> ...
@@ -57,34 +55,28 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     bool PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::make_classic_partition()
     {
-        _Partition* p = new _Partition("classic");
+        std::stringstream ss_name;
+        ss_name << "classic" << std::to_string(_BoardSize);
+
+        _Partition* p = new _Partition(ss_name.str());
         if (!PartitionManager::instance()->add_partition(p)) return false;
 
-        _Partition* p_classic = PartitionManager::instance()->find_partition("classic");
+        _Partition* p_classic = PartitionManager::instance()->find_partition(ss_name.str());
         if (p_classic == nullptr) return false;
 
         // create domains
-        _Domain* dom_KK   = new DomainKvK< PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>("classic");
-        _Domain* dom_KQvK = new DomainKQvK<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>("classic");
+        _Domain* dom_KK   = new DomainKvK< PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(ss_name.str());
+        _Domain* dom_KQvK = new DomainKQvK<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(ss_name.str());
 
         if (!p_classic->add_domain(dom_KK))     return false;
         if (!p_classic->add_domain(dom_KQvK))   return false;
 
-        _Domain* ptr_dom_KQvK = p_classic->find_domain("DomainKQvK", "0"); if (ptr_dom_KQvK == nullptr) return false;
-        _Domain* ptr_dom_KK   = p_classic->find_domain("DomainKvK" , "0"); if (ptr_dom_KK   == nullptr) return false;
+        _Domain* ptr_dom_KQvK = p_classic->find_domain(_Domain::getDomainName(eDomainName::KQvK), "0"); if (ptr_dom_KQvK == nullptr) return false;
+        _Domain* ptr_dom_KK   = p_classic->find_domain(_Domain::getDomainName(eDomainName::KvK) , "0"); if (ptr_dom_KK   == nullptr) return false;
 
         // set children relationship
         if (!ptr_dom_KQvK->add_child(ptr_dom_KK)) return false;
 
-        // test persistence
-        ptr_dom_KK->save();
-        ptr_dom_KQvK->save();
-
-        ptr_dom_KK->load();
-        ptr_dom_KQvK->load();
-
-        p_classic->save();
-        p_classic->load();
         return true;
     }
 
@@ -113,7 +105,6 @@ namespace chess
         if (iter == _instance->_partitions.end())
         {
             _instance->_partitions.insert(std::pair<std::string, _Partition*>(p->name(), p));
-            //_instance->_partitions[p->name()] = p;
             return true;
         }
         return false;

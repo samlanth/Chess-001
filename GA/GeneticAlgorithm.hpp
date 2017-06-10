@@ -4,7 +4,7 @@
 //                      Original source is GALGO 2.0 (see github)         
 //=================================================================================================
 //
-//  class GeneticAlgorithm<T>
+//  class GeneticAlgorithm<T, PARAM_NBIT>
 //
 //
 #ifndef _AL_CHESS_GA_GENETICALGORITHM_HPP
@@ -12,17 +12,17 @@
 
 namespace galgo 
 {
-    template <typename T>
+    template <typename T, int PARAM_NBIT>
     class GeneticAlgorithm
     {
        static_assert(std::is_same<float,T>::value || std::is_same<double,T>::value, "T must be float or double");
 
-       template <typename K> friend class Population;
-       template <typename K> friend class Chromosome;
+       template <typename K, int PARAM_NBIT> friend class Population;
+       template <typename K, int PARAM_NBIT> friend class Chromosome;
        template <typename K> using Func = std::vector<K> (*)(const std::vector<K>&);
 
-    private:
-       Population<T> pop;             // population of chromosomes
+    protected:
+       Population<T, PARAM_NBIT> pop;             // population of chromosomes
        std::vector<PAR<T>> param;     // parameter(s) 
        std::vector<T> lowerBound;     // parameter(s) lower bound
        std::vector<T> upperBound;     // parameter(s) upper bound
@@ -31,10 +31,10 @@ namespace galgo
 
     public: 
        Func<T> Objective;                                                                       // objective function pointer
-       void (*Selection)    (Population<T>&) = chess::ga::RWS;                                  // selection method initialized to roulette wheel selection                                 
-       void (*CrossOver)    (const Population<T>&, CHR<T>&, CHR<T>&) = chess::ga::P1XO;         // cross-over method initialized to 1-point cross-over 
-       void (*Mutation)     (CHR<T>&) = chess::ga::SPM;                                         // mutation method initialized to single-point mutation                                     
-       void (*Adaptation)   (Population<T>&) = nullptr;                                         // adaptation to constraint(s) method                
+       void (*Selection)    (Population<T, PARAM_NBIT>&) = chess::ga::RWS;                                  // selection method initialized to roulette wheel selection                                 
+       void (*CrossOver)    (const Population<T, PARAM_NBIT>&, CHR<T, PARAM_NBIT>&, CHR<T, PARAM_NBIT>&) = chess::ga::P1XO;         // cross-over method initialized to 1-point cross-over 
+       void (*Mutation)     (CHR<T, PARAM_NBIT>&) = chess::ga::SPM;                                         // mutation method initialized to single-point mutation                                     
+       void (*Adaptation)   (Population<T, PARAM_NBIT>&) = nullptr;                                         // adaptation to constraint(s) method                
        std::vector<T> (*Constraint)(const std::vector<T>&) = nullptr;                           // constraint(s)      
 
        T covrate = .50;   // cross-over rate
@@ -48,14 +48,25 @@ namespace galgo
        int genstep = 10;  // generation step for outputting results
        int precision = 5; // precision for outputting results
 
+    public:
        // constructor
-       template <int...N>
-       GeneticAlgorithm(Func<T> objective, int popsize, int nbgen, bool output, const Parameter<T,N>&...args);
+       GeneticAlgorithm(int popsize, int nbgen,
+                       std::vector<T>&  _lowerBound,
+                       std::vector<T>&  _upperBound,
+                       std::vector<T>&  _initialSet);
 
-       void run();                      // run genetic algorithm  
-       const CHR<T>& result() const;    // return best chromosome 
+       GeneticAlgorithm(int popsize, int nbgen, int _tournament_n_player, int _tournament_n_game);
 
-    private:
+       virtual void run();                          // run genetic algorithm  
+       const CHR<T, PARAM_NBIT>& result() const;    // return best chromosome 
+
+       virtual std::vector<T> tournament(bool is_at_creation, const std::vector<T>& param) const
+       {
+           std::vector<T> v;
+           return v;
+       }
+
+    protected:
        int nbbit;     // total number of bits per chromosome
        int nbgen;     // number of generations
        int nogen = 0; // numero of generation
@@ -63,67 +74,58 @@ namespace galgo
        int popsize;   // population size
        bool output;   // control if results must be outputted
 
-       // end of recursion for initializing parameter(s) data
-       template <int I = 0, int...N>
-       typename std::enable_if<I == sizeof...(N), void>::type init(const TUP<T,N...>&); 
-       // recursion for initializing parameter(s) data
-       template <int I = 0, int...N>
-       typename std::enable_if<I < sizeof...(N), void>::type init(const TUP<T,N...>&);
+       int tournament_n_player;
+       int tournament_n_game;
 
        void check() const ; // check inputs validity
        void print() const;  // print results for each new generation
     };
 
+    template <typename T, int PARAM_NBIT>
+    GeneticAlgorithm<T, PARAM_NBIT>::GeneticAlgorithm(int _popsize, int _nbgen, int _tournament_n_player, int _tournament_n_game)
+    {
+        this->nbgen = _nbgen;
+        this->popsize = _popsize;
+        this->matsize = _popsize;
+        this->output = true;
+        this->tournament_n_player  = _tournament_n_player;
+        this->tournament_n_game    = _tournament_n_game;
+    }
+
     // constructor
-    template <typename T> template <int...N>
-    GeneticAlgorithm<T>::GeneticAlgorithm(Func<T> objective, int popsize, int nbgen, bool output, const Parameter<T,N>&...args)
+    template <typename T, int PARAM_NBIT>
+    GeneticAlgorithm<T, PARAM_NBIT>::GeneticAlgorithm(int _popsize, int _nbgen,
+                            std::vector<T>& _lowerBound, 
+                            std::vector<T>& _upperBound, 
+                            std::vector<T>& _initialSet)
     {
-       this->Objective = objective;
-       this->nbbit = sum(N...);         // getting total number of bits per chromosome
-       this->nbgen = nbgen;
-       this->nbparam = sizeof...(N);    // getting number of parameters in the pack
-       this->popsize = popsize;
-       this->matsize = popsize;
-       this->output = output;
-       TUP<T,N...> tp(args...);         // unpacking parameter pack in tuple
-       this->init(tp);                  // initializing parameter(s) data
-    }
+        for (int i = 0; i<_lowerBound.size(); i++)
+        {
+            std::vector<T> w;
+            w.push_back(_lowerBound[i]); w.push_back(_upperBound[i]); w.push_back(_initialSet[i]);
+            Parameter<double, PARAM_NBIT> p(w);
+            param.emplace_back(new decltype(p)(p));
 
-    // end of recursion for initializing parameter(s) data
-    template <typename T> template <int I, int...N>
-    inline typename std::enable_if<I == sizeof...(N), void>::type 
-    GeneticAlgorithm<T>::init(const TUP<T,N...>& tp) {}
+            if (i == 0) idx.push_back(0);
+            else idx.push_back(idx[i - 1] + PARAM_NBIT);
+        }
+        lowerBound = _lowerBound;
+        upperBound = _upperBound;
+        initialSet = _initialSet;
 
-    // recursion for initializing parameter(s) data
-    template <typename T> template <int I, int...N>
-    inline typename std::enable_if<I < sizeof...(N), void>::type 
-    GeneticAlgorithm<T>::init(const TUP<T,N...>& tp) 
-    {
-       // getting Ith parameter in tuple
-       auto par = std::get<I>(tp);
-       // getting Ith parameter initial data
-       const std::vector<T>& data = par.getData();
-       // copying parameter data
-       param.emplace_back(new decltype(par)(par));
-       lowerBound.push_back(data[0]);
-       upperBound.push_back(data[1]);
-       // if parameter has initial value
-       if (data.size() > 2) {
-          initialSet.push_back(data[2]);
-       }
-       // setting indexes for chromosome breakdown
-       if (I == 0) {
-          idx.push_back(0);
-       } else {
-          idx.push_back(idx[I - 1] + par.size());
-       }
-       // recursing
-       init<I + 1>(tp);
-    }
+        //this->Objective = objective;
+        this->nbbit = (int)_lowerBound.size()*PARAM_NBIT;
+        this->nbparam = (int)_lowerBound.size();
+
+        this->nbgen = _nbgen;
+        this->popsize = _popsize;
+        this->matsize = _popsize;
+        this->output = true;
+    };
 
     // check inputs validity
-    template <typename T>
-    void GeneticAlgorithm<T>::check() const
+    template <typename T, int PARAM_NBIT>
+    void GeneticAlgorithm<T, PARAM_NBIT>::check() const
     {
        if (!initialSet.empty()) {
           for (int i = 0; i < nbparam; ++i) {
@@ -132,26 +134,26 @@ namespace galgo
              }
           }
           if (initialSet.size() != (unsigned)nbparam) {
-             throw std::invalid_argument("Error: in class galgo::GeneticAlgorithm<T>, initial set of parameters does not have the same dimension than the number of parameters, please adjust.");
+             throw std::invalid_argument("Error: in class galgo::GeneticAlgorithm<T, PARAM_NBIT>, initial set of parameters does not have the same dimension than the number of parameters, please adjust.");
           }
        }
        if (SP < 1.0 || SP > 2.0) {
-          throw std::invalid_argument("Error: in class galgo::GeneticAlgorithm<T>, selective pressure (SP) cannot be outside [1.0,2.0], please choose a real value within this interval.");
+          throw std::invalid_argument("Error: in class galgo::GeneticAlgorithm<T, PARAM_NBIT>, selective pressure (SP) cannot be outside [1.0,2.0], please choose a real value within this interval.");
        }
        if (elitpop > popsize || elitpop < 0) {
-          throw std::invalid_argument("Error: in class galgo::GeneticAlgorithm<T>, elit population (elitpop) cannot outside [0,popsize], please choose an integral value within this interval.");
+          throw std::invalid_argument("Error: in class galgo::GeneticAlgorithm<T, PARAM_NBIT>, elit population (elitpop) cannot outside [0,popsize], please choose an integral value within this interval.");
        }
        if (covrate < 0.0 || covrate > 1.0) {
-          throw std::invalid_argument("Error: in class galgo::GeneticAlgorithm<T>, cross-over rate (covrate) cannot outside [0.0,1.0], please choose a real value within this interval.");
+          throw std::invalid_argument("Error: in class galgo::GeneticAlgorithm<T, PARAM_NBIT>, cross-over rate (covrate) cannot outside [0.0,1.0], please choose a real value within this interval.");
        }
        if (genstep <= 0) {
-          throw std::invalid_argument("Error: in class galgo::GeneticAlgorithm<T>, generation step (genstep) cannot be <= 0, please choose an integral value > 0.");
+          throw std::invalid_argument("Error: in class galgo::GeneticAlgorithm<T, PARAM_NBIT>, generation step (genstep) cannot be <= 0, please choose an integral value > 0.");
        }
     }
 
     // run genetic algorithm
-    template <typename T>
-    void GeneticAlgorithm<T>::run()
+    template <typename T, int PARAM_NBIT>
+    void GeneticAlgorithm<T, PARAM_NBIT>::run()
     {
        // checking inputs validity
        this->check();
@@ -162,7 +164,7 @@ namespace galgo
        }
 
        // initializing population
-       pop = Population<T>(*this);
+       pop = Population<T, PARAM_NBIT>(*this);
 
        if (output) {
           std::cout << "\n Running Genetic Algorithm...\n";
@@ -171,14 +173,17 @@ namespace galgo
 
        // creating population
        pop.creation();
+
        // initializing best result and previous best result
        T bestResult = pop(0)->getTotal();
        T prevBestResult = bestResult;
+
        // outputting results 
        if (output) print();
     
        // starting population evolution
-       for (nogen = 1; nogen <= nbgen; ++nogen) {
+       for (nogen = 1; nogen <= nbgen; ++nogen) 
+       {
           // evolving population
           pop.evolution();
           // getting best current result
@@ -195,13 +200,15 @@ namespace galgo
        } 
 
        // outputting contraint value
-       if (Constraint != nullptr) {
+       if (Constraint != nullptr) 
+       {
           // getting best parameter(s) constraint value(s)
           std::vector<T> cst = pop(0)->getConstraint(); 
           if (output) {
              std::cout << "\n Constraint(s)\n";
              std::cout << " -------------\n";
-             for (unsigned i = 0; i < cst.size(); ++i) {
+             for (unsigned i = 0; i < cst.size(); ++i) 
+             {
                 std::cout << " C"; 
                 if (nbparam > 1) {
                    std::cout << std::to_string(i + 1);
@@ -214,15 +221,15 @@ namespace galgo
     }
 
     // return best chromosome
-    template <typename T>
-    inline const CHR<T>& GeneticAlgorithm<T>::result() const
+    template <typename T, int PARAM_NBIT>
+    inline const CHR<T, PARAM_NBIT>& GeneticAlgorithm<T, PARAM_NBIT>::result() const
     {
        return pop(0);
     }
 
     // print results for each new generation
-    template <typename T>
-    void GeneticAlgorithm<T>::print() const
+    template <typename T, int PARAM_NBIT>
+    void GeneticAlgorithm<T, PARAM_NBIT>::print() const
     {
        // getting best parameter(s) from best chromosome
        std::vector<T> bestParam = pop(0)->getParam();

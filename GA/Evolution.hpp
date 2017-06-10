@@ -5,25 +5,25 @@
 //=================================================================================================
 //
 //  SELECTION METHODS
-//  void RWS(galgo::Population<T>& x);
-//  void SUS(galgo::Population<T>& x);
-//  void RNK(galgo::Population<T>& x);
-//  void RSP(galgo::Population<T>& x);
-//  void TNT(galgo::Population<T>& x);
-//  void TRS(galgo::Population<T>& x);
+//  void RWS(galgo::Population<T, PARAM_NBIT>& x);
+//  void SUS(galgo::Population<T, PARAM_NBIT>& x);
+//  void RNK(galgo::Population<T, PARAM_NBIT>& x);
+//  void RSP(galgo::Population<T, PARAM_NBIT>& x);
+//  void TNT(galgo::Population<T, PARAM_NBIT>& x);
+//  void TRS(galgo::Population<T, PARAM_NBIT>& x);
 //
 //  CROSS-OVER METHODS
-//  void P1XO(const galgo::Population<T>& x, galgo::CHR<T>& chr1, galgo::CHR<T>& chr2);
-//  void P2XO(const galgo::Population<T>& x, galgo::CHR<T>& chr1, galgo::CHR<T>& chr2);
-//  void UXO (const galgo::Population<T>& x, galgo::CHR<T>& chr1, galgo::CHR<T>& chr2);
+//  void P1XO(const galgo::Population<T, PARAM_NBIT>& x, galgo::CHR<T, PARAM_NBIT>& chr1, galgo::CHR<T, PARAM_NBIT>& chr2);
+//  void P2XO(const galgo::Population<T, PARAM_NBIT>& x, galgo::CHR<T, PARAM_NBIT>& chr1, galgo::CHR<T, PARAM_NBIT>& chr2);
+//  void UXO (const galgo::Population<T, PARAM_NBIT>& x, galgo::CHR<T, PARAM_NBIT>& chr1, galgo::CHR<T, PARAM_NBIT>& chr2);
 //
 //  MUTATION METHODS
-//  void BDM(galgo::CHR<T>& chr);
-//  void SPM(galgo::CHR<T>& chr);
-//  void UNM(galgo::CHR<T>& chr);
+//  void BDM(galgo::CHR<T, PARAM_NBIT>& chr);
+//  void SPM(galgo::CHR<T, PARAM_NBIT>& chr);
+//  void UNM(galgo::CHR<T, PARAM_NBIT>& chr);
 //
 //  ADAPTATION TO CONSTRAINT(S) METHODS
-//  void DAC(galgo::Population<T>& x);
+//  void DAC(galgo::Population<T, PARAM_NBIT>& x);
 //
 //
 #ifndef _AL_CHESS_GA_EVOLUTION_HPP
@@ -36,8 +36,8 @@ namespace chess
         // SELECTION METHODS
 
         // proportional roulette wheel selection
-        template <typename T>
-        void RWS(galgo::Population<T>& x)
+        template <typename T,  int PARAM_NBIT>
+        void RWS(galgo::Population<T, PARAM_NBIT>& x)
         {
             // adjusting all fitness to positive values
             x.adjustFitness();
@@ -53,7 +53,7 @@ namespace chess
                 while (fsum >= 0.0) {
 #ifndef NDEBUG
                     if (j == x.popsize()) {
-                        throw std::invalid_argument("Error: in RWS(galgo::Population<T>&) index j cannot be equal to population size.");
+                        throw std::invalid_argument("Error: in RWS(galgo::Population<T, PARAM_NBIT>&) index j cannot be equal to population size.");
                     }
 #endif
                     fsum -= x(j)->fitness;
@@ -65,8 +65,8 @@ namespace chess
         }
 
         // stochastic universal sampling selection
-        template <typename T>
-        void SUS(galgo::Population<T>& x)
+        template <typename T, int PARAM_NBIT>
+        void SUS(galgo::Population<T, PARAM_NBIT>& x)
         {
             // adjusting all fitness to positive values
             x.adjustFitness();
@@ -88,7 +88,7 @@ namespace chess
                 while (fsum <= ptr) {
 #ifndef NDEBUG
                     if (j == x.popsize()) {
-                        throw std::invalid_argument("Error: in SUS(galgo::Population<T>&) index j cannot be equal to population size.");
+                        throw std::invalid_argument("Error: in SUS(galgo::Population<T, PARAM_NBIT>&) index j cannot be equal to population size.");
                     }
 #endif
                     fsum += x(j)->fitness;
@@ -103,8 +103,8 @@ namespace chess
         }
 
         // classic linear rank-based selection
-        template <typename T>
-        void RNK(galgo::Population<T>& x)
+        template <typename T, int PARAM_NBIT>
+        void RNK(galgo::Population<T, PARAM_NBIT>& x)
         {
             int popsize = x.popsize();
             static std::vector<int> rank(popsize);
@@ -128,7 +128,7 @@ namespace chess
                 while (rsum > 0) {
 #ifndef NDEBUG
                     if (j == popsize) {
-                        throw std::invalid_argument("Error: in RNK(galgo::Population<T>&) index j cannot be equal to population size.");
+                        throw std::invalid_argument("Error: in RNK(galgo::Population<T, PARAM_NBIT>&) index j cannot be equal to population size.");
                     }
 #endif
                     rsum -= rank[j];
@@ -140,8 +140,8 @@ namespace chess
         }
 
         // linear rank-based selection with selective pressure
-        template <typename T>
-        void RSP(galgo::Population<T>& x)
+        template <typename T, int PARAM_NBIT>
+        void RSP(galgo::Population<T, PARAM_NBIT>& x)
         {
             int popsize = x.popsize();
             static std::vector<T> rank(popsize);
@@ -167,7 +167,7 @@ namespace chess
                 while (rsum >= 0.0) {
 #ifndef NDEBUG
                     if (j == popsize) {
-                        throw std::invalid_argument("Error: in RSP(galgo::Population<T>&) index j cannot be equal to population size.");
+                        throw std::invalid_argument("Error: in RSP(galgo::Population<T, PARAM_NBIT>&) index j cannot be equal to population size.");
                     }
 #endif
                     rsum -= rank[j];
@@ -179,8 +179,8 @@ namespace chess
         }
 
         // tournament selection
-        template <typename T>
-        void TNT(galgo::Population<T>& x)
+        template <typename T, int PARAM_NBIT>
+        void TNT(galgo::Population<T, PARAM_NBIT>& x)
         {
             int popsize = x.popsize();
             int tntsize = x.tntsize();
@@ -208,8 +208,8 @@ namespace chess
         }
 
         // transform ranking selection
-        template <typename T>
-        void TRS(galgo::Population<T>& x)
+        template <typename T, int PARAM_NBIT>
+        void TRS(galgo::Population<T, PARAM_NBIT>& x)
         {
             static T c;
             // (re)initializing when running new GA
@@ -241,7 +241,7 @@ namespace chess
                 while (fsum >= 0) {
 #ifndef NDEBUG
                     if (j == popsize) {
-                        throw std::invalid_argument("Error: in TRS(galgo::Population<T>&) index j cannot be equal to population size.");
+                        throw std::invalid_argument("Error: in TRS(galgo::Population<T, PARAM_NBIT>&) index j cannot be equal to population size.");
                     }
 #endif
                     fsum -= x(j)->fitness;
@@ -255,8 +255,8 @@ namespace chess
         // CROSS-OVER METHODS
 
         // one-point random cross-over of 2 chromosomes
-        template <typename T>
-        void P1XO(const galgo::Population<T>& x, galgo::CHR<T>& chr1, galgo::CHR<T>& chr2)
+        template <typename T, int PARAM_NBIT>
+        void P1XO(const galgo::Population<T, PARAM_NBIT>& x, galgo::CHR<T, PARAM_NBIT>& chr1, galgo::CHR<T, PARAM_NBIT>& chr2)
         {
             // choosing randomly 2 chromosomes from mating population
             int idx1 = galgo::uniform<int>(0, x.matsize());
@@ -271,8 +271,8 @@ namespace chess
         }
 
         // two-point random cross-over of 2 chromosomes
-        template <typename T, int...N>
-        void P2XO(const galgo::Population<T>& x, galgo::CHR<T>& chr1, galgo::CHR<T>& chr2)
+        template <typename T, int PARAM_NBIT, int...N>
+        void P2XO(const galgo::Population<T, PARAM_NBIT>& x, galgo::CHR<T, PARAM_NBIT>& chr1, galgo::CHR<T, PARAM_NBIT>& chr2)
         {
             // choosing randomly 2 chromosomes from mating population
             int idx1 = galgo::uniform<int>(0, x.matsize());
@@ -293,8 +293,8 @@ namespace chess
         }
 
         // uniform random cross-over of 2 chromosomes
-        template <typename T>
-        void UXO(const galgo::Population<T>& x, galgo::CHR<T>& chr1, galgo::CHR<T>& chr2)
+        template <typename T, int PARAM_NBIT>
+        void UXO(const galgo::Population<T, PARAM_NBIT>& x, galgo::CHR<T, PARAM_NBIT>& chr1, galgo::CHR<T, PARAM_NBIT>& chr2)
         {
             // choosing randomly 2 chromosomes from mating population
             int idx1 = galgo::uniform<int>(0, x.matsize());
@@ -318,8 +318,8 @@ namespace chess
         // MUTATION METHODS
 
         // boundary mutation: replacing a chromosome gene by its lower or upper bound
-        template <typename T>
-        void BDM(galgo::CHR<T>& chr)
+        template <typename T, int PARAM_NBIT>
+        void BDM(galgo::CHR<T, PARAM_NBIT>& chr)
         {
             T mutrate = chr->mutrate();
 
@@ -348,8 +348,8 @@ namespace chess
         }
 
         // single point mutation: flipping a chromosome bit
-        template <typename T>
-        void SPM(galgo::CHR<T>& chr)
+        template <typename T, int PARAM_NBIT>
+        void SPM(galgo::CHR<T, PARAM_NBIT>& chr)
         {
             T mutrate = chr->mutrate();
 
@@ -366,8 +366,8 @@ namespace chess
         }
 
         // uniform mutation: replacing a chromosome gene by a new one
-        template <typename T>
-        void UNM(galgo::CHR<T>& chr)
+        template <typename T, int PARAM_NBIT>
+        void UNM(galgo::CHR<T, PARAM_NBIT>& chr)
         {
             T mutrate = chr->mutrate();
 
@@ -386,8 +386,8 @@ namespace chess
         // ADAPTATION TO CONSTRAINT(S) METHODS
 
         // adapt population to genetic algorithm constraint(s)
-        template <typename T>
-        void DAC(galgo::Population<T>& x)
+        template <typename T, int PARAM_NBIT>
+        void DAC(galgo::Population<T, PARAM_NBIT>& x)
         {
             // getting worst population objective function total result
             T worstTotal = x.getWorstTotal();

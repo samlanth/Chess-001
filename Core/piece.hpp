@@ -56,6 +56,7 @@ namespace chess
         static void init();
         static const std::string to_str(PieceID id);
         static const uint8_t Piece<PieceID, _BoardSize>::to_uint8(PieceID id);
+        static size_t pieces_size() { return pieces.size(); }
 
         const PieceID           get_id()        const;
         const PieceName         get_name()      const { return name; }

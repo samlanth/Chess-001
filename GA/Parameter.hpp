@@ -29,11 +29,10 @@ namespace galgo
        virtual const std::vector<T>& getData() const = 0;
     };
 
-
     template <typename T, int NBIT>
     class Parameter : public BaseParameter<T>
     {
-       template <typename K> friend class Chromosome;
+       template <typename K, int NBIT> friend class Chromosome;
 
     private:
        std::vector<T> data; // contains lower bound, upper bound and initial value (optional)

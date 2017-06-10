@@ -51,7 +51,7 @@ namespace chess
             return filename;
         } 
 
-        static const std::string make_persist_key()
+        static const std::string create_persist_key()
         {
             _persist_key_counter++;
             std::stringstream ss;

@@ -3,7 +3,7 @@
 //=================================================================================================
 //
 // Executable
-// Unit testing for class Board
+// Unit testing
 //
 //
 #include "core/chess.hpp"
@@ -16,77 +16,136 @@
 //-----------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
-    // Test player class instantiation
+    // Test Player
     {
         chess::NullPlayer<uint8_t, 8, double, 16> player;
         std::string aname = player.playername();
         assert(aname == "NULLPlayer");
     }
 
-    // Test PartitionManager class instantiation
+    // Test PartitionManager
     chess::PartitionManager<uint8_t, 8, double, 16>::instance()->make_classic_partition();
-    chess::Partition<uint8_t, 8, double, 16>* p_classic = chess::PartitionManager<uint8_t, 8, double, 16>::instance()->find_partition("classic");
+    chess::Partition<uint8_t, 8, double, 16>* p_classic = chess::PartitionManager<uint8_t, 8, double, 16>::instance()->find_partition("classic8");
     assert(p_classic != nullptr);
 
-    // Test PersisteManager class instantiation
+    // Test PersisteManager
     chess::PersistManager::instance();
 
-    //
+    // Test FeatureManager
+    chess::FeatureManager<uint16_t, 6, float, 32>::instance();
+
+    // Test feature
     {
         chess::ConditionFeature_isOppositeKinCheck<uint8_t, 8, double, 16> fc;
         chess::ValuationFeature_numberMoveForPiece<uint8_t, 8, double, 16> fv(chess::PieceName::K, chess::PieceColor::W);
     }
 
-    //
+    // Test DomainPlayer
     {
-        chess::DomainPlayer<uint8_t, 8, double, 16>* play1 = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("zeromind"), p_classic->name(), "DomainKQvK", "0");
+        chess::DomainPlayer<uint8_t, 8, double, 16>* play1 = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("zeromind"), p_classic->name(), chess::Domain<uint8_t, 8, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
         play1->save();
         delete play1;
 
-        chess::DomainPlayer<uint8_t, 8, double, 16>* play2 = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("zeromind"), p_classic->name(), "DomainKQvK", "0");
+        chess::DomainPlayer<uint8_t, 8, double, 16>* play2 = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("zeromind"), p_classic->name(), chess::Domain<uint8_t, 8, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
         play2->load();
-
-        // PLAY games
-        chess::ExactScore sc;
-        double fit = 0;
-        for(size_t i=0;i<40;i++)
-        {
-            chess::DomainPlayer<uint8_t, 8, double, 16>* playW = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("wmind"), p_classic->name(), "DomainKQvK", "0");
-            chess::DomainPlayer<uint8_t, 8, double, 16>* playB = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("bmind"), p_classic->name(), "DomainKQvK", "0");
-            chess::BaseGame<uint8_t, 8, double, 16> game(*playW, *playB);
-            game.set_constraints(1000, 2, 1000, 2, 50);
-            game.set_board(play1->get_domain()->get_random_position());
-            sc = game.play(false);
-            if (sc == chess::ExactScore::WIN) fit += 1.0;
-            else if (sc == chess::ExactScore::LOSS) fit -= 1.0;
-            else if (sc == chess::ExactScore::DRAW) fit += 0.5;
-            std::cout << "score= " << fit << " / " << i+1 << std::endl;
-        }
-        int debug = 1;
+        delete play2;
     }
 
-    //
+    // Test game
     {
-        chess::CondValNode<uint8_t, 8, double, 16>* root_node = new chess::CondValNode<uint8_t, 8, double, 16>(nullptr, true, false);
-        chess::CondValNode<uint8_t, 8, double, 16>* child_node1 = new chess::CondValNode<uint8_t, 8, double, 16>(root_node, true, false);
-        chess::CondValNode<uint8_t, 8, double, 16>* child_node2 = new chess::CondValNode<uint8_t, 8, double, 16>(root_node, false, false);
+        // Play few games        
+        // 6x6 board
+        {
+            chess::PartitionManager<uint8_t, 6, double, 16>::instance()->make_classic_partition();
+            chess::Partition<uint8_t, 6, double, 16>* p_classic6 = chess::PartitionManager<uint8_t, 6, double, 16>::instance()->find_partition("classic6");
+            assert(p_classic6 != nullptr);
+            
+            chess::DomainPlayer<uint8_t, 6, double, 16>* playW = new chess::DomainPlayer<uint8_t, 6, double, 16>(std::string("wmind"), p_classic6->name(), chess::Domain<uint8_t, 6, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
+            chess::DomainPlayer<uint8_t, 6, double, 16>* playB = new chess::DomainPlayer<uint8_t, 6, double, 16>(std::string("bmind"), p_classic6->name(), chess::Domain<uint8_t, 6, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
+            
+            size_t nc = chess::FeatureManager<uint8_t, 6, double, 16>::instance()->count_cond_features();
+            size_t nv = chess::FeatureManager<uint8_t, 6, double, 16>::instance()->count_valu_features();
+            // add a node (and mirror) to brain of white player
+            {
+                chess::ConditionValuationNode<uint8_t, 6, double, 16>* child1 = new chess::ConditionValuationNode<uint8_t, 6, double, 16>(playW->get_root(), true, false);
+                chess::ConditionValuationNode<uint8_t, 6, double, 16>* child2 = new chess::ConditionValuationNode<uint8_t, 6, double, 16>(playW->get_root(), false, false);
+                size_t valid_v_feature = 0;
+                chess::ValuationFeature<uint8_t, 6, double, 16>* v;
+                for (size_t i = 0; i < nv; i++)
+                {
+                    v = chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_valu_feature(i);
+                    if (playW->get_domain()->is_valu_feature_valid(*v))
+                    {
+                        valid_v_feature = i;
+                        break;
+                    }
+                }
+                size_t valid_v_feature2 = 0;
+                chess::ValuationFeature<uint8_t, 6, double, 16>* v2;
+                for (size_t i = 0; i < nv; i++)
+                {
+                    v2 = chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_valu_feature(i);
+                    if (playB->get_domain()->is_valu_feature_valid(*v2))
+                    {
+                        valid_v_feature2 = i;
+                        break;
+                    }
+                }
+                child1->add_conditions(chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_cond_feature(0));
+                child1->add_conditions_and_or(true);
+                child1->add_valuations(chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_valu_feature(valid_v_feature));
+                child1->add_weights(0.5);
+                // mirror node reuse child1 cond
+                child2->add_valuations(chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_valu_feature(valid_v_feature2));
+                child2->add_weights(0.25);
+            }
+
+            // setup game
+            chess::BaseGame<uint8_t, 6, double, 16> game(*playW, *playB);
+            game.set_constraints(100, 2, 100, 2, 10);
+
+            // play games
+            double fit = 0;
+            chess::ExactScore sc;
+            for (size_t i = 0; i < 20; i++)
+            {
+                game.set_board(playW->get_domain()->get_random_position());
+                sc = game.play(true);
+                if      (sc == chess::ExactScore::WIN)  fit += 1.0;
+                else if (sc == chess::ExactScore::LOSS) fit -= 1.0;
+                else if (sc == chess::ExactScore::DRAW) fit += 0.5;
+                std::cout << "score= " << fit << " / " << i + 1 << std::endl;
+            }
+
+            std::vector< chess::ConditionValuationNode<uint8_t, 6, double, 16>* > vnodes;
+            playW->get_root()->get_term_nodes(vnodes);
+            // Changing weights[] of these terminal nodes will change player performance
+            // GA...
+
+            chess::ga::ChessGeneticAlgorithm<uint8_t, 6, double, 16> ga_chess(playW->get_root(), 10, 5, 2, 1);
+            ga_chess.run();
+
+            delete playW;
+            delete playB;
+        }
+    }
+
+    // Test ConditionValuationNode
+    {
+        chess::ConditionValuationNode<uint8_t, 8, double, 16>* root_node   = new chess::ConditionValuationNode<uint8_t, 8, double, 16>(nullptr, true, false);
+        chess::ConditionValuationNode<uint8_t, 8, double, 16>* child_node1 = new chess::ConditionValuationNode<uint8_t, 8, double, 16>(root_node, true, false);
+        chess::ConditionValuationNode<uint8_t, 8, double, 16>* child_node2 = new chess::ConditionValuationNode<uint8_t, 8, double, 16>(root_node, false, false);
         delete root_node;
 
-        chess::CondValNode<uint8_t, 8, double, 16>* root_nodea = new chess::CondValNode<uint8_t, 8, double, 16>(nullptr, true, true);
+        chess::ConditionValuationNode<uint8_t, 8, double, 16>* root_nodea = new chess::ConditionValuationNode<uint8_t, 8, double, 16>(nullptr, true, true);
         delete root_nodea; 
-
-        int debug = 1;
     }
 
-
-
-    //
     // Test integration with galgo
     galgo_example::galgo_example_001();
 
     // Test Board
     unittest::cmd_parser cmd(argc, argv);
-
     if (cmd.has_option("-f"))
     {
         std::string f = cmd.get_option("-f");
@@ -98,7 +157,6 @@ int main(int argc, char* argv[])
 
     unittest::Logger::instance()->log("---------------------");
     unittest::Logger::instance()->log("Starting main        ");
-
     try
     {
         // Board type 1

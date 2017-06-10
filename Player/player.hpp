@@ -5,7 +5,7 @@
 //
 // Player<...> : Chess Player capable of learning (Genetical Algorithm)
 //
-// The chromosomes of the player are in CondValNode x (tree size) x number of domains:
+// The chromosomes of the player are in ConditionValuationNode x (tree size) x number of domains:
 //      std::vector<_ConditionFeature*> _conditions;
 //      std::vector<bool>               _conditions_and_or;
 //      std::vector<_ValuationFeature*> _valuations;
@@ -54,7 +54,7 @@ namespace chess
         using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _DomainPlayer = DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _PartitionManager = PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
-        using _CondValNode = CondValNode<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _ConditionValuationNode = ConditionValuationNode<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _BasePlayer = BasePlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _Partition = Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
@@ -72,10 +72,11 @@ namespace chess
         virtual bool load() override;
 
         std::string get_partition_key()     const { return _partition_key; }
-        std::string get_domainname_key()     const { return _domainname_key; }
+        std::string get_domainname_key()    const { return _domainname_key; }
         std::string get_instance_key()      const { return _instance_key; }
         _Domain*    get_domain()            const { return _domain; }
-        _CondValNode& get_root()            const { return _root; }
+
+        _ConditionValuationNode* get_root() { return _root; }
 
     protected:
         TYPE_PARAM minimax( _Board& board, uint16_t depth, TYPE_PARAM a, TYPE_PARAM b, 
@@ -84,10 +85,10 @@ namespace chess
                             bool is_recursive_entry = false);
 
         std::string             _partition_key;
-        std::string             _domainname_key; // domain key part
-        std::string             _instance_key;  // domain key part
+        std::string             _domainname_key;    // domain key part
+        std::string             _instance_key;      // domain key part
         _Domain*                _domain;
-        _CondValNode            _root;          // The brain of the player!
+        _ConditionValuationNode* _root;              // The brain of the player!
     };
 
 
@@ -117,8 +118,10 @@ namespace chess
                 _domainname_key(domainname_key),
                 _instance_key(instance_key),
                 _domain(nullptr),
-                _root(nullptr, true, false) // initially empty, must be fill or load
+                _root(nullptr) // initially empty, must be fill or load
     {
+        _root = new _ConditionValuationNode(nullptr, true, false);
+
         _Partition* partition_ptr = _PartitionManager::instance()->find_partition(_partition_key);
         if (partition_ptr != nullptr)
         {
@@ -166,6 +169,7 @@ namespace chess
                 }
             }
         }
+        delete _root;
     }
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
@@ -190,8 +194,8 @@ namespace chess
             filestream << _domainname_key; filestream << std::endl;
             filestream << _instance_key;  filestream << std::endl;
 
-            filestream << _root.persist_key();  filestream << std::endl;
-            _root.save_root();  // independant stream
+            filestream << _root->persist_key();  filestream << std::endl;
+            _root->save_root();  // independant stream
 
             _Partition* partition_ptr = _PartitionManager::instance()->find_partition(_partition_key);
             if (partition_ptr != nullptr)
@@ -248,8 +252,8 @@ namespace chess
             assert(domainname_key == _domainname_key);
             assert(instance_key  == _instance_key);
 
-            _root._persist_key = root_persist_key;;
-            _root.load_root(); // root data was not load from DomainPlayer() constructor
+            _root->set_persist_key(root_persist_key);
+            _root->load_root(); // root data was not load from DomainPlayer() constructor
 
             _Partition* p_partition = _PartitionManager::instance()->find_partition(partition_key);
             if (p_partition == nullptr) return false;
@@ -356,13 +360,13 @@ namespace chess
     eval_position_algo(_Board& pos, std::vector<_Move>& m)
     {
         TYPE_PARAM ret_eval = 0.5;
-        bool ret = _root.eval_position(pos, m, ret_eval);
+        bool ret = _root->eval_position(pos, m, ret_eval);
         if (ret == true) return ret_eval;
 
         // This is first layer of children domain (should make sure it cover all sub domains)
         for (size_t i = 0; i < _domain->_children.size(); i++)
         {
-            ret = _domain->_children[i]->_attached_domain_player->_root.eval_position(pos, m, ret_eval);
+            ret = _domain->_children[i]->_attached_domain_player->_root->eval_position(pos, m, ret_eval);
             if (ret == true) return ret_eval;
         }
 

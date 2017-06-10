@@ -33,12 +33,12 @@ namespace galgo
     // forward declarations
     template <typename T> class BaseParameter;
     template <typename T, int N = 16> class Parameter;
-    template <typename T> class GeneticAlgorithm;
-    template <typename T> class Population;
-    template <typename T> class Chromosome;
+    template <typename T, int PARAM_NBIT> class GeneticAlgorithm;
+    template <typename T, int PARAM_NBIT> class Population;
+    template <typename T, int PARAM_NBIT> class Chromosome;
 
     // convenient typedefs
-    template <typename T> using CHR = std::shared_ptr<Chromosome<T>>;
+    template <typename T, int PARAM_NBIT> using CHR = std::shared_ptr<Chromosome<T, PARAM_NBIT>>;
     template <typename T> using PAR = std::unique_ptr<BaseParameter<T>>;
     template <typename T, int...N>using TUP = std::tuple<const Parameter<T, N>&...>;
 }

@@ -55,6 +55,7 @@ namespace chess
         bool has_piece(PieceName n, PieceColor c) const;
         size_t cnt_piece(PieceName n, PieceColor c) const;
         size_t cnt_all_piece() const;
+        size_t cnt_move(PieceName n, PieceColor c, const std::vector<_Move>& m) const;
         bool is_final(const std::vector<_Move>& m) const;
         ExactScore final_score(const std::vector<_Move>& m) const;
 
@@ -189,7 +190,21 @@ namespace chess
         size_t cnt = 0;
         for (const auto &v : _cells)
         {
-            cnt++;
+            if (v != _Piece::empty_id())
+             cnt++;
+        }
+        return cnt;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    size_t Board<PieceID, _BoardSize>::cnt_move(PieceName n, PieceColor c, const std::vector<_Move>& m) const
+    {
+        size_t cnt = 0;
+        PieceID id = _Piece::get_id(n, c);
+        for (const auto &v : m)
+        {
+            PieceID id = _Piece::get_id(n, c);
+            if (v.prev_src_id == id) cnt++;
         }
         return cnt;
     }
@@ -337,32 +352,35 @@ namespace chess
                                         ((mu.flag_spec == "castlingK") || (mu.flag_spec == "castlingQ"))
                                     )
                                 {
-                                    uint8_t rank_y = (p_src->get_color() == PieceColor::W) ? 0 : 7;
-                                    if ( (mu.flag_spec == "castlingK") && (mv.get_state_castling(p_src->get_color(), PieceName::K)) )
+                                    if (_BoardSize >= 8)
                                     {
-                                        if (    (get_pieceid_at(4, rank_y) == _Piece::get_id(PieceName::K, p_src->get_color()) ) &&
+                                        uint8_t rank_y = (p_src->get_color() == PieceColor::W) ? 0 : 7;
+                                        if ((mu.flag_spec == "castlingK") && (mv.get_state_castling(p_src->get_color(), PieceName::K)))
+                                        {
+                                            if ((get_pieceid_at(4, rank_y) == _Piece::get_id(PieceName::K, p_src->get_color())) &&
                                                 (get_pieceid_at(5, rank_y) == _Piece::empty_id()) &&
                                                 (get_pieceid_at(6, rank_y) == _Piece::empty_id()) &&
-                                                (get_pieceid_at(7, rank_y) == _Piece::get_id(PieceName::R, p_src->get_color()) )
-                                            )
+                                                (get_pieceid_at(7, rank_y) == _Piece::get_id(PieceName::R, p_src->get_color()))
+                                                )
+                                            {
+                                                mv.mu.context_extra = "castlingK_R";
+                                                mv.set_state_castling(p_src->get_color(), PieceName::K, false);
+                                                m.push_back(mv);
+                                            }
+                                        }
+                                        else if ((mu.flag_spec == "castlingQ") && (mv.get_state_castling(p_src->get_color(), PieceName::Q)))
                                         {
-                                            mv.mu.context_extra = "castlingK_R";
-                                            mv.set_state_castling(p_src->get_color(), PieceName::K, false);
-                                            m.push_back(mv);
-                                        }                 
-                                    }
-                                    else if ( (mu.flag_spec == "castlingQ") && (mv.get_state_castling(p_src->get_color(), PieceName::Q)) )
-                                    {
-                                        if (    (get_pieceid_at(0, rank_y) == _Piece::get_id(PieceName::R, p_src->get_color()) ) &&
+                                            if ((get_pieceid_at(0, rank_y) == _Piece::get_id(PieceName::R, p_src->get_color())) &&
                                                 (get_pieceid_at(1, rank_y) == _Piece::empty_id()) &&
                                                 (get_pieceid_at(2, rank_y) == _Piece::empty_id()) &&
                                                 (get_pieceid_at(3, rank_y) == _Piece::empty_id()) &&
-                                                (get_pieceid_at(4, rank_y) == _Piece::get_id(PieceName::K, p_src->get_color()) )
-                                            )
-                                        {
-                                            mv.mu.context_extra = "castlingQ_R";
-                                            mv.set_state_castling(p_src->get_color(), PieceName::Q, false);
-                                            m.push_back(mv);
+                                                (get_pieceid_at(4, rank_y) == _Piece::get_id(PieceName::K, p_src->get_color()))
+                                                )
+                                            {
+                                                mv.mu.context_extra = "castlingQ_R";
+                                                mv.set_state_castling(p_src->get_color(), PieceName::Q, false);
+                                                m.push_back(mv);
+                                            }
                                         }
                                     }
                                 }
@@ -381,45 +399,54 @@ namespace chess
                                             if ( ((mu.flag_spec == "y1") && (j == 1)) ||
                                                  ((mu.flag_spec == "y6") && (j == 6)) )
                                             {
-                                                uint8_t prev_x = (mu.x > 1) ? 1 : mu.x;
-                                                uint8_t prev_y = (mu.y > 1) ? 1 : mu.y;
-                                                uint8_t prev_mv_dst_x = (uint8_t)(i + prev_x * 1);
-                                                uint8_t prev_mv_dst_y = (uint8_t)(j + prev_y * 1);
-                                                if (get_pieceid_at(prev_mv_dst_x, prev_mv_dst_y) == _Piece::empty_id()) // empty path
+                                                if (_BoardSize >= 8)
                                                 {
-                                                    mv.set_state_ep(get_color(), i, false);
-                                                    m.push_back(mv);
+                                                    uint8_t prev_x = (mu.x > 1) ? 1 : mu.x;
+                                                    uint8_t prev_y = (mu.y > 1) ? 1 : mu.y;
+                                                    uint8_t prev_mv_dst_x = (uint8_t)(i + prev_x * 1);
+                                                    uint8_t prev_mv_dst_y = (uint8_t)(j + prev_y * 1);
+                                                    if (get_pieceid_at(prev_mv_dst_x, prev_mv_dst_y) == _Piece::empty_id()) // empty path
+                                                    {
+                                                        mv.set_state_ep(get_color(), i, false);
+                                                        m.push_back(mv);
+                                                    }
                                                 }
                                             }
                                             // en passant
                                             else if ( ((mu.flag_spec == "y5_ep") && (j == 5) && (get_color() == PieceColor::W) && (_history_moves.size() > 0)) ||
                                                       ((mu.flag_spec == "y2_ep") && (j == 2) && (get_color() == PieceColor::B) && (_history_moves.size() > 0)) )
                                             {
-                                                if (mv.get_state_ep(get_color(), i))
+                                                if (_BoardSize >= 8)
                                                 {
-                                                    _Move mh = _history_moves.back();
-                                                    if (mh.prev_src_id == _Piece::get_id(PieceName::P, get_opposite_color()))
+                                                    if (mv.get_state_ep(get_color(), i))
                                                     {
-                                                        if ((mh.src_x == i + mu.x) && (mh.src_y == j + mu.y) && (abs(mh.dst_y - mh.src_y) == 2))
+                                                        _Move mh = _history_moves.back();
+                                                        if (mh.prev_src_id == _Piece::get_id(PieceName::P, get_opposite_color()))
                                                         {
-                                                            mv.set_state_ep(get_color(), i, false);
-                                                            m.push_back(mv);
+                                                            if ((mh.src_x == i + mu.x) && (mh.src_y == j + mu.y) && (abs(mh.dst_y - mh.src_y) == 2))
+                                                            {
+                                                                mv.set_state_ep(get_color(), i, false);
+                                                                m.push_back(mv);
+                                                            }
                                                         }
                                                     }
                                                 }
                                             }
                                         }
-                                        else
+                                        else 
                                         {
                                             if (std::abs(mu.x) != std::abs(mu.y)) // not diago
                                             {
                                                 // promo
-                                                if (((p_src->color == PieceColor::W) && (j == 6)) || ((p_src->color == PieceColor::B) && (j == 1)))
+                                                if ( ((p_src->color == PieceColor::W) && (j == 6)) || ((p_src->color == PieceColor::B) && (j == 1)))
                                                 {
-                                                    _Move mvQ = mv; mvQ.mu.context_extra = "Q"; m.push_back(mvQ);
-                                                    _Move mvR = mv; mvR.mu.context_extra = "R"; m.push_back(mvR);
-                                                    _Move mvN = mv; mvN.mu.context_extra = "N"; m.push_back(mvN);
-                                                    _Move mvB = mv; mvB.mu.context_extra = "B"; m.push_back(mvB);
+                                                    if (_BoardSize >= 8)
+                                                    {
+                                                        _Move mvQ = mv; mvQ.mu.context_extra = "Q"; m.push_back(mvQ);
+                                                        _Move mvR = mv; mvR.mu.context_extra = "R"; m.push_back(mvR);
+                                                        _Move mvN = mv; mvN.mu.context_extra = "N"; m.push_back(mvN);
+                                                        _Move mvB = mv; mvB.mu.context_extra = "B"; m.push_back(mvB);
+                                                    }
                                                 }
                                                 else
                                                 {
@@ -433,7 +460,7 @@ namespace chess
                                     }
                                 }
                                 // capture dst
-                                else if (p_dst->color != p_src->color)
+                                else if (p_dst->color != p_src->color) 
                                 {
                                     if ((p_src->move_style == PieceMoveStyle::Sliding) || (p_src->move_style == PieceMoveStyle::Jumping))
                                     {
@@ -454,12 +481,15 @@ namespace chess
                                             else
                                             {
                                                 // promo
-                                                if (((p_src->color == PieceColor::W) && (j == 6)) || ((p_src->color == PieceColor::B) && (j == 1)))
+                                                if ( ((p_src->color == PieceColor::W) && (j == 6)) || ((p_src->color == PieceColor::B) && (j == 1)))
                                                 {
-                                                    _Move mvQ = mv; mvQ.mu.context_extra = "Q"; m.push_back(mvQ);
-                                                    _Move mvR = mv; mvR.mu.context_extra = "R"; m.push_back(mvR);
-                                                    _Move mvN = mv; mvN.mu.context_extra = "N"; m.push_back(mvN);
-                                                    _Move mvB = mv; mvB.mu.context_extra = "B"; m.push_back(mvB);
+                                                    if (_BoardSize >= 8)
+                                                    {
+                                                        _Move mvQ = mv; mvQ.mu.context_extra = "Q"; m.push_back(mvQ);
+                                                        _Move mvR = mv; mvR.mu.context_extra = "R"; m.push_back(mvR);
+                                                        _Move mvN = mv; mvN.mu.context_extra = "N"; m.push_back(mvN);
+                                                        _Move mvB = mv; mvB.mu.context_extra = "B"; m.push_back(mvB);
+                                                    }
                                                 }
                                                 else
                                                 {

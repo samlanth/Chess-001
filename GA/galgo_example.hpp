@@ -10,6 +10,20 @@
 namespace galgo_example
 {
     template <typename T>
+    class MyObjective2
+    {
+    public:
+        // objective function example : Rosenbrock function
+        // minimizing f(x,y) = (1 - x)^2 + 100 * (y - x^2)^2
+        static std::vector<T> Objective(const std::vector<T>& x)
+        {
+            T obj = 0.47;
+            return{ obj };
+        }
+        // NB: GALGO maximize by default so we will maximize -f(x,y)
+    };
+
+    template <typename T>
     class MyObjective
     {
     public:
@@ -43,9 +57,10 @@ namespace galgo_example
         // here both parameter will be encoded using 16 bits the default value inside the template declaration
         // this value can be modified but has to remain between 1 and 64
 
-        galgo::GeneticAlgorithm<double> ga(MyObjective<double>::Objective, 100, 50, true, par1, par2); // init genetic algorithm
-        ga.Constraint = MyConstraint;       // setting constraints
-        ga.run();                           // running genetic algorithm
+        //MyObjective<double>::Objective
+        //galgo::GeneticAlgorithm<double, 16> ga(100, 50, true, par1, par2); // init genetic algorithm
+        //ga.Constraint = MyConstraint;       // setting constraints
+        //ga.run();                           // running genetic algorithm
 
         return 0;
     }

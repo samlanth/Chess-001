@@ -14,17 +14,21 @@
 namespace chess
 {
     enum class ExactScore :int8_t { LOSS = -1, DRAW = 0, WIN = 1, UNKNOWN=2}; // white win is WIN, black win is LOSS
+    enum class eDomainName {KvK, KQvK};
 
     // Domain interface
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     class Domain 
     {
-        using _Board = Board<PieceID, _BoardSize>;
-        using _Move = Move<PieceID>;
-        using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
-        using _Partition = Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _Board        = Board<PieceID, _BoardSize>;
+        using _Move         = Move<PieceID>;
+        using _Domain       = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _Partition    = Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _PartitionManager = PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _DomainPlayer = DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _ConditionFeature = ConditionFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _ValuationFeature = ValuationFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+
         friend class _DomainPlayer;
 
     protected:
@@ -32,7 +36,6 @@ namespace chess
         std::string             _domainname_key;
         std::string             _instance_key;
         std::vector<_Domain*>   _children;
-
         _DomainPlayer*          _attached_domain_player;
 
     public:
@@ -41,7 +44,11 @@ namespace chess
                 const std::string instance_key) :
             _partition_key(partition_key), _domainname_key(domainname_key), _instance_key(instance_key),
             _attached_domain_player(nullptr)
-        {}
+        {
+        }
+
+        virtual bool is_cond_feature_valid(_ConditionFeature& f) const = 0;
+        virtual bool is_valu_feature_valid(_ValuationFeature& f) const = 0;
 
         virtual bool       has_known_score_move()  const = 0;
         virtual ExactScore get_known_score_move(const _Board& position, const std::vector<_Move>& m, size_t& ret_mv_idx) const = 0;
@@ -49,16 +56,15 @@ namespace chess
         const std::vector<_Domain*>& children() const { return _children;}
 
         const std::string partition_key()   const { return _partition_key; }
-        const std::string domainname_key()   const { return _domainname_key; }
+        const std::string domainname_key()  const { return _domainname_key; }
         const std::string instance_key()    const { return _instance_key;  }
 
         const std::string domain_key()      const { return _domainname_key+"_"+_instance_key; }
         static const std::string domain_key(const std::string& k1, const std::string& k2) { return k1 + "_" + k2; }
-        const std::string persist_key()      const { return _partition_key + "_" + domain_key(); }
+        const std::string persist_key()     const { return _partition_key + "_" + domain_key(); }
 
         virtual bool isInDomain(const _Board& position) const = 0;
 
-        // Persistence
         virtual bool save() const = 0;
         virtual bool load() = 0;
 
@@ -66,12 +72,19 @@ namespace chess
 
         static _Domain* make(const std::string& partition_key, const std::string& domainname_key, const std::string& instance_key)
         {
-            if      (domainname_key == "DomainKvK")  return new DomainKvK <PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(partition_key);
-            else if (domainname_key == "DomainKQvK") return new DomainKQvK<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(partition_key);
+            if      (domainname_key == getDomainName(eDomainName::KvK))  return new DomainKvK <PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(partition_key);
+            else if (domainname_key == getDomainName(eDomainName::KQvK)) return new DomainKQvK<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(partition_key);
             return nullptr;
         }
 
         void attach_domain_player(_DomainPlayer* player) { _attached_domain_player = player; }
+
+        static const std::string getDomainName(eDomainName e)
+        {
+            if      (e == eDomainName::KvK)  return "DomainKvK";
+            else if (e == eDomainName::KQvK) return "DomainKQvK";
+            return "";
+        }
 
     protected:
         bool save_root() const
@@ -206,11 +219,15 @@ namespace chess
         using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _Move = Move<PieceID>;
         using _DomainPlayer = DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _ConditionFeature_isOppositeKinCheck = ConditionFeature_isOppositeKinCheck<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _ValuationFeature_numberMoveForPiece = ValuationFeature_numberMoveForPiece<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _ConditionFeature = ConditionFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _ValuationFeature = ValuationFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         friend class _DomainPlayer;
 
     public:
         DomainKvK(const std::string partition_key) 
-            : _Domain(partition_key, "DomainKvK", "0") {}
+            : _Domain(partition_key, _Domain::getDomainName(eDomainName::KvK), "0") {}
 
         bool isInDomain(const _Board& position) const override 
         { 
@@ -219,6 +236,22 @@ namespace chess
                  (position.cnt_all_piece() == 2))
                 return true;
             return false;
+        }
+
+        bool is_cond_feature_valid(_ConditionFeature& f) const override
+        {
+            //...
+            return true;
+        }
+        bool is_valu_feature_valid(_ValuationFeature& f) const override
+        {
+            if (f.name() == ValuFeatureName::eValuationFeature_numberMoveForPiece)
+            {
+                _ValuationFeature_numberMoveForPiece& r = (_ValuationFeature_numberMoveForPiece&)f;
+                if (r.piecename() == PieceName::K) return true;
+                return false;
+            }
+            return true;
         }
 
         virtual bool has_known_score_move() const { return true; }
@@ -270,11 +303,16 @@ namespace chess
         using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _Move = Move<PieceID>;
         using _DomainPlayer = DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _ConditionFeature_isOppositeKinCheck = ConditionFeature_isOppositeKinCheck<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _ValuationFeature_numberMoveForPiece = ValuationFeature_numberMoveForPiece<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _ConditionFeature = ConditionFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _ValuationFeature = ValuationFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+
         friend class _DomainPlayer;
 
     public:
         DomainKQvK(const std::string partition_key) 
-            : _Domain(partition_key, "DomainKQvK", "0")
+            : _Domain(partition_key, _Domain::getDomainName(eDomainName::KQvK), "0")
         {
         }
 
@@ -286,6 +324,23 @@ namespace chess
                 (position.cnt_all_piece() == 3))
                 return true;
             return false;
+        }
+
+        bool is_cond_feature_valid(_ConditionFeature& f) const override
+        {
+            //...
+            return true;
+        }
+        bool is_valu_feature_valid(_ValuationFeature& f) const override
+        {
+            if (f.name() == ValuFeatureName::eValuationFeature_numberMoveForPiece)
+            {
+                _ValuationFeature_numberMoveForPiece& r = (_ValuationFeature_numberMoveForPiece&)f;
+                if      (r.piecename() == PieceName::K) return true;
+                else if ((r.piecename() == PieceName::Q) && (r.piececolor() == PieceColor::W)) return true;
+                return false;
+            }
+            return true;
         }
 
         virtual bool has_known_score_move() const { return true; }

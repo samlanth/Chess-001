@@ -3,7 +3,6 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// Feature<...>     :   Primitive feature (a simple function on a board position)
 // Condition feature:   Detect if something is on/off on the board 
 // Valuation feature:   Compute some value
 //
@@ -17,109 +16,22 @@
 
 namespace chess
 {
-    enum class FeatureType :char {condition = 0, valuation = 1};
-
-    enum class FeatureName :int { 
-        eConditionFeature_isOppositeKinCheck,
-        eValuationFeature_numberMoveForPiece
-    };
-
-    // Feature
-    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    class BaseFeature
-    {
-        using _Piece = Piece<PieceID, _BoardSize>;
-        using _FeatureManager = FeatureManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
-        using _ConditionFeature = ConditionFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
-        using _ValuationFeature = ValuationFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
-        using _ValuationFeature_numberMoveForPiece = ValuationFeature_numberMoveForPiece<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
-        using _ConditionFeature_isOppositeKinCheck = ConditionFeature_isOppositeKinCheck<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
-
-    public:
-        BaseFeature(const FeatureType atype) : _featureType(atype) 
-        {
-            _classtype = "";
-            _classtype_argument = "";
-        }
-        virtual ~BaseFeature() {}
-
-        const std::string classtype()       const { return _classtype; }
-        const std::string classtype_arg()   const { return _classtype_argument; }
-
-        void set_classtype(const std::string& ct)           { _classtype = ct; }
-        void set_classtype_argument(const std::string& arg) { _classtype_argument = arg; }
-
-        virtual bool save(std::ofstream& filestream)  const
-        { 
-            if (filestream.good())
-            {
-                filestream << (char)_featureType;   filestream << std::endl;
-                filestream << _classtype;           filestream << std::endl;
-                filestream << _classtype_argument;  filestream << std::endl;
-                return true;
-            }
-            return false;
-        } 
-        static _ConditionFeature* make_cond(std::ifstream& filestream)
-        {
-            if (filestream.good())
-            {
-                FeatureType featureType;
-                std::string classtype;
-                std::string classtype_argument;
-
-                char c; filestream >> c;
-                if (c == 0) featureType = FeatureType::condition; 
-                else        featureType = FeatureType::valuation;
-                filestream >> classtype;
-                filestream >> classtype_argument;
-
-                if (classtype == _FeatureManager::get_feature_name(FeatureName::eConditionFeature_isOppositeKinCheck))
-                    return new _ConditionFeature_isOppositeKinCheck();
-            }
-            return nullptr;
-        }
-        static _ValuationFeature* make_val(std::ifstream& filestream)
-        {
-            if (filestream.good())
-            {
-                FeatureType featureType;
-                std::string classtype;
-                std::string classtype_argument;
-
-                char c; filestream >> c;
-                if (c == 0) featureType = FeatureType::condition;
-                else        featureType = FeatureType::valuation;
-                filestream >> classtype;
-                filestream >> classtype_argument;
-
-                if (classtype == _FeatureManager::get_feature_name(FeatureName::eValuationFeature_numberMoveForPiece))
-                {
-                    PieceID id = (PieceID)atoi(classtype_argument.c_str());
-                    const _Piece* p = _Piece::get(id);
-                    return new _ValuationFeature_numberMoveForPiece(p->get_name(), p->get_color());
-                }
-            }
-            return nullptr;
-        }
-
-    protected:
-        FeatureType                     _featureType;
-        std::string                     _classtype;
-        std::string                     _classtype_argument;
-    };
-
     // ConditionFeature
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     class ConditionFeature : public BaseFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
     {
-        using _Board = Board<PieceID, _BoardSize>;
-        using _Move = Move<PieceID>;
+        using _Board    = Board<PieceID, _BoardSize>;
+        using _Move     = Move<PieceID>;
+        using _FeatureManager = FeatureManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
     public:
         ConditionFeature() : BaseFeature(FeatureType::condition)  { }
         virtual ~ConditionFeature() {};
         virtual bool check(const _Board& position, const std::vector<_Move>& m) const = 0;
+        CondFeatureName name() { return _name; }
+
+    protected:
+        CondFeatureName _name;
     };
 
     // ConditionFeature_isOppositeKingCheck
@@ -133,7 +45,8 @@ namespace chess
     public:
         ConditionFeature_isOppositeKinCheck() : ConditionFeature()
         {
-            set_classtype( _FeatureManager::get_feature_name(FeatureName::eConditionFeature_isOppositeKinCheck) );
+            _name = CondFeatureName::eConditionFeature_isOppositeKinCheck;
+            set_classtype( _FeatureManager::get_cond_feature_name(CondFeatureName::eConditionFeature_isOppositeKinCheck) );
         }
         virtual ~ConditionFeature_isOppositeKinCheck() {};
         virtual bool check(const _Board& position, const std::vector<_Move>& m) const override
@@ -141,6 +54,11 @@ namespace chess
             size_t ret_mv;
             return position.can_capture_opposite_king(m, ret_mv);
         }
+        bool        has_arg()   const override { return false; }
+        size_t      num_arg()   const override { return 0; }
+        size_t      range_arg() const override { return 0; }
+        FeatureArgType  get_arg_type(size_t idx) const override { return FeatureArgType::none; }
+        std::string get_arg(size_t idx) const override { return ""; }
     };
 
     // ValuationFeature
@@ -149,14 +67,17 @@ namespace chess
     {
         using _Board = Board<PieceID, _BoardSize>;
         using _Move = Move<PieceID>;
+        using _FeatureManager = FeatureManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
     public:
         ValuationFeature() : BaseFeature(FeatureType::valuation), _PARAM_NBIT(PARAM_NBIT){ }
         virtual ~ValuationFeature() {};
         virtual TYPE_PARAM compute(const _Board& position, const std::vector<_Move>& m) const = 0;
+        ValuFeatureName name() { return _name; }
 
     protected:
         size_t  _PARAM_NBIT;
+        ValuFeatureName _name;
     };
 
     // ValuationFeature_numberMoveForPiece
@@ -168,81 +89,60 @@ namespace chess
         using _Piece = Piece<PieceID, _BoardSize>;
 
     public:
-        ValuationFeature_numberMoveForPiece(const PieceName p, const PieceColor c) 
-            : ValuationFeature() , _p(p), _c(c)
+        ValuationFeature_numberMoveForPiece(const PieceName p, const PieceColor c) : _ValuationFeature() , _p(p), _c(c)
         { 
-            set_classtype(_FeatureManager::get_feature_name(FeatureName::eValuationFeature_numberMoveForPiece));
- 
-            // make name unique
+            _name = ValuFeatureName::eValuationFeature_numberMoveForPiece;
+            set_classtype(_FeatureManager::get_valu_feature_name(ValuFeatureName::eValuationFeature_numberMoveForPiece));
             PieceID id = _Piece::get_id(_p, _c);
-            std::stringstream ss;
-            ss << _Piece::to_str(id);
-            set_classtype_argument(ss.str());
+            set_classtype_argument(std::to_string(id));
+            if (_is_init == false)
+            {
+                for (size_t i = 1; i < _Piece::pieces_size(); i++) // skip empty piece
+                {
+                    _arg_index_value[i - 1] = std::to_string(i - 1);
+                }
+                _is_init = true;
+            }
         }
-        virtual ~ValuationFeature_numberMoveForPiece() {};
+
+        virtual ~ValuationFeature_numberMoveForPiece() 
+        {
+            _arg_index_value.clear();
+        }
+
         virtual TYPE_PARAM compute(const _Board& position, const std::vector<_Move>& m) const override
         {
-            return (TYPE_PARAM)position.cnt_piece(_p, _c);
+            return (TYPE_PARAM)position.cnt_move(_p, _c, m);
         }
+
+        bool        has_arg()   const override { return true; }
+        size_t      num_arg()   const override { return 2; }
+        size_t      range_arg() const override { return _Piece::pieces_size() - 1; }
+        FeatureArgType  get_arg_type(size_t idx) const override
+        { 
+            if (idx == 0) return FeatureArgType::piecename;
+            else  return FeatureArgType::piececolor;
+        }
+        std::string get_arg(size_t idx) const override 
+        {
+            return _arg_index_value[idx];
+        }
+        PieceName  piecename()  { return _p; }
+        PieceColor piececolor() { return _c; }
+
     private:
         PieceName   _p;
         PieceColor  _c;
-    };
-
-    // FeatureManager
-    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    class FeatureManager
-    {
-    private:
-        FeatureManager() 
-        {
-            _features.push_back((int)eConditionFeature_isOppositeKinCheck, "ConditionFeature_isOppositeKinCheck");
-            _features.push_back((int)eValuationFeature_numberMoveForPiece, "ValuationFeature_numberMoveForPiece");
-        }
-
-        FeatureManager(const FeatureManager&) = delete;
-        FeatureManager & operator=(const FeatureManager &) = delete;
-        FeatureManager(FeatureManager&&) = delete;
-
-    public:
-        ~FeatureManager()
-        {
-            if (_instance.operator bool())
-            {
-                _features.clear();
-                _instance.release();
-            }
-        }
-
-    public:
-        static std::string get_feature_name(FeatureName n)
-        {
-            return _features[(int)n];
-        }
-
-        static const FeatureManager* instance()
-        {
-            if (_instance == nullptr)
-            {
-                _instance = std::unique_ptr<FeatureManager>(new FeatureManager);
-                return _instance.get();
-            }
-            return  _instance.get();;
-        }
-
- 
-    private:
-        static std::map<int, std::string>       _features;
-        static std::unique_ptr<FeatureManager>  _instance;
+        static bool _is_init;
+        static std::map<size_t, std::string> _arg_index_value;
     };
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    std::unique_ptr<FeatureManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>>
-    FeatureManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::_instance = nullptr;
+    std::map<size_t, std::string> ValuationFeature_numberMoveForPiece<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::_arg_index_value;
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    std::map<int, std::string>
-    FeatureManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::_features;
+    bool ValuationFeature_numberMoveForPiece<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::_is_init = false;
+
 };
 
 #endif
