@@ -99,9 +99,6 @@
     <ClInclude Include="..\Player\player.hpp">
       <Filter>Player</Filter>
     </ClInclude>
-    <ClInclude Include="..\Game\game.hpp">
-      <Filter>Game</Filter>
-    </ClInclude>
     <ClInclude Include="..\Core\chess.hpp">
       <Filter>Core</Filter>
     </ClInclude>
@@ -119,6 +116,12 @@
     </ClInclude>
     <ClInclude Include="..\ChessGA\ChessCoEvolveGA.hpp">
       <Filter>ChessGA</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\game.hpp">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Game\gamedb.hpp">
+      <Filter>Game</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

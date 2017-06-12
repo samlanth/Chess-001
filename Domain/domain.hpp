@@ -28,6 +28,7 @@ namespace chess
         using _DomainPlayer = DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _ConditionFeature = ConditionFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _ValuationFeature = ValuationFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _GameDB       = GameDB<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
         friend class _DomainPlayer;
 
@@ -37,14 +38,28 @@ namespace chess
         std::string             _instance_key;
         std::vector<_Domain*>   _children;
         _DomainPlayer*          _attached_domain_player;
+        std::string             _gamedb_filename;
+        _GameDB*                _gameDB;
 
     public:
         Domain( const std::string partition_key,
                 const std::string domainname_key,
                 const std::string instance_key) :
             _partition_key(partition_key), _domainname_key(domainname_key), _instance_key(instance_key),
-            _attached_domain_player(nullptr)
+            _attached_domain_player(nullptr),
+            _gameDB(nullptr)
         {
+            _gamedb_filename = PersistManager::instance()->get_stream_name("gamedb", persist_key());
+            _gameDB = new _GameDB((_DomainPlayer*)this, _gamedb_filename);
+            if (_gameDB->status() != 0)
+            {
+                //...
+            }
+        }
+
+        virtual ~Domain()
+        {
+            delete _gameDB;
         }
 
         virtual bool is_cond_feature_valid(_ConditionFeature& f) const = 0;

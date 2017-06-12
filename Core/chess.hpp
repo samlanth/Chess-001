@@ -42,6 +42,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class ConditionValuationNode;
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT, int WEIGHT_BOUND> class ChessCoEvolveGA;
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class GameDB;
 }
 
 #include "core/move.hpp"
@@ -59,6 +60,7 @@ namespace chess
 #include "feature/condvalunode.hpp"
 #include "feature/featuremanager.hpp"
 #include "game/game.hpp"
+#include "game/gamedb.hpp"
 #include "ga/galgo_example.hpp"
 #include "ChessGA/ChessGenAlgo.hpp"
 #include "ChessGA/ChessCoEvolveGA.hpp"

@@ -37,6 +37,7 @@
     <ClInclude Include="..\Feature\condvalunode.hpp" />
     <ClInclude Include="..\Feature\feature.hpp" />
     <ClInclude Include="..\Feature\featuremanager.hpp" />
+    <ClInclude Include="..\Game\gamedb.hpp" />
     <ClInclude Include="..\Game\game.hpp" />
     <ClInclude Include="..\GA\Chromosome.hpp" />
     <ClInclude Include="..\GA\Converter.hpp" />

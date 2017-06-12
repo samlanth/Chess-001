@@ -36,7 +36,7 @@ namespace chess
         void set_constraints(BaseGame_Config c) { _config = c; }
         void set_board(_Board& initial_position) { _initial_position = initial_position; }
 
-        virtual ExactScore play(bool verbose = false);
+        virtual ExactScore play(bool verbose = false, bool save = false);
         void print_nodes() const;
 
         _DomainPlayer&          playerW() { return _playerW; }
@@ -58,7 +58,7 @@ namespace chess
 
     // play()
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    inline ExactScore BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::play(bool verbose)
+    inline ExactScore BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::play(bool verbose, bool save)
     {
         size_t move_idx;
         std::vector<_Move>  m;
@@ -98,6 +98,10 @@ namespace chess
                 if (board.is_in_check())  std::cout << "in_check " << std::endl;
                 std::cout << board.to_str() << std::endl;
             }
+        }
+        if (save)
+        {
+            //...
         }
     }
 
