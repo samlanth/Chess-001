@@ -43,6 +43,8 @@ namespace galgo
        const std::vector<T>& lowerBound() const;
        const std::vector<T>& upperBound() const;
 
+       std::vector<T> decode_param();
+
     private:
        std::vector<T> param;                     // estimated parameter(s)
        std::vector<T> result;                    // chromosome objective function(s) result
@@ -107,6 +109,20 @@ namespace galgo
           std::string str = x->encode(ptr->initialSet[i++]);
           chr.append(str);
        }      
+    }
+
+    //.......
+    template <typename T, int PARAM_NBIT>
+    inline std::vector<T> Chromosome<T, PARAM_NBIT>::decode_param()
+    {
+        int i(0);
+        for (const auto& x : ptr->param) {
+            // decoding chromosome: converting chromosome string into a real value
+            param[i] = x->decode(chr.substr(ptr->idx[i], x->size()));
+            i++;
+        }
+        std::vector<T> v = param;
+        return v;
     }
 
     // evaluate chromosome fitness

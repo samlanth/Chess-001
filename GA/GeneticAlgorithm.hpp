@@ -45,7 +45,7 @@ namespace galgo
        int elitpop = 1;   // elit population size
        int matsize;       // mating pool size, set to popsize by default
        int tntsize = 10;  // tournament size
-       int genstep = 10;  // generation step for outputting results
+       int genstep = 1;  // generation step for outputting results
        int precision = 5; // precision for outputting results
 
     public:
@@ -55,9 +55,9 @@ namespace galgo
                        std::vector<T>&  _upperBound,
                        std::vector<T>&  _initialSet);
 
-       GeneticAlgorithm(int popsize, int nbgen, int _tournament_n_player, int _tournament_n_game);
+       GeneticAlgorithm(int popsize, int nbgen);
 
-       virtual void run();                          // run genetic algorithm  
+       virtual void run(bool reenty = false);       // run genetic algorithm  
        const CHR<T, PARAM_NBIT>& result() const;    // return best chromosome 
 
        virtual std::vector<T> tournament(bool is_at_creation, const std::vector<T>& param) const
@@ -74,22 +74,20 @@ namespace galgo
        int popsize;   // population size
        bool output;   // control if results must be outputted
 
-       int tournament_n_player;
-       int tournament_n_game;
+       //int tournament_n_player;
+       //int tournament_n_game;
 
        void check() const ; // check inputs validity
        void print() const;  // print results for each new generation
     };
 
     template <typename T, int PARAM_NBIT>
-    GeneticAlgorithm<T, PARAM_NBIT>::GeneticAlgorithm(int _popsize, int _nbgen, int _tournament_n_player, int _tournament_n_game)
+    GeneticAlgorithm<T, PARAM_NBIT>::GeneticAlgorithm(int _popsize, int _nbgen)
     {
         this->nbgen = _nbgen;
         this->popsize = _popsize;
         this->matsize = _popsize;
         this->output = true;
-        this->tournament_n_player  = _tournament_n_player;
-        this->tournament_n_game    = _tournament_n_game;
     }
 
     // constructor
@@ -153,7 +151,7 @@ namespace galgo
 
     // run genetic algorithm
     template <typename T, int PARAM_NBIT>
-    void GeneticAlgorithm<T, PARAM_NBIT>::run()
+    void GeneticAlgorithm<T, PARAM_NBIT>::run(bool)
     {
        // checking inputs validity
        this->check();

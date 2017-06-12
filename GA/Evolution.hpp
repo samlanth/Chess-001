@@ -45,14 +45,21 @@ namespace chess
             T fitsum = x.getSumFitness();
 
             // selecting mating population
-            for (int i = 0, end = x.matsize(); i < end; ++i) {
+            for (int i = 0, end = x.matsize(); i < end; ++i) 
+            {
                 // generating a random fitness sum in [0,fitsum)
                 T fsum = galgo::uniform<T>(0.0, fitsum);
 
                 int j = 0;
                 while (fsum >= 0.0) {
 #ifndef NDEBUG
-                    if (j == x.popsize()) {
+                    if (j == x.popsize()) 
+                    {
+                        //....
+                        j--;
+                        std::cout << "Error: in RWS(galgo::Population<T, PARAM_NBIT>&) index j cannot be equal to population size.\n";
+                        break;
+
                         throw std::invalid_argument("Error: in RWS(galgo::Population<T, PARAM_NBIT>&) index j cannot be equal to population size.");
                     }
 #endif

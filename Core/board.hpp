@@ -51,11 +51,15 @@ namespace chess
         void undo_move();
 
         bool can_capture_opposite_king(const std::vector<_Move>& m, size_t& ret_index) const;
+        bool is_in_check() const;
+        size_t count_capture_opposite_king(const std::vector<_Move>& m) const;
+        size_t count_capture_king() const;
         void set_classic_pos();
         bool has_piece(PieceName n, PieceColor c) const;
         size_t cnt_piece(PieceName n, PieceColor c) const;
         size_t cnt_all_piece() const;
         size_t cnt_move(PieceName n, PieceColor c, const std::vector<_Move>& m) const;
+        size_t cnt_move_oppo(PieceName n, PieceColor c, const std::vector<_Move>& m) const;
         bool is_final(const std::vector<_Move>& m) const;
         ExactScore final_score(const std::vector<_Move>& m) const;
 
@@ -67,6 +71,8 @@ namespace chess
         bool is_check_50_moves_draw()       const { return _check_50_moves_draw; }
         size_t get_histo_size()             const { return _history_moves.size(); }
         const std::string to_str() const;
+
+        _Move last_history_move() const { return _history_moves.back(); }
 
     private:
         PieceColor              _color_toplay;
@@ -182,7 +188,7 @@ namespace chess
         }
         return cnt;
     }
-
+    
     // cnt_all_piece
     template <typename PieceID, typename uint8_t _BoardSize>
     inline size_t Board<PieceID, _BoardSize>::cnt_all_piece() const
@@ -196,6 +202,7 @@ namespace chess
         return cnt;
     }
 
+    //cnt_move
     template <typename PieceID, typename uint8_t _BoardSize>
     size_t Board<PieceID, _BoardSize>::cnt_move(PieceName n, PieceColor c, const std::vector<_Move>& m) const
     {
@@ -207,6 +214,15 @@ namespace chess
             if (v.prev_src_id == id) cnt++;
         }
         return cnt;
+    }
+    // cnt_move_oppo
+    template <typename PieceID, typename uint8_t _BoardSize>
+    size_t Board<PieceID, _BoardSize>::cnt_move_oppo(PieceName n, PieceColor c, const std::vector<_Move>& m) const
+    {
+        Board<PieceID, _BoardSize> b = *this;
+        b.set_opposite_color();
+        std::vector<_Move> mm = b.generate_moves();
+        return b.cnt_move(n, c, mm);
     }
 
     // can_capture_opposite_king()
@@ -225,6 +241,40 @@ namespace chess
             index++;
         }
         return false;
+    }
+
+    // count_capture_opposite_king()
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline size_t Board<PieceID, _BoardSize>::count_capture_opposite_king(const std::vector<_Move>& m) const
+    {
+        size_t n = 0;
+        PieceID K_id = _Piece::get_id(PieceName::K, get_opposite_color());
+        for (const auto &mv : m)
+        {
+            if (mv.prev_dst_id == K_id) n++;
+        }
+        return n;
+    }
+
+    // count_capture_king()
+    template <typename PieceID, typename uint8_t _BoardSize>
+    size_t Board<PieceID, _BoardSize>::count_capture_king() const
+    {
+        Board<PieceID, _BoardSize> b = *this;
+        b.set_opposite_color();
+        std::vector<_Move> m = b.generate_moves();
+        return b.count_capture_opposite_king(m);
+    }
+
+    // is_in_check()
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool Board<PieceID, _BoardSize>::is_in_check() const
+    {
+        Board<PieceID, _BoardSize> b = *this;
+        b.set_opposite_color();
+        std::vector<_Move> m = b.generate_moves();
+        size_t mv;
+        return b.can_capture_opposite_king(m, mv);
     }
 
     // final_score()
@@ -317,6 +367,9 @@ namespace chess
         const _Piece*  p_src;
         const _Piece*  p_dst;
         std::vector<_Move> m;
+
+        if (!has_piece(PieceName::K, PieceColor::W)) return m;
+        if (!has_piece(PieceName::K, PieceColor::B)) return m;
 
         for (uint8_t i = 0; i < _BoardSize; i++)
         {

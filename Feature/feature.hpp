@@ -54,11 +54,6 @@ namespace chess
             size_t ret_mv;
             return position.can_capture_opposite_king(m, ret_mv);
         }
-        bool        has_arg()   const override { return false; }
-        size_t      num_arg()   const override { return 0; }
-        size_t      range_arg() const override { return 0; }
-        FeatureArgType  get_arg_type(size_t idx) const override { return FeatureArgType::none; }
-        std::string get_arg(size_t idx) const override { return ""; }
     };
 
     // ValuationFeature
@@ -112,21 +107,12 @@ namespace chess
 
         virtual TYPE_PARAM compute(const _Board& position, const std::vector<_Move>& m) const override
         {
-            return (TYPE_PARAM)position.cnt_move(_p, _c, m);
+            if (_c == position.get_color())
+                return (TYPE_PARAM)position.cnt_move(_p, _c, m);
+            else
+                return (TYPE_PARAM)position.cnt_move_oppo(_p, _c, m);
         }
 
-        bool        has_arg()   const override { return true; }
-        size_t      num_arg()   const override { return 2; }
-        size_t      range_arg() const override { return _Piece::pieces_size() - 1; }
-        FeatureArgType  get_arg_type(size_t idx) const override
-        { 
-            if (idx == 0) return FeatureArgType::piecename;
-            else  return FeatureArgType::piececolor;
-        }
-        std::string get_arg(size_t idx) const override 
-        {
-            return _arg_index_value[idx];
-        }
         PieceName  piecename()  { return _p; }
         PieceColor piececolor() { return _c; }
 
@@ -142,6 +128,40 @@ namespace chess
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     bool ValuationFeature_numberMoveForPiece<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::_is_init = false;
+
+
+    // ValuationFeature_countCaptureKing
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    class ValuationFeature_countCaptureKing : public ValuationFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
+    {
+        using _Board = Board<PieceID, _BoardSize>;
+        using _Move = Move<PieceID>;
+        using _Piece = Piece<PieceID, _BoardSize>;
+
+    public:
+        ValuationFeature_countCaptureKing(const PieceColor color): _c(color)
+        {
+            _name = ValuFeatureName::eValuationFeature_countCaptureKing;
+            set_classtype(_FeatureManager::get_valu_feature_name(ValuFeatureName::eValuationFeature_countCaptureKing));
+
+            if (_c == PieceColor::W) set_classtype_argument("W");
+            else set_classtype_argument("B");
+        }
+
+        virtual ~ValuationFeature_countCaptureKing()
+        {
+        }
+
+        virtual TYPE_PARAM compute(const _Board& position, const std::vector<_Move>& m) const override
+        {
+            if (position.get_color() == _c)
+                return (TYPE_PARAM) position.count_capture_king();
+            else
+                return (TYPE_PARAM) position.count_capture_opposite_king(m);
+        }
+    private:
+        PieceColor  _c;
+    };
 
 };
 

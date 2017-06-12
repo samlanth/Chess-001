@@ -15,8 +15,8 @@
 
 namespace chess
 {
-    inline float  sigmoid(float x, float a = 1.0f)  { return 1 / (1 + std::exp(-a * x)); }
-    inline double sigmoid(double x, double a = 1.0) { return 1 / (1 + std::exp(-a * x)); }
+    inline float  sigmoid(float x, float   a = 0.001f)  { return (1 / (1 + std::exp(-a * x))); }
+    inline double sigmoid(double x, double a = 0.001)   { return (1 / (1 + std::exp(-a * x))); }
 
     // ConditionValuationNode
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
@@ -175,31 +175,44 @@ namespace chess
         bool load_root();
         bool load(std::ifstream& filestream);
 
-        TYPE_PARAM get_valuations_value(const _Board& position, const std::vector<_Move>& m) const
+        TYPE_PARAM get_valuations_value(const _Board& position, const std::vector<_Move>& m, bool verbose) const
         {
             assert(_weights.size() >= _valuations.size());
 
             TYPE_PARAM c = 0;
+            TYPE_PARAM v = 0;
+
+            if (verbose) std::cout << _is_positive_node << " ";
             for (size_t i = 0; i < _valuations.size(); i++)
             {
-                c += _valuations[i]->compute(position, m) * _weights[i];
+                v = _valuations[i]->compute(position, m);
+                c += (v * _weights[i]);
+                if (verbose)
+                {
+                    std::cout << v << "*" << _weights[i] << " ";
+                }
             }
+            if (verbose) std::cout << "(" << c << "," << sigmoid(c) << ")" << std::endl;
             return sigmoid(c);
         }
 
-        bool eval_position(const _Board& position, const std::vector<_Move>& m, TYPE_PARAM& ret_eval) const
+        bool eval_position(const _Board& position, const std::vector<_Move>& m, TYPE_PARAM& ret_eval, bool verbose) const
         {
             _ConditionValuationNode* terminal_node = get_terminal_node(position, m);
             if (terminal_node == nullptr)
             {
                 return false;
             }
-            ret_eval = terminal_node->get_valuations_value(position, m);
+            ret_eval = terminal_node->get_valuations_value(position, m, verbose);
             return true;
         }
 
         std::string persist_key() const { return _persist_key; }
         void set_persist_key(std::string s) { _persist_key = s; }
+
+        std::vector<TYPE_PARAM>& weights() { return _weights; }
+        ConditionValuationNode* positive_child() const { return _positive_child; }
+        ConditionValuationNode* negative_child() const { return _negative_child; }
 
         std::vector<_ConditionFeature*> get_conditions()        const { return _conditions; }
         std::vector<bool>               get_conditions_and_or() const { return _conditions_and_or; }

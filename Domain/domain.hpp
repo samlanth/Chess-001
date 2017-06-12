@@ -68,7 +68,7 @@ namespace chess
         virtual bool save() const = 0;
         virtual bool load() = 0;
 
-        virtual _Board get_random_position() const = 0;
+        virtual _Board get_random_position(bool no_check) const = 0;
 
         static _Domain* make(const std::string& partition_key, const std::string& domainname_key, const std::string& instance_key)
         {
@@ -278,7 +278,7 @@ namespace chess
             return load_root();
         }
 
-        _Board get_random_position() const override
+        _Board get_random_position(bool no_check) const override
         {     
             uint8_t wK = 0; 
             uint8_t bK = 0;
@@ -291,6 +291,21 @@ namespace chess
             b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::W), wK % _BoardSize, ((uint8_t)(wK / _BoardSize)));
             b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::B), bK % _BoardSize, ((uint8_t)(bK / _BoardSize)));
             b.set_color(PieceColor::W); 
+
+            if (no_check)
+            {
+                if (b.is_in_check())
+                {
+                    return get_random_position(no_check);
+                }
+                else
+                {
+                    std::vector<_Move> m = b.generate_moves();
+                    size_t mv;
+                    if (b.can_capture_opposite_king(m, mv))
+                        return get_random_position(no_check);
+                }
+            }
             return b;
         }
     };
@@ -366,7 +381,7 @@ namespace chess
             return load_root();
         }
 
-        _Board get_random_position() const override
+        _Board get_random_position(bool no_check) const override
         {
             uint8_t wQ = 0;
             uint8_t wK = 0;
@@ -382,6 +397,21 @@ namespace chess
             b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::W), wK % _BoardSize, ((uint8_t)(wK / _BoardSize)));
             b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::B), bK % _BoardSize, ((uint8_t)(bK / _BoardSize)));
             b.set_color(PieceColor::W);
+
+            if (no_check)
+            {
+                if (b.is_in_check())
+                {
+                    return get_random_position(no_check);
+                }
+                else
+                {
+                    std::vector<_Move> m = b.generate_moves();
+                    size_t mv;
+                    if ( b.can_capture_opposite_king(m, mv) )
+                        return get_random_position(no_check); 
+                }
+            }
             return b;
         }
     };

@@ -69,61 +69,73 @@ int main(int argc, char* argv[])
             {
                 chess::ConditionValuationNode<uint8_t, 6, double, 16>* child1 = new chess::ConditionValuationNode<uint8_t, 6, double, 16>(playW->get_root(), true, false);
                 chess::ConditionValuationNode<uint8_t, 6, double, 16>* child2 = new chess::ConditionValuationNode<uint8_t, 6, double, 16>(playW->get_root(), false, false);
-                size_t valid_v_feature = 0;
                 chess::ValuationFeature<uint8_t, 6, double, 16>* v;
                 for (size_t i = 0; i < nv; i++)
                 {
                     v = chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_valu_feature(i);
                     if (playW->get_domain()->is_valu_feature_valid(*v))
                     {
-                        valid_v_feature = i;
-                        break;
+                        child1->add_valuations(chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_valu_feature(i));
+                        child1->add_weights(0.5);
                     }
                 }
-                size_t valid_v_feature2 = 0;
+                chess::ValuationFeature<uint8_t, 6, double, 16>* v2;
+                for (size_t i = 0; i < nv; i++)
+                {
+                    v2 = chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_valu_feature(i);
+                    if (playW->get_domain()->is_valu_feature_valid(*v2))
+                    {
+                        child2->add_valuations(chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_valu_feature(i));
+                        child2->add_weights(0.25);
+                    }
+                }
+                child1->add_conditions(chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_cond_feature(0));
+                child1->add_conditions_and_or(true);
+                // mirror node reuse child1 cond
+            }
+            // add a node (and mirror) to brain of black player
+            {
+                chess::ConditionValuationNode<uint8_t, 6, double, 16>* child1 = new chess::ConditionValuationNode<uint8_t, 6, double, 16>(playB->get_root(), true, false);
+                chess::ConditionValuationNode<uint8_t, 6, double, 16>* child2 = new chess::ConditionValuationNode<uint8_t, 6, double, 16>(playB->get_root(), false, false);
+                chess::ValuationFeature<uint8_t, 6, double, 16>* v;
+                for (size_t i = 0; i < nv; i++)
+                {
+                    v = chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_valu_feature(i);
+                    if (playB->get_domain()->is_valu_feature_valid(*v))
+                    {
+                        child1->add_valuations(chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_valu_feature(i));
+                        child1->add_weights(0.45);
+                    }
+                }
                 chess::ValuationFeature<uint8_t, 6, double, 16>* v2;
                 for (size_t i = 0; i < nv; i++)
                 {
                     v2 = chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_valu_feature(i);
                     if (playB->get_domain()->is_valu_feature_valid(*v2))
                     {
-                        valid_v_feature2 = i;
-                        break;
+                        child2->add_valuations(chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_valu_feature(i));
+                        child2->add_weights(0.55);
                     }
                 }
                 child1->add_conditions(chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_cond_feature(0));
                 child1->add_conditions_and_or(true);
-                child1->add_valuations(chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_valu_feature(valid_v_feature));
-                child1->add_weights(0.5);
                 // mirror node reuse child1 cond
-                child2->add_valuations(chess::FeatureManager<uint8_t, 6, double, 16>::instance()->get_valu_feature(valid_v_feature2));
-                child2->add_weights(0.25);
             }
 
-            // setup game
-            chess::BaseGame<uint8_t, 6, double, 16> game(*playW, *playB);
-            game.set_constraints(100, 2, 100, 2, 10);
-
-            // play games
-            double fit = 0;
-            chess::ExactScore sc;
-            for (size_t i = 0; i < 20; i++)
             {
-                game.set_board(playW->get_domain()->get_random_position());
-                sc = game.play(true);
-                if      (sc == chess::ExactScore::WIN)  fit += 1.0;
-                else if (sc == chess::ExactScore::LOSS) fit -= 1.0;
-                else if (sc == chess::ExactScore::DRAW) fit += 0.5;
-                std::cout << "score= " << fit << " / " << i + 1 << std::endl;
+                // setup game
+                //chess::BaseGame<uint8_t, 6, double, 16> game(*playW, *playB);
+                //game.set_constraints(100, 1, 100, 1, 4);
+                //chess::ga::ChessGeneticAlgorithm<uint8_t, 6, double, 16, 10> ga_chess(playW, playB, &game, 5, 20, 3, 2);
+                //ga_chess.run();
             }
 
-            std::vector< chess::ConditionValuationNode<uint8_t, 6, double, 16>* > vnodes;
-            playW->get_root()->get_term_nodes(vnodes);
-            // Changing weights[] of these terminal nodes will change player performance
-            // GA...
-
-            chess::ga::ChessGeneticAlgorithm<uint8_t, 6, double, 16> ga_chess(playW->get_root(), 10, 5, 2, 1);
-            ga_chess.run();
+            {
+                chess::BaseGame_Config cfg{ 100, 1, 100, 1, 4 };
+                // num_iter, popsize, nbgen, _tournament_n_player, _tournament_n_game
+                chess::ga::ChessCoEvolveGA<uint8_t, 6, double, 16, 10> ga_co(playW, playB, cfg, 100, 3, 1, 5, 1);
+                ga_co.run();
+            }
 
             delete playW;
             delete playB;
@@ -140,6 +152,8 @@ int main(int argc, char* argv[])
         chess::ConditionValuationNode<uint8_t, 8, double, 16>* root_nodea = new chess::ConditionValuationNode<uint8_t, 8, double, 16>(nullptr, true, true);
         delete root_nodea; 
     }
+
+    while (true) {}
 
     // Test integration with galgo
     galgo_example::galgo_example_001();

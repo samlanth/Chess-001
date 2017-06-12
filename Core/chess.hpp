@@ -59,5 +59,6 @@ namespace chess
 #include "game/game.hpp"
 #include "ga/galgo_example.hpp"
 #include "ChessGA/ChessGenAlgo.hpp"
+#include "ChessGA/ChessCoEvolveGA.hpp"
 
 #endif

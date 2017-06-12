@@ -18,7 +18,8 @@ namespace chess
 
         using _ConditionFeature_isOppositeKinCheck = ConditionFeature_isOppositeKinCheck<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _ValuationFeature_numberMoveForPiece = ValuationFeature_numberMoveForPiece<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
-        
+        using _ValuationFeature_countCaptureKing = ValuationFeature_countCaptureKing<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+
         using _Piece = Piece<PieceID, _BoardSize>;
 
     private:
@@ -27,6 +28,7 @@ namespace chess
             _cond_features_name[(int)CondFeatureName::eConditionFeature_isOppositeKinCheck] = "ConditionFeature_isOppositeKinCheck";
            
             _valu_features_name[(int)ValuFeatureName::eValuationFeature_numberMoveForPiece] = "ValuationFeature_numberMoveForPiece";
+            _valu_features_name[(int)ValuFeatureName::eValuationFeature_countCaptureKing]   = "ValuationFeature_countCaptureKing";
 
             // cond set
             _cond_features_instance[get_cond_feature_name(CondFeatureName::eConditionFeature_isOppositeKinCheck)] = (_ConditionFeature*)new _ConditionFeature_isOppositeKinCheck();
@@ -44,6 +46,8 @@ namespace chess
             _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_numberMoveForPiece) + std::to_string(_Piece::get_id(PieceName::B, PieceColor::B))] = (_ValuationFeature*)new _ValuationFeature_numberMoveForPiece(PieceName::B, PieceColor::B);
             _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_numberMoveForPiece) + std::to_string(_Piece::get_id(PieceName::Q, PieceColor::B))] = (_ValuationFeature*)new _ValuationFeature_numberMoveForPiece(PieceName::Q, PieceColor::B);
             _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_numberMoveForPiece) + std::to_string(_Piece::get_id(PieceName::P, PieceColor::B))] = (_ValuationFeature*)new _ValuationFeature_numberMoveForPiece(PieceName::P, PieceColor::B);
+            _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_countCaptureKing) + "W"] = (_ValuationFeature*)new _ValuationFeature_countCaptureKing(PieceColor::W);
+            _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_countCaptureKing) + "B"] = (_ValuationFeature*)new _ValuationFeature_countCaptureKing(PieceColor::B);
 
             for (auto it = _cond_features_instance.begin(); it != _cond_features_instance.end(); ++it)
             {

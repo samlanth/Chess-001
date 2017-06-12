@@ -57,6 +57,8 @@ namespace galgo
        // return selection pressure
        T SP() const; 
 
+       const CHR<T, PARAM_NBIT>& get_cur(size_t idx) const { return curpop[idx]; }
+
     private:
        std::vector<CHR<T, PARAM_NBIT>> curpop;              // current population
        std::vector<CHR<T, PARAM_NBIT>> matpop;              // mating population
@@ -133,10 +135,12 @@ namespace galgo
 
        if (eval_on_creation == false)
        {
+           std::cout << "INIT evaluate() start " << std::endl;
            for (int i = 0; i < ptr->popsize; ++i)
            {
                curpop[i]->evaluate(true);
            }
+           std::cout << "INIT evaluate() done " << std::endl;
        }
 
        // updating population

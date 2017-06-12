@@ -15,69 +15,188 @@ namespace chess
     {
         using namespace galgo;
 
-        template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+        template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT, int WEIGHT_BOUND>
         class ChessGeneticAlgorithm : public GeneticAlgorithm<TYPE_PARAM, PARAM_NBIT>
         {
             using _ConditionValuationNode = ConditionValuationNode<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+            using _BaseGame = BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+            using _DomainPlayer = DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
         public:
-            ChessGeneticAlgorithm(_ConditionValuationNode* node, int popsize, int nbgen, int _tournament_n_player, int _tournament_n_game);
+            ChessGeneticAlgorithm(  bool evolve_white, bool is_single_pop, _DomainPlayer* player, _DomainPlayer* player_opposite, BaseGame_Config cfg,
+                                    int popsize, int nbgen, int _tournament_n_player, int _tournament_n_game);
 
             void setup_params();
-            void run() override;
+            void run(bool reentry) override;
 
+            ~ChessGeneticAlgorithm()
+            {
+                delete _game;
+            }
+
+            void set_player_term_nodes(std::vector<_ConditionValuationNode*>& nodes, std::vector<TYPE_PARAM>& param) const
+            {
+                size_t next = 0;
+                size_t i;
+                std::vector<TYPE_PARAM> w;
+                for (auto& v : nodes)
+                {
+                    w = v->get_weights();
+                    i = 0;
+                    for (auto& vw : w)
+                    {
+                        vw = param[next++];
+                        w[i] = vw;
+                        i++;
+                    }
+                    v->set_weights(w);
+                }
+            }
+
+            void print_nodes() const
+            {
+                for (int i = 0; i < _game->playerW().get_root()->positive_child()->weights().size(); i++)
+                    std::cout << _game->playerW().get_root()->positive_child()->weights().at(i) << " ";
+                for (int i = 0; i < _game->playerW().get_root()->negative_child()->weights().size(); i++)
+                    std::cout << _game->playerW().get_root()->negative_child()->weights().at(i) << " ";
+                std::cout << std::endl;
+                for (int i = 0; i < _game->playerB().get_root()->positive_child()->weights().size(); i++)
+                    std::cout << _game->playerB().get_root()->positive_child()->weights().at(i) << " ";
+                for (int i = 0; i < _game->playerB().get_root()->negative_child()->weights().size(); i++)
+                    std::cout << _game->playerB().get_root()->negative_child()->weights().at(i) << " ";
+                std::cout << std::endl;
+            }
+
+            // tournament
             std::vector<TYPE_PARAM> tournament(bool is_at_creation, const std::vector<TYPE_PARAM>& param) const override
             {
+                std::vector<TYPE_PARAM> param_candidate = param;
+                std::vector<TYPE_PARAM> param_opponent;
                 std::vector<TYPE_PARAM> v;
-                TYPE_PARAM fit = 0;
-                for (int i = 0; i < tournament_n_player; i++)
+                TYPE_PARAM total_fit = 0;  
+                TYPE_PARAM score_fit = 0;
+                ExactScore sc;
+
+                set_player_term_nodes(_player_terminal_nodes, param_candidate);
+
+                for (size_t i = 0; i < _tournament_n_player; i++)
                 {
-                    // select random player in curpop
-                    for (int j = 0; j < tournament_n_game; j++)
+                    for (size_t j = 0; j < _tournament_n_game; j++)
                     {
-                        // score += Game[chromo(param) vs random player]
-                        fit += ((std::rand() % 10)-5)/10.0;
+                       if (_is_single_pop)
+                       {
+                           size_t rnd_opponent = rand() % popsize;
+                           const std::shared_ptr<Chromosome<TYPE_PARAM, PARAM_NBIT>>& curpop_player = pop.get_cur(rnd_opponent);
+                           std::vector<TYPE_PARAM> param_opponent = curpop_player->decode_param();
+                           set_player_term_nodes(_player_opposite_terminal_nodes, param_opponent);
+                       }
+
+                       if (_evolve_white)
+                         _game->set_board(_player->get_domain()->get_random_position(true));
+                       else
+                          _game->set_board(_player_opposite->get_domain()->get_random_position(true));
+
+                       sc = _game->play(false);
+                       if (_evolve_white)
+                       {
+                           if (sc == chess::ExactScore::WIN)        score_fit = 1.0;
+                           else if (sc == chess::ExactScore::LOSS)  score_fit = 0.0;
+                           else if (sc == chess::ExactScore::DRAW)  score_fit = 0.5;
+                           else score_fit = 0.0;
+                       }
+                       else
+                       {
+                           if (sc == chess::ExactScore::WIN)        score_fit = 0.0;
+                           else if (sc == chess::ExactScore::LOSS)  score_fit = 1.0;
+                           else if (sc == chess::ExactScore::DRAW)  score_fit = 0.5;
+                           else score_fit = 0.0;
+                       }
+                       total_fit += score_fit;
                     }
                 }
-                v.push_back(fit);
+                v.push_back(total_fit);
                 return v;
             }
 
         private:
-            _ConditionValuationNode*                _root;
-            std::vector<_ConditionValuationNode*>   _terminal_nodes;
+            bool _evolve_white;
+            bool _is_single_pop;
+            _DomainPlayer*                          _player;
+            _DomainPlayer*                          _player_opposite;
+            mutable std::vector<_ConditionValuationNode*>   _player_terminal_nodes;
+            mutable std::vector<_ConditionValuationNode*>   _player_opposite_terminal_nodes;
+            _BaseGame*                              _game;
+            BaseGame_Config                         _cfg;
+            int _tournament_n_player;
+            int _tournament_n_game;
         };
 
 
-        // ct
-        template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-        ChessGeneticAlgorithm<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::ChessGeneticAlgorithm(
-                                            _ConditionValuationNode* node, int popsize, int nbgen,
-                                            int _tournament_n_player, int _tournament_n_game)
-            : GeneticAlgorithm<TYPE_PARAM, PARAM_NBIT>(popsize, nbgen, _tournament_n_player, _tournament_n_game)
+        // ChessGeneticAlgorithm()
+        template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT, int WEIGHT_BOUND>
+        ChessGeneticAlgorithm<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT, WEIGHT_BOUND>::ChessGeneticAlgorithm(
+                bool evolve_white, bool is_single_pop, _DomainPlayer* player, _DomainPlayer* player_opposite, BaseGame_Config cfg,
+                int popsize, int nbgen, int tournament_n_player, int tournament_n_game)
+            : GeneticAlgorithm<TYPE_PARAM, PARAM_NBIT>(popsize, nbgen)
         {
-            _root = node;
-            _root->get_term_nodes(_terminal_nodes);
+            _evolve_white = evolve_white;
+            _is_single_pop = is_single_pop;
+            _cfg = cfg;
+
+            if (_evolve_white)
+            {
+                _player = player;
+                _player_opposite = player_opposite;
+            }
+            else
+            {
+                _player = player_opposite;
+                _player_opposite = player;
+            }
+
+            _player->get_root()->get_term_nodes(_player_terminal_nodes);
+            _player_opposite->get_root()->get_term_nodes(_player_opposite_terminal_nodes);
+
+            if (_evolve_white)
+                _game = new BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(*_player, *_player_opposite);
+            else
+                _game = new BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(*_player_opposite, *_player);
+
+            _game->set_constraints(_cfg);
+            _tournament_n_player = tournament_n_player;
+            _tournament_n_game = tournament_n_game;
+
             setup_params();
         }
 
-        template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-        void ChessGeneticAlgorithm<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::setup_params()
+        // setup_params
+        template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT, int WEIGHT_BOUND>
+        void ChessGeneticAlgorithm<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT, WEIGHT_BOUND>::setup_params()
         {
-            std::vector<double> _lowerBound;
-            std::vector<double> _upperBound;
-            //std::vector<double> _initialSet;
-            for (int i = 0; i < _terminal_nodes.size(); i++)
+            param.clear();
+            idx.clear();
+            nogen = 0;
+
+            std::vector<TYPE_PARAM> _lowerBound;
+            std::vector<TYPE_PARAM> _upperBound;
+            std::vector<TYPE_PARAM> _initialSet;
+
+            std::vector<TYPE_PARAM> w;
+            for (int i = 0; i < _player_terminal_nodes.size(); i++)
             {
-                _lowerBound.push_back(-10.0);
-                _upperBound.push_back(+10.0);
-                //_initialSet.push_back(0.00);
+                w = _player_terminal_nodes[i]->get_weights();
+                for (int j = 0; j < w.size(); j++)
+                {
+                    _lowerBound.push_back(-WEIGHT_BOUND);
+                    _upperBound.push_back(+WEIGHT_BOUND);
+                    _initialSet.push_back(w[j]);
+                }
             }
 
             for (int i = 0; i<_lowerBound.size(); i++)
             {
                 std::vector<TYPE_PARAM> w;
-                w.push_back(_lowerBound[i]); w.push_back(_upperBound[i]); //w.push_back(_initialSet[i]);
+                w.push_back(_lowerBound[i]); w.push_back(_upperBound[i]); w.push_back(_initialSet[i]);
                 Parameter<double, PARAM_NBIT> p(w);
                 param.emplace_back(new decltype(p)(p));
 
@@ -86,31 +205,40 @@ namespace chess
             }
             lowerBound = _lowerBound;
             upperBound = _upperBound;
-            //initialSet = _initialSet;
+            initialSet = _initialSet;
 
             //this->Objective = objective;
             this->nbbit = (int)_lowerBound.size()*PARAM_NBIT;
             this->nbparam = (int)_lowerBound.size();
         }
 
-        template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-        void ChessGeneticAlgorithm<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::run()
+        // run()
+        template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT, int WEIGHT_BOUND>
+        void ChessGeneticAlgorithm<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT, WEIGHT_BOUND>::run(bool reentry)
         {
             this->check();
-
-            pop = Population<TYPE_PARAM, PARAM_NBIT>(*this);
-            pop.creation(true, false);                          // setup all chromo then evaluate()
-
-            TYPE_PARAM bestResult = pop(0)->getTotal();
-            if (output) print();
-
-            for (int nogen = 1; nogen <= nbgen; ++nogen)
+            if (!reentry)
             {
-                pop.evolution();                                // evaluate() called in recombination, completion newpop[i]->evaluate()
+                pop = Population<TYPE_PARAM, PARAM_NBIT>(*this);
+                pop.creation(false, true);                          // setup all chromo then evaluate()
+            }
+            else
+            {
+                print_nodes();
+                pop(0)->evaluate();
+            }
+            TYPE_PARAM bestResult = pop(0)->getTotal();
 
+            for (nogen = 1; nogen <= nbgen; ++nogen)
+            {
+                pop.evolution();        // evaluate() called in recombination, completion newpop[i]->evaluate()
                 bestResult = pop(0)->getTotal();
                 if (output) print();
             }
+
+            const std::shared_ptr<Chromosome<TYPE_PARAM, PARAM_NBIT>>& best_player = pop.get_cur(0);
+            std::vector<TYPE_PARAM> param_best = best_player->decode_param();
+            set_player_term_nodes(_player_terminal_nodes, param_best);
         }
 
     };

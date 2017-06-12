@@ -16,7 +16,8 @@ namespace chess
         eConditionFeature_isOppositeKinCheck
     };
     enum class ValuFeatureName :int {
-        eValuationFeature_numberMoveForPiece
+        eValuationFeature_numberMoveForPiece,
+        eValuationFeature_countCaptureKing
     };
     enum class FeatureArgType { none = 0, piecename, piececolor, x, y }; //.. would see if needed when GA ...
 
@@ -38,12 +39,6 @@ namespace chess
 
         const std::string classtype()       const { return _classtype; }
         const std::string classtype_arg()   const { return _classtype_argument; }
-        
-        virtual bool            has_arg()   const = 0;
-        virtual size_t          num_arg()   const = 0;
-        virtual size_t          range_arg() const = 0;
-        virtual FeatureArgType  get_arg_type(size_t idx) const = 0;
-        virtual std::string     get_arg(size_t idx) const = 0;
 
         void set_classtype(const std::string& ct)           { _classtype = ct; }
         void set_classtype_argument(const std::string& arg) { _classtype_argument = arg; }

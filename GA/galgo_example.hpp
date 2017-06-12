@@ -10,20 +10,6 @@
 namespace galgo_example
 {
     template <typename T>
-    class MyObjective2
-    {
-    public:
-        // objective function example : Rosenbrock function
-        // minimizing f(x,y) = (1 - x)^2 + 100 * (y - x^2)^2
-        static std::vector<T> Objective(const std::vector<T>& x)
-        {
-            T obj = 0.47;
-            return{ obj };
-        }
-        // NB: GALGO maximize by default so we will maximize -f(x,y)
-    };
-
-    template <typename T>
     class MyObjective
     {
     public:

@@ -117,5 +117,8 @@
     <ClInclude Include="..\ChessGA\ChessGenAlgo.hpp">
       <Filter>ChessGA</Filter>
     </ClInclude>
+    <ClInclude Include="..\ChessGA\ChessCoEvolveGA.hpp">
+      <Filter>ChessGA</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
