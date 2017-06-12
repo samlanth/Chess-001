@@ -25,7 +25,7 @@ namespace chess
 
         public:
             ChessCoEvolveGA(_DomainPlayer* playW, _DomainPlayer* playB, BaseGame_Config cfg, size_t num_iter,
-                            int popsize, int nbgen, int _tournament_n_player, int _tournament_n_game)
+                            int popsize, int nbgen, int _tournament_n_player, int _tournament_n_game, bool verbose = false)
             {
                 _playW = playW;
                 _playB = playB;
@@ -33,6 +33,7 @@ namespace chess
                 _gaW = new _ChessGeneticAlgorithm(true,  false, _playW, _playB, _cfg, popsize, nbgen, _tournament_n_player, _tournament_n_game);
                 _gaB = new _ChessGeneticAlgorithm(false, false, _playW, _playB, _cfg, popsize, nbgen, _tournament_n_player, _tournament_n_game);
                 _num_iter = num_iter;
+                _verbose = verbose;
             }
 
             ~ChessCoEvolveGA()
@@ -45,17 +46,17 @@ namespace chess
             {
                 for (size_t i = 0; i < _num_iter; i++)
                 {
-                    std::cout << " ----------------------------\n";
+                    if (_verbose) std::cout << "----------------------------\n" << "iter : " << i + 1 << "\n";
                     _gaW->setup_params();
                     _gaW->run((i>0)?true:false);
 
-                    std::cout << " ----------------------------\n";
                     _gaB->setup_params();
                     _gaB->run((i>0) ? true : false);
 
+                    if (_verbose)
                     {
-                        // play games
-                        chess::BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT> game(*_playW, *_playB);
+                        // Play some games
+                        BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT> game(*_playW, *_playB);
                         game.set_constraints(_cfg);
 
                         double fit = 0;
@@ -63,18 +64,20 @@ namespace chess
                         for (size_t i = 0; i < 20; i++)
                         {
                             game.set_board(_playW->get_domain()->get_random_position(true));
-                            game.print_nodes();
-                            sc = game.play(true);
+                            //game.print_nodes();
+                            sc = game.play(false);
                             if (sc == chess::ExactScore::WIN)  fit += 1.0;
                             else if (sc == chess::ExactScore::LOSS) fit -= 1.0;
                             else if (sc == chess::ExactScore::DRAW) fit += 0.5;
-                            std::cout << "score= " << fit << " / " << i + 1 << std::endl;
+                            //std::cout << "score= " << fit << " / " << i + 1 << std::endl;
                         }
+                        std::cout << "score= " << fit << " / " << 20 << std::endl;
                     }
 
                 }
             }
 
+        private:
             _DomainPlayer* _playW;
             _DomainPlayer* _playB;
 
@@ -83,6 +86,7 @@ namespace chess
 
             BaseGame_Config _cfg;
             size_t _num_iter;
+            bool _verbose;
         };
 
     };

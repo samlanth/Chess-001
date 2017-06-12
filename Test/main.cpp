@@ -122,18 +122,18 @@ int main(int argc, char* argv[])
                 // mirror node reuse child1 cond
             }
 
-            {
-                // setup game
-                //chess::BaseGame<uint8_t, 6, double, 16> game(*playW, *playB);
-                //game.set_constraints(100, 1, 100, 1, 4);
-                //chess::ga::ChessGeneticAlgorithm<uint8_t, 6, double, 16, 10> ga_chess(playW, playB, &game, 5, 20, 3, 2);
-                //ga_chess.run();
-            }
+            // Test ChessGeneticAlgorithm
+            //{
+            //    chess::BaseGame_Config cfg{ 100, 1, 100, 1, 4 };
+            //    chess::ga::ChessGeneticAlgorithm<uint8_t, 6, double, 16, 10> ga_chess(true, false, playW, playB, cfg, 5, 2, 3, 2, true);
+            //    ga_chess.run(false);
+            //}
 
+            // Test ChessCoEvolveGA
             {
-                chess::BaseGame_Config cfg{ 100, 1, 100, 1, 4 };
-                // num_iter, popsize, nbgen, _tournament_n_player, _tournament_n_game
-                chess::ga::ChessCoEvolveGA<uint8_t, 6, double, 16, 10> ga_co(playW, playB, cfg, 100, 3, 1, 5, 1);
+                chess::BaseGame_Config cfg{ 100, 1, 100, 1, 6 };
+                // num_iter, popsize, nbgen, _tournament_n_player, _tournament_n_game, verbose
+                chess::ga::ChessCoEvolveGA<uint8_t, 6, double, 16, 10> ga_co(playW, playB, cfg, 500, 3, 1, 5, 1, true);
                 ga_co.run();
             }
 

@@ -19,7 +19,6 @@ namespace chess
         eValuationFeature_numberMoveForPiece,
         eValuationFeature_countCaptureKing
     };
-    enum class FeatureArgType { none = 0, piecename, piececolor, x, y }; //.. would see if needed when GA ...
 
     // Feature
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>

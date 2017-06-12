@@ -34,7 +34,6 @@ namespace chess
         virtual ~BaseGame() {}
 
         void set_constraints(BaseGame_Config c) { _config = c; }
-        void set_constraints(size_t _w_max_num_position_per_move, uint16_t _w_max_depth_per_move, size_t _b_max_num_position_per_move, uint16_t _b_max_depth_per_move, uint16_t max_game_ply);
         void set_board(_Board& initial_position) { _initial_position = initial_position; }
 
         virtual ExactScore play(bool verbose = false);
@@ -55,18 +54,6 @@ namespace chess
     BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
         ::BaseGame(_DomainPlayer& playerW, _DomainPlayer& playerB) : _playerW(playerW), _playerB(playerB)
     {
-    }
-
-    // set_constraints
-    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    inline void BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
-        ::set_constraints(size_t w_max_num_position_per_move, uint16_t w_max_depth_per_move, size_t b_max_num_position_per_move, uint16_t b_max_depth_per_move, uint16_t max_game_ply)
-    {
-        _config._w_max_num_position_per_move = w_max_num_position_per_move;
-        _config._b_max_num_position_per_move = b_max_num_position_per_move;
-        _config._w_max_depth_per_move = w_max_depth_per_move;
-        _config._b_max_depth_per_move = b_max_depth_per_move;
-        _config._max_game_ply = max_game_ply;
     }
 
     // play()

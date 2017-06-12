@@ -21,18 +21,22 @@ namespace chess
             using _ConditionValuationNode = ConditionValuationNode<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
             using _BaseGame = BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
             using _DomainPlayer = DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+            friend class ChessCoEvolveGA<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT, WEIGHT_BOUND>;
 
         public:
-            ChessGeneticAlgorithm(  bool evolve_white, bool is_single_pop, _DomainPlayer* player, _DomainPlayer* player_opposite, BaseGame_Config cfg,
-                                    int popsize, int nbgen, int _tournament_n_player, int _tournament_n_game);
+            ChessGeneticAlgorithm(  bool evolve_white, bool is_single_pop, 
+                                    _DomainPlayer* player, _DomainPlayer* player_opposite, BaseGame_Config cfg,
+                                    int popsize, int nbgen, int _tournament_n_player, int _tournament_n_game, bool verbose = false);
 
-            void setup_params();
             void run(bool reentry) override;
 
             ~ChessGeneticAlgorithm()
             {
                 delete _game;
             }
+
+        protected:
+            void setup_params();
 
             void set_player_term_nodes(std::vector<_ConditionValuationNode*>& nodes, std::vector<TYPE_PARAM>& param) const
             {
@@ -53,6 +57,7 @@ namespace chess
                 }
             }
 
+        protected:
             void print_nodes() const
             {
                 for (int i = 0; i < _game->playerW().get_root()->positive_child()->weights().size(); i++)
@@ -67,7 +72,8 @@ namespace chess
                 std::cout << std::endl;
             }
 
-            // tournament
+        public:
+            // tournament (as the fitness function)
             std::vector<TYPE_PARAM> tournament(bool is_at_creation, const std::vector<TYPE_PARAM>& param) const override
             {
                 std::vector<TYPE_PARAM> param_candidate = param;
@@ -94,7 +100,7 @@ namespace chess
                        if (_evolve_white)
                          _game->set_board(_player->get_domain()->get_random_position(true));
                        else
-                          _game->set_board(_player_opposite->get_domain()->get_random_position(true));
+                         _game->set_board(_player_opposite->get_domain()->get_random_position(true));
 
                        sc = _game->play(false);
                        if (_evolve_white)
@@ -129,6 +135,7 @@ namespace chess
             BaseGame_Config                         _cfg;
             int _tournament_n_player;
             int _tournament_n_game;
+            bool _verbose;
         };
 
 
@@ -136,7 +143,7 @@ namespace chess
         template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT, int WEIGHT_BOUND>
         ChessGeneticAlgorithm<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT, WEIGHT_BOUND>::ChessGeneticAlgorithm(
                 bool evolve_white, bool is_single_pop, _DomainPlayer* player, _DomainPlayer* player_opposite, BaseGame_Config cfg,
-                int popsize, int nbgen, int tournament_n_player, int tournament_n_game)
+                int popsize, int nbgen, int tournament_n_player, int tournament_n_game, bool verbose)
             : GeneticAlgorithm<TYPE_PARAM, PARAM_NBIT>(popsize, nbgen)
         {
             _evolve_white = evolve_white;
@@ -165,6 +172,7 @@ namespace chess
             _game->set_constraints(_cfg);
             _tournament_n_player = tournament_n_player;
             _tournament_n_game = tournament_n_game;
+            _verbose = verbose;
 
             setup_params();
         }
@@ -224,7 +232,7 @@ namespace chess
             }
             else
             {
-                print_nodes();
+                if(_verbose) print_nodes();
                 pop(0)->evaluate();
             }
             TYPE_PARAM bestResult = pop(0)->getTotal();
@@ -233,7 +241,7 @@ namespace chess
             {
                 pop.evolution();        // evaluate() called in recombination, completion newpop[i]->evaluate()
                 bestResult = pop(0)->getTotal();
-                if (output) print();
+                if (_verbose) print();
             }
 
             const std::shared_ptr<Chromosome<TYPE_PARAM, PARAM_NBIT>>& best_player = pop.get_cur(0);

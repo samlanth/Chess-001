@@ -40,6 +40,8 @@ namespace chess
 
     template <typename T, int PARAM_NBIT> class ChessGeneticAlgorithm;
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class ConditionValuationNode;
+
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT, int WEIGHT_BOUND> class ChessCoEvolveGA;
 }
 
 #include "core/move.hpp"
