@@ -55,7 +55,7 @@ namespace chess
 
                     {
                         // play games
-                        chess::BaseGame<uint8_t, 6, double, 16> game(*_playW, *_playB);
+                        chess::BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT> game(*_playW, *_playB);
                         game.set_constraints(_cfg);
 
                         double fit = 0;
