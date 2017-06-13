@@ -8,8 +8,8 @@
 // DomainKvK        : KvK  chess domain
 //
 //
-#ifndef _AL_CHESS_DOMAIN_H
-#define _AL_CHESS_DOMAIN_H
+#ifndef _AL_CHESS_DOMAIN_DOMAIN_HPP
+#define _AL_CHESS_DOMAIN_DOMAIN_HPP
 
 namespace chess
 {
@@ -37,7 +37,8 @@ namespace chess
         std::string             _domainname_key;
         std::string             _instance_key;
         std::vector<_Domain*>   _children;
-        _DomainPlayer*          _attached_domain_player;
+        _DomainPlayer*          _attached_domain_playerW;   // only two W+B for now...
+        _DomainPlayer*          _attached_domain_playerB;
         std::string             _gamedb_key;
         _GameDB*                _gameDB;
 
@@ -46,10 +47,11 @@ namespace chess
                 const std::string domainname_key,
                 const std::string instance_key) :
             _partition_key(partition_key), _domainname_key(domainname_key), _instance_key(instance_key),
-            _attached_domain_player(nullptr),
+            _attached_domain_playerW(nullptr),
+            _attached_domain_playerB(nullptr),
             _gameDB(nullptr)
         {
-            // load _gameDB on demand after domain is created and linked to a partition
+            // Would load _gameDB on demand after domain is created and linked to a partition
         }
 
         _GameDB* get_game_db()
@@ -103,7 +105,8 @@ namespace chess
             return nullptr;
         }
 
-        void attach_domain_player(_DomainPlayer* player) { _attached_domain_player = player; }
+        void attach_domain_playerW(_DomainPlayer* player) { _attached_domain_playerW = player; }
+        void attach_domain_playerB(_DomainPlayer* player) { _attached_domain_playerB = player; }
 
         static const std::string getDomainName(eDomainName e)
         {

@@ -7,8 +7,8 @@
 // Move<PieceID>    : struct holding chess move definition/data
 //
 //
-#ifndef _AL_CHESS_MOVE_H
-#define _AL_CHESS_MOVE_H
+#ifndef _AL_CHESS_CORE_MOVE_HPP
+#define _AL_CHESS_CORE_MOVE_HPP
 
 namespace chess
 {

@@ -12,8 +12,8 @@
 //      std::vector<TYPE_PARAM>         _weights;
 //
 //
-#ifndef _AL_CHESS_PLAYER_H
-#define _AL_CHESS_PLAYER_H
+#ifndef _AL_CHESS_PLAYER_PLAYER_HPP
+#define _AL_CHESS_PLAYER_PLAYER_HPP
 
 namespace chess
 {
@@ -59,7 +59,8 @@ namespace chess
         using _Partition = Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
     public:
-        DomainPlayer(   const std::string playername,       const std::string partition_key,
+        DomainPlayer(   PieceColor color_player,
+                        const std::string playername,       const std::string partition_key,
                         const std::string domainname_key,    const std::string instance_key);
 
         virtual ~DomainPlayer();
@@ -92,6 +93,7 @@ namespace chess
             size_t& ret_mv_idx, size_t& num_pos_eval,
             bool is_recursive_entry, bool verbose);
 
+        PieceColor              _color_player;
         std::string             _partition_key;
         std::string             _domainname_key;    // domain key part
         std::string             _instance_key;      // domain key part
@@ -119,9 +121,11 @@ namespace chess
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
-    ::DomainPlayer( const std::string playername,       const std::string partition_key,
+    ::DomainPlayer( PieceColor color_player,
+                    const std::string playername,       const std::string partition_key,
                     const std::string domainname_key,    const std::string instance_key)
             :   _BasePlayer(playername),
+                _color_player(color_player),
                 _partition_key(partition_key),
                 _domainname_key(domainname_key),
                 _instance_key(instance_key),
@@ -136,9 +140,15 @@ namespace chess
             _domain = partition_ptr->find_domain(_Domain::domain_key(_domainname_key, instance_key));
             if (_domain != nullptr)
             {
-                if (_domain->_attached_domain_player == nullptr)
+                if (_color_player == PieceColor::W)
                 {
-                    _domain->attach_domain_player(this);
+                    if (_domain->_attached_domain_playerW == nullptr)
+                     _domain->attach_domain_playerW(this);
+                }
+                else
+                {
+                    if (_domain->_attached_domain_playerB == nullptr)
+                        _domain->attach_domain_playerB(this);
                 }
 
                 _Domain* p_lookup_child_domain;
@@ -147,10 +157,21 @@ namespace chess
                     p_lookup_child_domain = partition_ptr->find_domain(_Domain::domain_key(_domain->_children[i]->_domainname_key, _domain->_children[i]->_instance_key));
                     if (p_lookup_child_domain != nullptr)
                     {
-                        if (_domain->_children[i]->_attached_domain_player == nullptr)
+                        if (_color_player == PieceColor::W)
                         {
-                            _domain->_children[i]->_attached_domain_player = new DomainPlayer(playername, _partition_key, _domain->_children[i]->_domainname_key, _domain->_children[i]->_instance_key);
-                            // recursion
+                            if (_domain->_children[i]->_attached_domain_playerW == nullptr)
+                            {
+                                _domain->_children[i]->_attached_domain_playerW = new DomainPlayer(_color_player, playername, _partition_key, _domain->_children[i]->_domainname_key, _domain->_children[i]->_instance_key);
+                                // recursion
+                            }
+                        }
+                        else
+                        {
+                            if (_domain->_children[i]->_attached_domain_playerB == nullptr)
+                            {
+                                _domain->_children[i]->_attached_domain_playerB = new DomainPlayer(_color_player, playername, _partition_key, _domain->_children[i]->_domainname_key, _domain->_children[i]->_instance_key);
+                                // recursion
+                            }
                         }
                     }
                 }
@@ -168,11 +189,23 @@ namespace chess
             {
                 if (_domain->_children[i] != nullptr)
                 {
-                    if (_domain->_children[i]->_attached_domain_player != nullptr)
+                    if (_color_player == PieceColor::W)
                     {
-                        delete _domain->_children[i]->_attached_domain_player;
-                        _domain->_children[i]->_attached_domain_player = nullptr;
-                        // recursion
+                        if (_domain->_children[i]->_attached_domain_playerW != nullptr)
+                        {
+                            delete _domain->_children[i]->_attached_domain_playerW;
+                            _domain->_children[i]->_attached_domain_playerW = nullptr;
+                            // recursion
+                        }
+                    }
+                    else
+                    {
+                        if (_domain->_children[i]->_attached_domain_playerB != nullptr)
+                        {
+                            delete _domain->_children[i]->_attached_domain_playerB;
+                            _domain->_children[i]->_attached_domain_playerB = nullptr;
+                            // recursion
+                        }
                     }
                 }
             }
@@ -192,6 +225,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     bool DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::save() const
     {
+        //std::string f = PersistManager::instance()->get_stream_name("player", persist_key(), playername());
         std::string f = PersistManager::instance()->get_stream_name("player", persist_key());
         std::ofstream   filestream;
         filestream.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
@@ -210,16 +244,36 @@ namespace chess
             {
                 if (_domain != nullptr)
                 {
-                    if (_domain->_attached_domain_player != nullptr)
+                    if (_color_player == PieceColor::W)
                     {
-                        for (size_t i = 0; i < _domain->_children.size(); i++)
+                        if (_domain->_attached_domain_playerW != nullptr)
                         {
-                            if (_domain->_children[i] != nullptr)
+                            for (size_t i = 0; i < _domain->_children.size(); i++)
                             {
-                                if (_domain->_children[i]->_attached_domain_player != nullptr)
+                                if (_domain->_children[i] != nullptr)
                                 {
-                                    _domain->_children[i]->_attached_domain_player->save();
-                                    // recursion
+                                    if (_domain->_children[i]->_attached_domain_playerW != nullptr)
+                                    {
+                                        _domain->_children[i]->_attached_domain_playerW->save();
+                                        // recursion
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (_domain->_attached_domain_playerB != nullptr)
+                        {
+                            for (size_t i = 0; i < _domain->_children.size(); i++)
+                            {
+                                if (_domain->_children[i] != nullptr)
+                                {
+                                    if (_domain->_children[i]->_attached_domain_playerB != nullptr)
+                                    {
+                                        _domain->_children[i]->_attached_domain_playerB->save();
+                                        // recursion
+                                    }
                                 }
                             }
                         }
@@ -270,10 +324,21 @@ namespace chess
             {
                 if (_domain->_children[i] != nullptr)
                 {
-                    if (_domain->_children[i]->_attached_domain_player != nullptr)
+                    if (_color_player == PieceColor::W)
                     {
-                        _domain->_children[i]->_attached_domain_player->load();
-                        // recursion
+                        if (_domain->_children[i]->_attached_domain_playerW != nullptr)
+                        {
+                            _domain->_children[i]->_attached_domain_playerW->load();
+                            // recursion
+                        }
+                    }
+                    else
+                    {
+                        if (_domain->_children[i]->_attached_domain_playerB != nullptr)
+                        {
+                            _domain->_children[i]->_attached_domain_playerB->load();
+                            // recursion
+                        }
                     }
                 }
             }
@@ -379,7 +444,14 @@ namespace chess
         // This is first layer of children domain (should make sure it cover all sub domains)
         for (size_t i = 0; i < _domain->_children.size(); i++)
         {
-            ret = _domain->_children[i]->_attached_domain_player->_root->eval_position(pos, m, ret_eval, verbose);
+            if (_color_player == PieceColor::W)
+            {
+                ret = _domain->_children[i]->_attached_domain_playerW->_root->eval_position(pos, m, ret_eval, verbose);
+            }
+            else
+            {
+                ret = _domain->_children[i]->_attached_domain_playerB->_root->eval_position(pos, m, ret_eval, verbose);
+            }
             if (ret == true) return ret_eval;
         }
 

@@ -10,8 +10,8 @@
 //  Fv =   valuation term = Sigmoid([Fval()*w + Fval()*w + ...]) range(0 to 1) 0==Black_winning 1==white_winning
 //
 //
-#ifndef _AL_CHESS_CONDVALNODE_H
-#define _AL_CHESS_CONDVALNODE_H
+#ifndef _AL_CHESS_FEATURE_CONDVALNODE_HPP
+#define _AL_CHESS_FEATURE_CONDVALNODE_HPP
 
 namespace chess
 {

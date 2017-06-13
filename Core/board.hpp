@@ -13,8 +13,8 @@
 // PieceID type must be convertible to integral type
 //
 //
-#ifndef _AL_CHESS_BOARD_H
-#define _AL_CHESS_BOARD_H
+#ifndef _AL_CHESS_CORE_BOARD_HPP
+#define _AL_CHESS_CORE_BOARD_HPP
 
 namespace chess
 {

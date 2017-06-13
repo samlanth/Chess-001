@@ -4,8 +4,8 @@
 //=================================================================================================
 //
 //
-#ifndef _AL_CHESS_CHESS_H
-#define _AL_CHESS_CHESS_H
+#ifndef _AL_CHESS_CHESS_HPP
+#define _AL_CHESS_CHESS_HPP
 
 #include <string>
 #include <iostream>

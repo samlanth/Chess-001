@@ -12,8 +12,8 @@
 // PieceID type must be integral type
 //
 //
-#ifndef _AL_CHESS_PIECE_H
-#define _AL_CHESS_PIECE_H
+#ifndef _AL_CHESS_CORE_PIECE_H
+#define _AL_CHESS_CORE_PIECE_H
 
 namespace chess
 {

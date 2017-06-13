@@ -12,8 +12,8 @@
 // Logger log message to a file
 //
 //
-#ifndef _AL_CHESS_UNITTEST_H
-#define _AL_CHESS_UNITTEST_H
+#ifndef _AL_CHESS_CORE_UNITTEST_H
+#define _AL_CHESS_CORE_UNITTEST_H
 
 namespace unittest
 {

@@ -4,8 +4,8 @@
 //=================================================================================================
 //
 //
-#ifndef _AL_CHESS_FEATUREMANAGER_H
-#define _AL_CHESS_FEATUREMANAGER_H
+#ifndef _AL_CHESS_FEATURE_FEATUREMANAGER_HPP
+#define _AL_CHESS_FEATURE_FEATUREMANAGER_HPP
 
 namespace chess
 {

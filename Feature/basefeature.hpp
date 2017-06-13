@@ -6,8 +6,8 @@
 // BaseFeature<...>     :   Primitive feature (a simple function on a board position)
 //
 //
-#ifndef _AL_CHESS_BASEFEATURE_H
-#define _AL_CHESS_BASEFEATURE_H
+#ifndef _AL_CHESS_FEATURE_BASEFEATURE_HPP
+#define _AL_CHESS_FEATURE_BASEFEATURE_HPP
 
 namespace chess
 {

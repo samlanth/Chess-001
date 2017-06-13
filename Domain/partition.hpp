@@ -6,8 +6,8 @@
 // Partiton<...>    : A partition of the chess space into hiearchical domains
 //
 //
-#ifndef _AL_CHESS_PARTITION_H
-#define _AL_CHESS_PARTITION_H
+#ifndef _AL_CHESS_DOMAIN_PARTITION_HPP
+#define _AL_CHESS_DOMAIN_PARTITION_HPP
 
 namespace chess
 {

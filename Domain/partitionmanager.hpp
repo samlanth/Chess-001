@@ -6,8 +6,8 @@
 // PartitionManger  : Manage the multiple partitions
 //
 //
-#ifndef _AL_CHESS_PARTITIONMANAGER_H
-#define _AL_CHESS_PARTITIONMANAGER_H
+#ifndef _AL_CHESS_DOMAIN_PARTITIONMANAGER_HPP
+#define _AL_CHESS_DOMAIN_PARTITIONMANAGER_HPP
 
 namespace chess
 {

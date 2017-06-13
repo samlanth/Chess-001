@@ -6,8 +6,8 @@
 //  ChessGeneticAlgorithm<T, PARAM_NBIT>
 //
 //
-#ifndef _AL_CHESS_CHESSGENALGO_HPP
-#define _AL_CHESS_CHESSGENALGO_HPP
+#ifndef _AL_CHESS_CHESSGA_CHESSGENALGO_HPP
+#define _AL_CHESS_CHESSGA_CHESSGENALGO_HPP
 
 namespace chess
 {

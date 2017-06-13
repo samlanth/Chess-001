@@ -43,15 +43,16 @@ int main(int argc, char* argv[])
 
     // Test DomainPlayer
     {
-        chess::DomainPlayer<uint8_t, 8, double, 16>* play1 = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("zeromind"), p_classic->name(), chess::Domain<uint8_t, 8, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
+        chess::DomainPlayer<uint8_t, 8, double, 16>* play1 = new chess::DomainPlayer<uint8_t, 8, double, 16>(chess::PieceColor::W, std::string("zeromind"), p_classic->name(), chess::Domain<uint8_t, 8, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
         play1->save();
 
         chess::GameDB<uint8_t, 8, double, 16>* db = play1->get_domain()->get_game_db();
         assert(db != nullptr);
         delete play1;
 
-        chess::DomainPlayer<uint8_t, 8, double, 16>* play2 = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("zeromind"), p_classic->name(), chess::Domain<uint8_t, 8, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
+        chess::DomainPlayer<uint8_t, 8, double, 16>* play2 = new chess::DomainPlayer<uint8_t, 8, double, 16>(chess::PieceColor::B, std::string("zeromind"), p_classic->name(), chess::Domain<uint8_t, 8, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
         play2->load();
+        play2->save();
         delete play2;
     }
 
@@ -64,8 +65,8 @@ int main(int argc, char* argv[])
             chess::Partition<uint8_t, 6, double, 16>* p_classic6 = chess::PartitionManager<uint8_t, 6, double, 16>::instance()->find_partition("classic6");
             assert(p_classic6 != nullptr);
             
-            chess::DomainPlayer<uint8_t, 6, double, 16>* playW = new chess::DomainPlayer<uint8_t, 6, double, 16>(std::string("wmind"), p_classic6->name(), chess::Domain<uint8_t, 6, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
-            chess::DomainPlayer<uint8_t, 6, double, 16>* playB = new chess::DomainPlayer<uint8_t, 6, double, 16>(std::string("bmind"), p_classic6->name(), chess::Domain<uint8_t, 6, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
+            chess::DomainPlayer<uint8_t, 6, double, 16>* playW = new chess::DomainPlayer<uint8_t, 6, double, 16>(chess::PieceColor::W, std::string("wmind"), p_classic6->name(), chess::Domain<uint8_t, 6, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
+            chess::DomainPlayer<uint8_t, 6, double, 16>* playB = new chess::DomainPlayer<uint8_t, 6, double, 16>(chess::PieceColor::B, std::string("bmind"), p_classic6->name(), chess::Domain<uint8_t, 6, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
             
             size_t nc = chess::FeatureManager<uint8_t, 6, double, 16>::instance()->count_cond_features();
             size_t nv = chess::FeatureManager<uint8_t, 6, double, 16>::instance()->count_valu_features();
@@ -125,6 +126,9 @@ int main(int argc, char* argv[])
                 child1->add_conditions_and_or(true);
                 // mirror node reuse child1 cond
             }
+
+            playW->save();
+            playB->save();
 
             // Test ChessGeneticAlgorithm
             //{

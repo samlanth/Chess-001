@@ -6,8 +6,8 @@
 // BaseGame<>   : Game class
 //
 //
-#ifndef _AL_CHESS_GAME_H
-#define _AL_CHESS_GAME_H
+#ifndef _AL_CHESS_GAME_GAME_HPP
+#define _AL_CHESS_GAME_GAME_HPP
 
 namespace chess
 {
@@ -135,6 +135,7 @@ namespace chess
     inline bool BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::save(_Board& play_board) const
     {
         _GameDB_Record rec;
+        rec._signature = "----";
         rec._status = 0;
         rec._board_size = _BoardSize;
         for (uint8_t x = 0; x < _BoardSize; x++)
@@ -162,7 +163,6 @@ namespace chess
         rec._playerB_elo = 0;
         rec._game_config = _config;
 
-        //...
         _GameDB* db = _playerW.get_domain()->get_game_db();
         db->store_game(rec);
         return true;

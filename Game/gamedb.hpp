@@ -17,6 +17,7 @@ namespace chess
     {
         using _Move = Move<PieceID>;
 
+        std::string _signature = "----";
         uint8_t     _status;                            // (0=completed, tobe_removed, game_in_progress)
         uint8_t     _board_size = _BoardSize;
         std::vector<PieceID>  _pieces;
@@ -193,6 +194,7 @@ namespace chess
         {
             ofilestream.seekp(0, ofilestream.ios_base::end);
             _pos_rec_file = ofilestream.tellp();
+            ofilestream << rec._signature;      ofilestream << std::endl;
             ofilestream << (int)rec._status;         ofilestream << std::endl;
             ofilestream << (int)rec._board_size;     ofilestream << std::endl;
             ofilestream << (int)rec._pieces.size();   ofilestream << std::endl;
