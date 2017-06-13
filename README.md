@@ -1,6 +1,6 @@
 # Developing a learning chess program in C++
 
-Currently only have the basic of the 1st feature set.
+Currently have the basic of the 1st feature set.
 
 This is a work in progress.
 
@@ -14,5 +14,5 @@ Variable board size (ex: 6x6 board or 255x255).
  Splitting of intensive computation into multi-threads.  
   
 ## *Next feature set:*  
- Distribution of the learning algorithm on the Web.  
-  
+ Distribution of the learning algorithm on the Web.
+
