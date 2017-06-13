@@ -65,11 +65,10 @@ namespace chess
                         {
                             game.set_board(_playW->get_domain()->get_random_position(true));
                             //game.print_nodes();
-                            sc = game.play(false);
+                            sc = game.play(false, true);
                             if (sc == chess::ExactScore::WIN)  fit += 1.0;
                             else if (sc == chess::ExactScore::LOSS) fit -= 1.0;
-                            else if (sc == chess::ExactScore::DRAW) fit += 0.5;
-                            //std::cout << "score= " << fit << " / " << i + 1 << std::endl;
+                            else if (sc == chess::ExactScore::DRAW) fit += 0.5;        
                         }
                         std::cout << "score= " << fit << " / " << 20 << std::endl;
                     }

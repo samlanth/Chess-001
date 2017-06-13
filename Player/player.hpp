@@ -64,6 +64,14 @@ namespace chess
 
         virtual ~DomainPlayer();
 
+        virtual GameDB<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>* get_game_db()
+        {
+            if (_domain != nullptr) 
+                return _domain->get_game_db(); 
+            else 
+                return nullptr; 
+        }
+
         virtual size_t      select_move_algo(   _Board& pos, std::vector<_Move>& m, size_t max_num_position_per_move, uint16_t max_depth_per_move, uint16_t max_game_ply, bool verbose)  override;
         virtual TYPE_PARAM  eval_position_algo( _Board& pos, std::vector<_Move>& m, bool verbose = false)  override;
 
@@ -184,7 +192,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     bool DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::save() const
     {
-        std::string f = PersistManager::instance()->get_stream_name("domainplayer", persist_key());
+        std::string f = PersistManager::instance()->get_stream_name("player", persist_key());
         std::ofstream   filestream;
         filestream.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
         if (filestream.good())
@@ -230,7 +238,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     bool DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::load()
     {
-        std::string f = PersistManager::instance()->get_stream_name("domainplayer", persist_key());
+        std::string f = PersistManager::instance()->get_stream_name("player", persist_key());
         std::ifstream   filestream;
         filestream.open(f.c_str(), std::fstream::in);
         if (filestream.good())

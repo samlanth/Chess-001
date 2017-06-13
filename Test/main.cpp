@@ -28,6 +28,7 @@ int main(int argc, char* argv[])
     chess::Partition<uint8_t, 8, double, 16>* p_classic = chess::PartitionManager<uint8_t, 8, double, 16>::instance()->find_partition("classic8");
     assert(p_classic != nullptr);
 
+
     // Test PersisteManager
     chess::PersistManager::instance();
 
@@ -44,6 +45,9 @@ int main(int argc, char* argv[])
     {
         chess::DomainPlayer<uint8_t, 8, double, 16>* play1 = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("zeromind"), p_classic->name(), chess::Domain<uint8_t, 8, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
         play1->save();
+
+        chess::GameDB<uint8_t, 8, double, 16>* db = play1->get_domain()->get_game_db();
+        assert(db != nullptr);
         delete play1;
 
         chess::DomainPlayer<uint8_t, 8, double, 16>* play2 = new chess::DomainPlayer<uint8_t, 8, double, 16>(std::string("zeromind"), p_classic->name(), chess::Domain<uint8_t, 8, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");

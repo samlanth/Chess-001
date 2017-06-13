@@ -130,7 +130,7 @@ namespace chess
                 }
             }
 
-            // children/data of domains
+            // Load children and data of domains
             _Domain* p;
             for (auto& v : _domains)
             {

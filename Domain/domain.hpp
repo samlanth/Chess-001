@@ -38,7 +38,7 @@ namespace chess
         std::string             _instance_key;
         std::vector<_Domain*>   _children;
         _DomainPlayer*          _attached_domain_player;
-        std::string             _gamedb_filename;
+        std::string             _gamedb_key;
         _GameDB*                _gameDB;
 
     public:
@@ -49,17 +49,28 @@ namespace chess
             _attached_domain_player(nullptr),
             _gameDB(nullptr)
         {
-            _gamedb_filename = PersistManager::instance()->get_stream_name("gamedb", persist_key());
-            _gameDB = new _GameDB((_DomainPlayer*)this, _gamedb_filename);
-            if (_gameDB->status() != 0)
+            // load _gameDB on demand after domain is created and linked to a partition
+        }
+
+        _GameDB* get_game_db()
+        {
+            if (_gameDB == nullptr)
             {
-                //...
+                _gamedb_key = persist_key();
+                _gameDB = new _GameDB(this, _gamedb_key);
+                if (_gameDB->status() != 0)
+                {
+                    delete _gameDB;
+                    _gameDB = nullptr;
+                }
             }
+            return _gameDB;
         }
 
         virtual ~Domain()
         {
-            delete _gameDB;
+            if (_gameDB != nullptr)
+                delete _gameDB;
         }
 
         virtual bool is_cond_feature_valid(_ConditionFeature& f) const = 0;
@@ -206,8 +217,6 @@ namespace chess
             return false;
         }
 
-        // Hold a database of the best position/move so far [So can evolved a score Predictor]
-        // ...
 
     public:
         bool add_child(_Domain* p)

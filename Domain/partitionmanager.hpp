@@ -58,13 +58,39 @@ namespace chess
         std::stringstream ss_name;
         ss_name << "classic" << std::to_string(_BoardSize);
 
-        _Partition* p = new _Partition(ss_name.str());
-        if (!PartitionManager::instance()->add_partition(p)) return false;
-
+        // Check if in memory
         _Partition* p_classic = PartitionManager::instance()->find_partition(ss_name.str());
-        if (p_classic == nullptr) return false;
+        if (p_classic == nullptr)
+        {
+            _Partition* p = new _Partition(ss_name.str());
+            if (!PartitionManager::instance()->add_partition(p))
+                return false;
 
-        // create domains
+            // Try loading from disk
+            if (p->load() == true)
+            {
+                return true;
+            }
+            else
+            {
+                // Continu to create it
+            }
+        }
+        else
+        {
+            // Reload from disk
+            if (p_classic->load() == false)
+            {
+                return false;
+            }
+        }
+
+        // Check if in memory
+        p_classic = PartitionManager::instance()->find_partition(ss_name.str());
+        if (p_classic == nullptr)
+            return false;
+
+        // Create domains
         _Domain* dom_KK   = new DomainKvK< PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(ss_name.str());
         _Domain* dom_KQvK = new DomainKQvK<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(ss_name.str());
 
@@ -77,6 +103,9 @@ namespace chess
         // set children relationship
         if (!ptr_dom_KQvK->add_child(ptr_dom_KK)) return false;
 
+        ptr_dom_KQvK->save();
+        ptr_dom_KK->save();
+        p_classic->save();
         return true;
     }
 
