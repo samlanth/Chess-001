@@ -11,7 +11,7 @@ First feature set expected:
   Best games database for discovery of good predictors and classifiers.
   No manual fine tuning of parameters.
   Hiearchical decomposition of the problem.
-  Splitting of intensive computation into mult-threads.
+  Splitting of intensive computation into multi-threads.
   
 Future feature set:
   Distribution of the learning algorithm on the Web.
