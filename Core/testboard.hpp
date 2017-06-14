@@ -23,7 +23,7 @@ namespace chess
             using _Board = Board<PieceID, _BoardSize>;
 
         public:
-            bool _verbose;
+            char _verbose;
             std::string _name;
 
             TestBoard(std::string name) : _name(name) 

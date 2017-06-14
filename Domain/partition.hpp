@@ -65,24 +65,24 @@ namespace chess
     bool Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::save() const
     {
         std::string f = PersistManager::instance()->get_stream_name("partition", _name);
-        std::ofstream   filestream;
-        filestream.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
-        if (filestream.good())
+        std::ofstream   is;
+        is.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
+        if (is.good())
         {
-            filestream << _name; filestream << std::endl;
-            filestream << _domains.size(); filestream << std::endl;
+            is << _name; is << " ";
+            is << _domains.size(); is << " ";
             for (auto& v : _domains)
             {
-                filestream << v.second->domainname_key(); filestream << std::endl;
-                filestream << v.second->instance_key(); filestream << std::endl;
+                is << v.second->domainname_key(); is << " ";
+                is << v.second->instance_key(); is << " ";
             }
         }
         else
         {
-            filestream.close();
+            is.close();
             return false;
         }
-        filestream.close();
+        is.close();
         return true;
     }
 
@@ -91,18 +91,18 @@ namespace chess
     bool Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::load()
     {
         std::string f = PersistManager::instance()->get_stream_name("partition", _name);
-        std::ifstream   filestream;
-        filestream.open(f.c_str(), std::fstream::in);
-        if (filestream.good())
+        std::ifstream   is;
+        is.open(f.c_str(), std::fstream::in);
+        if (is.good())
         {
             size_t n_child;
             std::string partition_key;
             std::string domainname_key;
             std::string instance_key;
 
-            filestream >> partition_key;
+            is >> partition_key;
             assert(partition_key == _name); // check
-            filestream >> n_child;
+            is >> n_child;
 
             // reloading or creating
             _domains.clear();
@@ -111,8 +111,8 @@ namespace chess
             for (size_t i = 0; i < n_child; i++)
             {
                 ok = false;
-                filestream >> domainname_key;
-                filestream >> instance_key;
+                is >> domainname_key;
+                is >> instance_key;
                 {
                     _Domain* ptr_dom = _Domain::make(partition_key, domainname_key, instance_key);
                     if (ptr_dom != nullptr)
@@ -125,7 +125,7 @@ namespace chess
                 }
                 if (!ok)
                 {
-                    filestream.close();
+                    is.close();
                     return false;
                 }
             }
@@ -139,18 +139,18 @@ namespace chess
                 {
                     if (p->load() == false)
                     {
-                        filestream.close();
+                        is.close();
                         return false;
                     }
                 }
             }
 
-            filestream.close();
+            is.close();
             return true;
         }
         else
         {
-            filestream.close();
+            is.close();
             return false;
         }
     }

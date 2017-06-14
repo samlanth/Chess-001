@@ -21,6 +21,19 @@ namespace chess
     enum class PieceColor       { none, W, B };
     enum class PieceMoveStyle   { none, Sliding, Jumping, SlidingDiagonalCapturePromo };
 
+    static int PieceColor_to_int(PieceColor c)
+    {
+        if      (c == PieceColor::W) return 1;
+        else if (c == PieceColor::B) return 2;
+        return 0;
+    }
+    static PieceColor int_to_PieceColor(int t)
+    {
+        if      (t == 1) return PieceColor::W;
+        else if (t == 2) return PieceColor::B;
+        return PieceColor::none;
+    }
+
     struct PieceKey
     {
         PieceName _n;
@@ -163,7 +176,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline const uint8_t Piece<PieceID, _BoardSize>::to_uint8(PieceID id)
     {
-        return (uint8_t)id;
+        return (uint8_t)id; //...
     }
 
     // init()

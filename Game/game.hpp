@@ -39,7 +39,7 @@ namespace chess
         void set_constraints(BaseGame_Config c) { _config = c; }
         void set_board(_Board& initial_position) { _initial_position = initial_position; }
 
-        virtual ExactScore play(bool verbose = false, bool save = false);
+        virtual ExactScore play(char verbose = false, bool save = false);
         void print_nodes() const;
 
         _DomainPlayer&          playerW() { return _playerW; }
@@ -66,7 +66,7 @@ namespace chess
 
     // play()
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    inline ExactScore BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::play(bool verbose, bool dosave)
+    inline ExactScore BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::play(char verbose, bool dosave)
     {
         size_t move_idx;
         std::vector<_Move>  m;
@@ -137,20 +137,8 @@ namespace chess
         _GameDB_Record rec;
         rec._signature = "----";
         rec._status = 0;
-        rec._board_size = _BoardSize;
-        for (uint8_t x = 0; x < _BoardSize; x++)
-        {
-            for (uint8_t y = 0; y < _BoardSize; y++)
-            {
-                if (play_board.get_pieceid_at(x, y) != _Piece::empty_id())
-                {
-                    rec._pieces.push_back(play_board.get_pieceid_at(x, y));
-                    rec._xy.push_back(std::pair<uint8_t, uint8_t>({x, y}));
-                }
-            }
-        }
-        rec._color = _initial_color;
-        rec._history_moves = play_board.get_history_moves();
+        rec._board = play_board;
+        rec._initial_color = _initial_color;
         rec._score = _score;
 
         rec._total_num_nodes_explored = 0; // ...

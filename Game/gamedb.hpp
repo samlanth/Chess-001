@@ -15,15 +15,10 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     struct GameDB_Record
     {
-        using _Move = Move<PieceID>;
-
         std::string _signature = "----";
         uint8_t     _status;                            // (0=completed, tobe_removed, game_in_progress)
-        uint8_t     _board_size = _BoardSize;
-        std::vector<PieceID>  _pieces;
-        std::vector<std::pair<uint8_t, uint8_t>>  _xy;
-        PieceColor  _color; 
-        std::list<_Move> _history_moves;
+        Board<PieceID, _BoardSize> _board;
+        PieceColor  _initial_color;
         ExactScore  _score;
         uint64_t    _total_num_nodes_explored;
         bool        _is_playW_internal;
@@ -94,63 +89,63 @@ namespace chess
     bool GameDB<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::open_create()
     {
         std::string f = PersistManager::instance()->get_stream_name("gamedb", _db_keyname);
-        std::ifstream   filestream;
-        filestream.open(f.c_str(), std::fstream::in);
-        if (filestream.good())
+        std::ifstream   is;
+        is.open(f.c_str(), std::fstream::in);
+        if (is.good())
         {
             // open
-            filestream >> _partition_key;
-            filestream >> _domainname_key;
-            filestream >> _instance_key;
-            filestream >> _size;
+            is >> _partition_key;
+            is >> _domainname_key;
+            is >> _instance_key;
+            is >> _size;
 
-            long n; filestream >> n;
+            long n; is >> n;
             assert(_size == n);
 
             long pos;
             for (size_t i = 0; i < n; i++)
             {
-                filestream >> pos;
+                is >> pos;
                 _vector_index_rec.push_back(pos);
             }
 
             _Partition* p_partition = _PartitionManager::instance()->find_partition(_partition_key);
             if (p_partition == nullptr)
             { 
-                filestream.close(); return false; 
+                is.close(); return false; 
             }
 
             _domain = p_partition->find_domain(_Domain::domain_key(_domainname_key, _instance_key));
             if (_domain == nullptr)
             { 
-                filestream.close(); return false; 
+                is.close(); return false; 
             }
 
             // check
-            if (_partition_key != _domain->partition_key()) { filestream.close(); return false; }
-            if (_domainname_key != _domain->domainname_key()) { filestream.close(); return false; }
-            if (_instance_key != _domain->instance_key()) { filestream.close(); return false; }
+            if (_partition_key != _domain->partition_key()) { is.close(); return false; }
+            if (_domainname_key != _domain->domainname_key()) { is.close(); return false; }
+            if (_instance_key != _domain->instance_key()) { is.close(); return false; }
 
-            filestream.close();
+            is.close();
             return true;
         }
         else
         {
             // create
-            filestream.close();
-            std::ofstream   ofilestream;
-            ofilestream.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
-            if (ofilestream.good())
+            is.close();
+            std::ofstream   os;
+            os.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
+            if (os.good())
             {        
-                ofilestream << _partition_key; ofilestream << std::endl;
-                ofilestream << _domainname_key; ofilestream << std::endl;
-                ofilestream << _instance_key;  ofilestream << std::endl;
-                ofilestream << _size; ofilestream << std::endl;
-                ofilestream << (long)0; ofilestream << std::endl;
-                ofilestream.close();
+                os << _partition_key; os << " ";
+                os << _domainname_key; os << " ";
+                os << _instance_key;  os << " ";
+                os << _size; os << " ";
+                os << (long)0; os << " ";
+                os.close();
                 return true;
             }
-            ofilestream.close();
+            os.close();
             return false;
         }
     }
@@ -160,26 +155,26 @@ namespace chess
     {
         if (_status != 0) return false;
         std::string f = PersistManager::instance()->get_stream_name("gamedb", _db_keyname);
-        std::ofstream   ofilestream;
-        ofilestream.open(f.c_str(), std::ofstream::out | std::ofstream::trunc); 
-        if (ofilestream.good())
+        std::ofstream   os;
+        os.open(f.c_str(), std::ofstream::out | std::ofstream::trunc); 
+        if (os.good())
         {
             if (store_game_rec(rec))
             {
                 _size++;
                 _vector_index_rec.push_back(_pos_rec_file);
-                ofilestream << _partition_key;  ofilestream << std::endl;
-                ofilestream << _domainname_key; ofilestream << std::endl;
-                ofilestream << _instance_key;   ofilestream << std::endl;
-                ofilestream << _size;           ofilestream << std::endl;
-                ofilestream << _vector_index_rec.size();           ofilestream << std::endl;
-                for (auto &v : _vector_index_rec) { ofilestream << (long)v; ofilestream << std::endl; }
-                ofilestream.close();
+                os << _partition_key;  os << " ";
+                os << _domainname_key; os << " ";
+                os << _instance_key;   os << " ";
+                os << _size;           os << " ";
+                os << _vector_index_rec.size();           os << " ";
+                for (auto &v : _vector_index_rec) { os << (long)v; os << " "; }
+                os.close();
 
                 return true;
             }
         }
-        ofilestream.close();
+        os.close();
         return false;
     }
 
@@ -188,42 +183,35 @@ namespace chess
     {
         if (_status != 0) return false;
         std::string f = PersistManager::instance()->get_stream_name("gamedbrec", _db_keyname);
-        std::ofstream ofilestream;
-        ofilestream.open(f.c_str(), std::ofstream::out | std::ofstream::app);
-        if (ofilestream.good())
+        std::ofstream os;
+        os.open(f.c_str(), std::ofstream::out | std::ofstream::app);
+        if (os.good())
         {
-            ofilestream.seekp(0, ofilestream.ios_base::end);
-            _pos_rec_file = ofilestream.tellp();
-            ofilestream << rec._signature;      ofilestream << std::endl;
-            ofilestream << (int)rec._status;         ofilestream << std::endl;
-            ofilestream << (int)rec._board_size;     ofilestream << std::endl;
-            ofilestream << (int)rec._pieces.size();   ofilestream << std::endl;
-            for (auto &v : rec._pieces) { ofilestream << (int)v; ofilestream << std::endl; }
-            ofilestream << (int)rec._xy.size();     ofilestream << std::endl;
-            for (auto &v : rec._xy) 
-            {   
-                ofilestream << (int)v.first;     ofilestream << std::endl;
-                ofilestream << (int)v.second;    ofilestream << std::endl;
-            }
-            char c = 1; if (rec._color == PieceColor::B) c = 0;
-            ofilestream << (int)c;          ofilestream << std::endl;
-            ofilestream << rec._total_num_nodes_explored;  ofilestream << std::endl;
-            ofilestream << (int)rec._is_playW_internal;      ofilestream << std::endl;
-            ofilestream << (int)rec._is_playB_internal;      ofilestream << std::endl;
-            ofilestream << rec._playerW_persist_id;     ofilestream << std::endl;
-            ofilestream << rec._playerB_persist_id;     ofilestream << std::endl;
-            ofilestream << (int)rec._playerW_elo;    ofilestream << std::endl;
-            ofilestream << (int)rec._playerB_elo;    ofilestream << std::endl;
-            ofilestream << (long)rec._game_config._w_max_num_position_per_move; ofilestream << std::endl;
-            ofilestream << (long)rec._game_config._w_max_depth_per_move; ofilestream << std::endl;
-            ofilestream << (long)rec._game_config._b_max_num_position_per_move; ofilestream << std::endl;
-            ofilestream << (long)rec._game_config._b_max_depth_per_move; ofilestream << std::endl;
-            ofilestream << (long)rec._game_config._max_game_ply; ofilestream << std::endl;
+            os.seekp(0, os.ios_base::end);
+            _pos_rec_file = os.tellp();
 
-            ofilestream.close();
+            os << rec._signature;              os << " ";
+            os << (int)rec._status;            os << " ";
+            os << rec._board;                  os << " ";
+            os << PieceColor_to_int(rec._initial_color);  os << " ";
+            os << ExactScore_to_int(rec._score);       os << " ";
+            os << rec._total_num_nodes_explored;       os << " ";
+            os << bool_to_int(rec._is_playW_internal);         os << " ";
+            os << bool_to_int(rec._is_playB_internal);         os << " ";
+            os << NULLSTR(rec._playerW_persist_id);    os << " ";
+            os << NULLSTR(rec._playerB_persist_id);    os << " ";
+            os << (int)rec._playerW_elo;               os << " ";
+            os << (int)rec._playerB_elo;               os << " ";
+            os << (long)rec._game_config._w_max_num_position_per_move;  os << " ";
+            os << (long)rec._game_config._w_max_depth_per_move;         os << " ";
+            os << (long)rec._game_config._b_max_num_position_per_move;  os << " ";
+            os << (long)rec._game_config._b_max_depth_per_move;         os << " ";
+            os << (long)rec._game_config._max_game_ply;                 os << "\n";
+
+            os.close();
             return true;
         }
-        ofilestream.close();
+        os.close();
         return false;
     }
 

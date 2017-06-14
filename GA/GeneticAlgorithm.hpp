@@ -211,9 +211,9 @@ namespace galgo
                 if (nbparam > 1) {
                    std::cout << std::to_string(i + 1);
                 }
-                std::cout << "(x) = " << std::setw(6) << std::fixed << std::setprecision(precision) << cst[i] << "\n"; 
+                std::cout << "(x) = " << std::setw(6) << std::fixed << std::setprecision(precision) << cst[i] << " "; 
              }
-             std::cout << "\n"; 
+             std::cout << " "; 
           }
        }   
     }
@@ -251,7 +251,7 @@ namespace galgo
              if (i < bestResult.size() - 1) {
                 std::cout << " |";
              } else {
-                std::cout << "\n";
+                std::cout << " ";
              }
 	       }
  

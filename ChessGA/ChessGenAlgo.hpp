@@ -26,7 +26,7 @@ namespace chess
         public:
             ChessGeneticAlgorithm(  bool evolve_white, bool is_single_pop, 
                                     _DomainPlayer* player, _DomainPlayer* player_opposite, BaseGame_Config cfg,
-                                    int popsize, int nbgen, int _tournament_n_player, int _tournament_n_game, bool verbose = false);
+                                    int popsize, int nbgen, int _tournament_n_player, int _tournament_n_game, char verbose = false);
 
             void run(bool reentry) override;
 
@@ -135,7 +135,7 @@ namespace chess
             BaseGame_Config                         _cfg;
             int _tournament_n_player;
             int _tournament_n_game;
-            bool _verbose;
+            char _verbose;
         };
 
 
@@ -143,7 +143,7 @@ namespace chess
         template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT, int WEIGHT_BOUND>
         ChessGeneticAlgorithm<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT, WEIGHT_BOUND>::ChessGeneticAlgorithm(
                 bool evolve_white, bool is_single_pop, _DomainPlayer* player, _DomainPlayer* player_opposite, BaseGame_Config cfg,
-                int popsize, int nbgen, int tournament_n_player, int tournament_n_game, bool verbose)
+                int popsize, int nbgen, int tournament_n_player, int tournament_n_game, char verbose)
             : GeneticAlgorithm<TYPE_PARAM, PARAM_NBIT>(popsize, nbgen)
         {
             _evolve_white = evolve_white;

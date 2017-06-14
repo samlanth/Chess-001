@@ -43,14 +43,14 @@ int main(int argc, char* argv[])
 
     // Test DomainPlayer
     {
-        chess::DomainPlayer<uint8_t, 8, double, 16>* play1 = new chess::DomainPlayer<uint8_t, 8, double, 16>(chess::PieceColor::W, std::string("zeromind"), p_classic->name(), chess::Domain<uint8_t, 8, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
+        chess::DomainPlayer<uint8_t, 8, double, 16>* play1 = new chess::DomainPlayer<uint8_t, 8, double, 16>(chess::PieceColor::W, std::string("wzeromind"), p_classic->name(), chess::Domain<uint8_t, 8, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
         play1->save();
 
         chess::GameDB<uint8_t, 8, double, 16>* db = play1->get_domain()->get_game_db();
         assert(db != nullptr);
         delete play1;
 
-        chess::DomainPlayer<uint8_t, 8, double, 16>* play2 = new chess::DomainPlayer<uint8_t, 8, double, 16>(chess::PieceColor::B, std::string("zeromind"), p_classic->name(), chess::Domain<uint8_t, 8, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
+        chess::DomainPlayer<uint8_t, 8, double, 16>* play2 = new chess::DomainPlayer<uint8_t, 8, double, 16>(chess::PieceColor::B, std::string("bzeromind"), p_classic->name(), chess::Domain<uint8_t, 8, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
         play2->load();
         play2->save();
         delete play2;
@@ -139,9 +139,9 @@ int main(int argc, char* argv[])
 
             // Test ChessCoEvolveGA
             {
-                chess::BaseGame_Config cfg{ 100, 1, 100, 1, 6 };
+                chess::BaseGame_Config cfg{ 100, 1, 100, 1, 20 };
                 // num_iter, popsize, nbgen, _tournament_n_player, _tournament_n_game, verbose
-                chess::ga::ChessCoEvolveGA<uint8_t, 6, double, 16, 10> ga_co(playW, playB, cfg, 500, 3, 1, 5, 1, true);
+                chess::ga::ChessCoEvolveGA<uint8_t, 6, double, 16, 10> ga_co(playW, playB, cfg, 500, 3, 1, 2, 1, 1);
                 ga_co.run();
             }
 

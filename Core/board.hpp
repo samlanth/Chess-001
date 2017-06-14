@@ -18,6 +18,17 @@
 
 namespace chess
 {
+    static int bool_to_int(bool c)
+    {
+        if (c) return 1;
+        return 0;
+    }
+    static bool int_to_bool(int t)
+    {
+        if (t == 1) return true;
+        return false;
+    }
+
     template <typename PieceID, typename uint8_t _BoardSize>
     class Board
     {
@@ -72,6 +83,10 @@ namespace chess
         size_t get_histo_size()             const { return _history_moves.size(); }
         const std::string to_str() const;
 
+        bool allow_self_check()   const          { return _allow_self_check;}
+        bool check_repeating_move_draw() const   { return _check_repeating_move_draw; }
+        bool check_50_moves_draw()   const       { return _check_50_moves_draw;}
+
         _Move last_history_move() const { return _history_moves.back(); }
 
     private:
@@ -86,6 +101,47 @@ namespace chess
         // History
         std::list<_Move> _history_moves; 
     };
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    std::ofstream& operator<<(std::ofstream& os, const Board<PieceID, _BoardSize>& play_board)
+    {
+        std::vector<PieceID>  _pieces;
+        std::vector<std::pair<uint8_t, uint8_t>>  _xy;
+
+        for (uint8_t x = 0; x < _BoardSize; x++)
+        {
+            for (uint8_t y = 0; y < _BoardSize; y++)
+            {
+                if (play_board.get_pieceid_at(x, y) != Piece<PieceID, _BoardSize>::empty_id())
+                {
+                    _pieces.push_back(play_board.get_pieceid_at(x, y));
+                    _xy.push_back(std::pair<uint8_t, uint8_t>({ x, y }));
+                }
+            }
+        }
+
+        os << (int)_BoardSize << " ";
+        os << PieceColor_to_int(play_board.get_color());  os << " ";
+
+        os << bool_to_int(play_board.allow_self_check());           os << " ";
+        os << bool_to_int(play_board.check_repeating_move_draw());  os << " ";
+        os << bool_to_int(play_board.check_50_moves_draw());        os << " ";
+
+        os << (int)_pieces.size() << " ";
+        for (auto &v : _pieces) { os << (int)v; os << " "; } // ...
+
+        os << (int)_xy.size() << " ";
+        for (auto &v : _xy)
+        {
+            os << (int)v.first;     os << " ";
+            os << (int)v.second;    os << " ";
+        }
+
+        const std::list<Move<PieceID>>  hm = play_board.get_history_moves();
+        for (auto &v : hm) { os << v; os << " "; }
+
+        return os;
+    }
 
     // generate_moves_no_self_check()
     template <typename PieceID, typename uint8_t _BoardSize>

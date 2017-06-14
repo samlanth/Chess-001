@@ -25,7 +25,7 @@ namespace chess
 
         public:
             ChessCoEvolveGA(_DomainPlayer* playW, _DomainPlayer* playB, BaseGame_Config cfg, size_t num_iter,
-                            int popsize, int nbgen, int _tournament_n_player, int _tournament_n_game, bool verbose = false)
+                            int popsize, int nbgen, int _tournament_n_player, int _tournament_n_game, char verbose = false)
             {
                 _playW = playW;
                 _playB = playB;
@@ -46,7 +46,7 @@ namespace chess
             {
                 for (size_t i = 0; i < _num_iter; i++)
                 {
-                    if (_verbose) std::cout << "----------------------------\n" << "iter : " << i + 1 << "\n";
+                    if (_verbose) std::cout << "----------------------------\n" << "iter : " << i + 1 << " ";
                     _gaW->setup_params();
                     _gaW->run((i>0)?true:false);
 
@@ -65,7 +65,7 @@ namespace chess
                         {
                             game.set_board(_playW->get_domain()->get_random_position(true));
                             //game.print_nodes();
-                            sc = game.play(false, true);
+                            sc = game.play(_verbose > 1, true);
                             if (sc == chess::ExactScore::WIN)  fit += 1.0;
                             else if (sc == chess::ExactScore::LOSS) fit -= 1.0;
                             else if (sc == chess::ExactScore::DRAW) fit += 0.5;        
@@ -85,7 +85,7 @@ namespace chess
 
             BaseGame_Config _cfg;
             size_t _num_iter;
-            bool _verbose;
+            char _verbose;
         };
 
     };

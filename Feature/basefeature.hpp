@@ -42,9 +42,9 @@ namespace chess
         void set_classtype(const std::string& ct)           { _classtype = ct; }
         void set_classtype_argument(const std::string& arg) { _classtype_argument = arg; }
 
-        virtual bool                save(std::ofstream& filestream)  const;
-        static _ConditionFeature*   get_cond(std::ifstream& filestream);
-        static _ValuationFeature*   get_valu(std::ifstream& filestream);
+        virtual bool                save(std::ofstream& is)  const;
+        static _ConditionFeature*   get_cond(std::ifstream& is);
+        static _ValuationFeature*   get_valu(std::ifstream& is);
 
     protected:
         FeatureType                     _featureType;
@@ -52,58 +52,58 @@ namespace chess
         std::string                     _classtype_argument;
     };
 
-    // save(std::ofstream& filestream)
+    // save(std::ofstream& is)
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    inline bool BaseFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::save(std::ofstream& filestream)  const
+    inline bool BaseFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::save(std::ofstream& is)  const
     {
-        if (filestream.good())
+        if (is.good())
         {
-            filestream << (char)_featureType;   filestream << std::endl;
-            filestream << _classtype;           filestream << std::endl;
-            filestream << _classtype_argument;  filestream << std::endl;
+            is << (char)_featureType;   is << " ";
+            is << _classtype;           is << " ";
+            is << _classtype_argument;  is << " ";
             return true;
         }
         return false;
     }
 
-    // get_cond(std::ifstream& filestream)
+    // get_cond(std::ifstream& is)
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     inline ConditionFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>*
-    BaseFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::get_cond(std::ifstream& filestream)
+    BaseFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::get_cond(std::ifstream& is)
     {
-        if (filestream.good())
+        if (is.good())
         {
             FeatureType featureType;
             std::string classtype;
             std::string classtype_argument;
 
-            char c; filestream >> c;
+            char c; is >> c;
             if (c == 0) featureType = FeatureType::condition;
             else        featureType = FeatureType::valuation;
-            filestream >> classtype;
-            filestream >> classtype_argument;
+            is >> classtype;
+            is >> classtype_argument;
 
             return _FeatureManager::get_cond_feature(classtype, classtype_argument);
         }
         return nullptr;
     }
 
-    // get_valu(std::ifstream& filestream)
+    // get_valu(std::ifstream& is)
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     inline ValuationFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>* 
-    BaseFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::get_valu(std::ifstream& filestream)
+    BaseFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::get_valu(std::ifstream& is)
     {
-        if (filestream.good())
+        if (is.good())
         {
             FeatureType featureType;
             std::string classtype;
             std::string classtype_argument;
 
-            char c; filestream >> c;
+            char c; is >> c;
             if (c == 0) featureType = FeatureType::condition;
             else        featureType = FeatureType::valuation;
-            filestream >> classtype;
-            filestream >> classtype_argument;
+            is >> classtype;
+            is >> classtype_argument;
 
             return _FeatureManager::get_valu_feature(classtype, classtype_argument);
         }

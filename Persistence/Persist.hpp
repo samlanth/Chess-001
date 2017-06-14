@@ -90,34 +90,34 @@ namespace chess
         static bool save()
         {
             std::string f = _root_folder + "persistmanager" + "_" + "0" + ".txt";
-            std::ofstream   filestream;
-            filestream.open(f.c_str(), std::fstream::out | std::fstream::trunc);
-            if (filestream.good())
+            std::ofstream   is;
+            is.open(f.c_str(), std::fstream::out | std::fstream::trunc);
+            if (is.good())
             {
-                filestream << _persist_key_counter; filestream << std::endl;
-                filestream << _root_folder;         filestream << std::endl;
-                filestream << _default_root_folder; filestream << std::endl;                
-                filestream.close();
+                is << _persist_key_counter; is << " ";
+                is << _root_folder;         is << " ";
+                is << _default_root_folder; is << " ";                
+                is.close();
                 return true;
             }
-            filestream.close();
+            is.close();
             return false;
         }
 
         bool load()
         {
             std::string f = _root_folder + "persistmanager" + "_" + "0" + ".txt";
-            std::ifstream   filestream;
-            filestream.open(f.c_str(), std::fstream::in);
-            if (filestream.good())
+            std::ifstream   is;
+            is.open(f.c_str(), std::fstream::in);
+            if (is.good())
             {
-                filestream >> _persist_key_counter;
-                filestream >> _root_folder;
-                filestream >> _default_root_folder;             
-                filestream.close();
+                is >> _persist_key_counter;
+                is >> _root_folder;
+                is >> _default_root_folder;             
+                is.close();
                 return true;
             }
-            filestream.close();
+            is.close();
             return false;
         }
 

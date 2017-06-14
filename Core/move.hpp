@@ -12,12 +12,13 @@
 
 namespace chess
 {
+    static std::string NULLSTR(const std::string& s) { return (s.size() == 0) ? "NullSTR" : s; }
+
     struct MoveUnit
     {
         enum struct FLAG { none = 0, conditional = 1 };
 
         MoveUnit() = default;
-
         MoveUnit(int8_t _x, int8_t _y, uint8_t _len, FLAG _flag = FLAG::none, std::string _flag_param = "")
              : x(_x), y(_y), len(_len), flag(_flag), flag_spec(_flag_param), context_extra(""){}
 
@@ -27,7 +28,25 @@ namespace chess
         FLAG        flag;    // move category (normal or conditional) 
         std::string flag_spec;     // conditional moveunit specification
         std::string context_extra; // extra info for move from a chess position
+
+        static int FLAG_to_int(FLAG c)
+        {
+            if (c == FLAG::conditional) return 1;
+            return 0;
+        }
+        static FLAG int_to_PieceColor(int t)
+        {
+            if (t == 1) return FLAG::conditional;
+            return FLAG::none;
+        }
     };
+    std::ofstream& operator<<(std::ofstream& os,const MoveUnit& mu)
+    {
+        os << (int)mu.x << " " << (int)mu.y << " " << (int)mu.len << " ";
+        os << MoveUnit::FLAG_to_int(mu.flag) << " ";
+        os << NULLSTR(mu.context_extra) << " ";
+        return os;
+    }
 
     template <typename PieceID>
     struct Move
@@ -140,6 +159,17 @@ namespace chess
             for (size_t i = 0; i < 16; i++) this->state_ep[i] = true;
         }
     };
+
+    template <typename PieceID>
+    std::ofstream& operator<<(std::ofstream& os, const Move<PieceID>& m)
+    {
+        os << (int)m.src_x << " " << (int)m.src_y << " " << (int)m.dst_x << " " << (int)m.dst_y << " ";
+        os << (int)m.prev_src_id << " " << (int)m.prev_dst_id << " ";
+        os << (MoveUnit&)m.mu << " ";
+        for (size_t i = 0; i < 4; i++) { os << (int)m.state_castling[i] << " "; }
+        for (size_t i = 0; i < 16; i++) { os << (int)m.state_ep[i]; if (i < 15) os << " "; }
+        return os;
+    }
 
 };
 #endif

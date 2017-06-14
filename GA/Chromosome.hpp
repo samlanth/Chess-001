@@ -220,7 +220,7 @@ namespace galgo
        ss << bit;
        ss >> str;
        chr.replace(pos, 1, str);
-       std::cout << chr << "\n";
+       std::cout << chr << " ";
     }
 
     // flip an existing chromosome bit

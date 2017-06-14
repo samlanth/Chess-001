@@ -13,8 +13,23 @@
 
 namespace chess
 {
-    enum class ExactScore :int8_t { LOSS = -1, DRAW = 0, WIN = 1, UNKNOWN=2}; // white win is WIN, black win is LOSS
+    enum class ExactScore  { LOSS, DRAW, WIN, UNKNOWN}; // white win is WIN, black win is LOSS
     enum class eDomainName {KvK, KQvK};
+
+    int ExactScore_to_int(ExactScore c)
+    {
+        if      (c == ExactScore::LOSS) return 1;
+        else if (c == ExactScore::DRAW) return 2;
+        else if (c == ExactScore::WIN)  return 3;
+        else return 0;
+    }
+    ExactScore int_to_ExactScore(int t)
+    {
+        if      (t == 1) return ExactScore::LOSS;
+        else if (t == 2) return ExactScore::DRAW;
+        else if (t == 3) return ExactScore::WIN;
+        return ExactScore::UNKNOWN;
+    }
 
     // Domain interface
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
@@ -119,31 +134,31 @@ namespace chess
         bool save_root() const
         {
             std::string f = PersistManager::instance()->get_stream_name("domain", persist_key());
-            std::ofstream   filestream;
-            filestream.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
-            if (save_detail(filestream))
+            std::ofstream   is;
+            is.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
+            if (save_detail(is))
             {
-                filestream.close();
+                is.close();
                 return true;
             }
-            filestream.close();
+            is.close();
             return false;
         }
 
-        bool save_detail(std::ofstream& filestream) const
+        bool save_detail(std::ofstream& os) const
         {
-            if (filestream.good())
+            if (os.good())
             {
-                filestream << _partition_key; filestream << std::endl;
-                filestream << _domainname_key; filestream << std::endl;
-                filestream << _instance_key;  filestream << std::endl;
+                os << _partition_key;   os << " ";
+                os << _domainname_key;  os << " ";
+                os << _instance_key;    os << " ";
 
-                filestream << _children.size(); filestream << std::endl;
+                os << _children.size(); os << " ";
                 for (auto& v : _children)
                 {
-                    filestream << v->partition_key(); filestream << std::endl;
-                    filestream << v->domainname_key(); filestream << std::endl;
-                    filestream << v->instance_key();  filestream << std::endl;
+                    os << v->partition_key();   os << " ";
+                    os << v->domainname_key();  os << " ";
+                    os << v->instance_key();    os << " ";
                 }
                 return true;
             }
@@ -153,36 +168,36 @@ namespace chess
         bool load_root() const
         {
             std::string f = PersistManager::instance()->get_stream_name("domain", persist_key());
-            std::ifstream   filestream;
-            filestream.open(f.c_str(), std::fstream::in);
-            if (load_detail(filestream))
+            std::ifstream   is;
+            is.open(f.c_str(), std::fstream::in);
+            if (load_detail(is))
             {
-                filestream.close();
+                is.close();
                 return true;
             }
-            filestream.close();
+            is.close();
             return false;
         }
 
-        bool load_detail(std::ifstream& filestream) const
+        bool load_detail(std::ifstream& is) const
         {
-            if (filestream.good())
+            if (is.good())
             {
                 size_t n_child;
                 std::string partition_key;
                 std::string domainname_key;
                 std::string instance_key;
 
-                filestream >> partition_key;
-                filestream >> domainname_key;
-                filestream >> instance_key;
+                is >> partition_key;
+                is >> domainname_key;
+                is >> instance_key;
 
                 // check
                 assert(partition_key == _partition_key);
                 assert(domainname_key == _domainname_key);
                 assert(instance_key == _instance_key);
 
-                filestream >> n_child;
+                is >> n_child;
 
                 _Partition* p_partition = _PartitionManager::instance()->find_partition(partition_key);
                 if (p_partition == nullptr) return false;
@@ -197,9 +212,9 @@ namespace chess
                 for (size_t i = 0; i < n_child; i++)
                 {
                     ok = false;
-                    filestream >> partition_key;
-                    filestream >> domainname_key;
-                    filestream >> instance_key;              
+                    is >> partition_key;
+                    is >> domainname_key;
+                    is >> instance_key;              
                     {
                         _Domain* p_dom_child = p_partition->find_domain(domain_key(domainname_key,instance_key));
                         if (p_dom_child != nullptr)

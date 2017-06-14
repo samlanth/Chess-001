@@ -24,7 +24,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize> class Board;
     template <typename PieceID, typename uint8_t _BoardSize> class Piece;
     template <typename PieceID> struct Move;
-    enum class ExactScore :int8_t;
+    enum class ExactScore;
     enum class PieceName;
     enum class PieceColor;
 

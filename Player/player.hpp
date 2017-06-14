@@ -30,8 +30,8 @@ namespace chess
         virtual ~BasePlayer() {}
 
         // Genetic Algo would play games between population members by calling select_move_algo() for fitness evolution
-        virtual size_t      select_move_algo(    _Board& board, std::vector<_Move>& m, size_t max_num_position_per_move, uint16_t max_depth_per_move, uint16_t max_game_ply, bool verbose = false) = 0;
-        virtual TYPE_PARAM  eval_position_algo(  _Board& board, std::vector<_Move>& m, bool verbose = false) = 0;
+        virtual size_t      select_move_algo(    _Board& board, std::vector<_Move>& m, size_t max_num_position_per_move, uint16_t max_depth_per_move, uint16_t max_game_ply, char verbose = false) = 0;
+        virtual TYPE_PARAM  eval_position_algo(  _Board& board, std::vector<_Move>& m, char verbose = false) = 0;
 
         // Persistence
         virtual bool save() const = 0;
@@ -60,7 +60,7 @@ namespace chess
 
     public:
         DomainPlayer(   PieceColor color_player,
-                        const std::string playername,       const std::string partition_key,
+                        const std::string playername,        const std::string partition_key,
                         const std::string domainname_key,    const std::string instance_key);
 
         virtual ~DomainPlayer();
@@ -73,8 +73,8 @@ namespace chess
                 return nullptr; 
         }
 
-        virtual size_t      select_move_algo(   _Board& pos, std::vector<_Move>& m, size_t max_num_position_per_move, uint16_t max_depth_per_move, uint16_t max_game_ply, bool verbose)  override;
-        virtual TYPE_PARAM  eval_position_algo( _Board& pos, std::vector<_Move>& m, bool verbose = false)  override;
+        virtual size_t      select_move_algo(   _Board& pos, std::vector<_Move>& m, size_t max_num_position_per_move, uint16_t max_depth_per_move, uint16_t max_game_ply, char verbose)  override;
+        virtual TYPE_PARAM  eval_position_algo( _Board& pos, std::vector<_Move>& m, char verbose = false)  override;
 
         const std::string persist_key() const;
         virtual bool save() const override;
@@ -91,7 +91,7 @@ namespace chess
         TYPE_PARAM minimax(_Board& board, uint16_t depth, TYPE_PARAM a, TYPE_PARAM b,
             bool isMaximizing, size_t max_num_node, uint16_t max_game_ply,
             size_t& ret_mv_idx, size_t& num_pos_eval,
-            bool is_recursive_entry, bool verbose);
+            bool is_recursive_entry, char verbose);
 
         PieceColor              _color_player;
         std::string             _partition_key;
@@ -112,8 +112,8 @@ namespace chess
     public:
         NullPlayer() : BasePlayer("NULLPlayer"){}
 
-        size_t      select_move_algo(   _Board& board, std::vector<_Move>& m, size_t max_position, uint16_t max_depth_per_move, uint16_t max_game_ply, bool verbose) override { return 0; }
-        TYPE_PARAM  eval_position_algo( _Board& board, std::vector<_Move>& m, bool verbose = false) override { return 0; }
+        size_t      select_move_algo(   _Board& board, std::vector<_Move>& m, size_t max_position, uint16_t max_depth_per_move, uint16_t max_game_ply, char verbose) override { return 0; }
+        TYPE_PARAM  eval_position_algo( _Board& board, std::vector<_Move>& m, char verbose = false) override { return 0; }
 
         bool save() const           override { return false; }
         bool load()                 override { return false; }
@@ -227,16 +227,17 @@ namespace chess
     {
         //std::string f = PersistManager::instance()->get_stream_name("player", persist_key(), playername());
         std::string f = PersistManager::instance()->get_stream_name("player", persist_key());
-        std::ofstream   filestream;
-        filestream.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
-        if (filestream.good())
+        std::ofstream   is;
+        is.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
+        if (is.good())
         {
-            filestream <<  playername();  filestream << std::endl;
-            filestream << _partition_key; filestream << std::endl;
-            filestream << _domainname_key; filestream << std::endl;
-            filestream << _instance_key;  filestream << std::endl;
+            is << PieceColor_to_int(_color_player);  is << " ";
+            is <<  playername();  is << " ";
+            is << _partition_key; is << " ";
+            is << _domainname_key; is << " ";
+            is << _instance_key;  is << " ";
 
-            filestream << _root->persist_key();  filestream << std::endl;
+            is << _root->persist_key();  is << " ";
             _root->save_root();  // independant stream
 
             _Partition* partition_ptr = _PartitionManager::instance()->find_partition(_partition_key);
@@ -281,10 +282,10 @@ namespace chess
                 }
             }
 
-            filestream.close();
+            is.close();
             return true;
         }
-        filestream.close();
+        is.close();
         return false;
     }
 
@@ -293,27 +294,30 @@ namespace chess
     bool DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::load()
     {
         std::string f = PersistManager::instance()->get_stream_name("player", persist_key());
-        std::ifstream   filestream;
-        filestream.open(f.c_str(), std::fstream::in);
-        if (filestream.good())
+        std::ifstream   is;
+        is.open(f.c_str(), std::fstream::in);
+        if (is.good())
         {
+            int c;
             std::string playername;
             std::string partition_key;
             std::string domainname_key;
             std::string instance_key;
             std::string root_persist_key;
 
-            filestream >> playername;
-            filestream >> partition_key;
-            filestream >> domainname_key;
-            filestream >> instance_key;
-            filestream >> root_persist_key;
-
+            is >> c;
+            is >> playername;
+            is >> partition_key;
+            is >> domainname_key;
+            is >> instance_key;
+            is >> root_persist_key;
+    
+            assert(_color_player == int_to_PieceColor(c));
             assert(playername    == _playername);
             assert(partition_key == _partition_key);
             assert(domainname_key == _domainname_key);
             assert(instance_key  == _instance_key);
-
+    
             _root->set_persist_key(root_persist_key);
             _root->load_root(); // root data was not load from DomainPlayer() constructor
 
@@ -343,10 +347,10 @@ namespace chess
                 }
             }
 
-            filestream.close();
+            is.close();
             return true;
         }
-        filestream.close();
+        is.close();
         return false;
     }
 
@@ -355,7 +359,7 @@ namespace chess
     TYPE_PARAM DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::
     minimax(_Board& board, uint16_t depth, TYPE_PARAM a, TYPE_PARAM b, bool isMaximizing, 
             size_t max_num_node, uint16_t max_game_ply,
-            size_t& ret_mv_idx, size_t& num_pos_eval, bool is_recursive_entry, bool verbose)
+            size_t& ret_mv_idx, size_t& num_pos_eval, bool is_recursive_entry, char verbose)
     {
         size_t best_a_idx = 0;
         size_t best_b_idx = 0;
@@ -411,7 +415,7 @@ namespace chess
     // select_move_algo
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     size_t DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::
-    select_move_algo(_Board& pos, std::vector<_Move>& m, size_t max_num_position_per_move, uint16_t max_depth_per_move, uint16_t max_game_ply, bool verbose)
+    select_move_algo(_Board& pos, std::vector<_Move>& m, size_t max_num_position_per_move, uint16_t max_depth_per_move, uint16_t max_game_ply, char verbose)
     {
         if (_domain != nullptr)
         {
@@ -435,7 +439,7 @@ namespace chess
     // eval_position_algo
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     TYPE_PARAM DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::
-    eval_position_algo(_Board& pos, std::vector<_Move>& m, bool verbose)
+    eval_position_algo(_Board& pos, std::vector<_Move>& m, char verbose)
     {
         TYPE_PARAM ret_eval = 0.5;
         bool ret = _root->eval_position(pos, m, ret_eval, verbose);
