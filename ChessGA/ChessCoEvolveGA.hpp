@@ -30,8 +30,8 @@ namespace chess
                 _playW = playW;
                 _playB = playB;
                 _cfg = cfg;
-                _gaW = new _ChessGeneticAlgorithm(true,  false, _playW, _playB, _cfg, popsize, nbgen, _tournament_n_player, _tournament_n_game);
-                _gaB = new _ChessGeneticAlgorithm(false, false, _playW, _playB, _cfg, popsize, nbgen, _tournament_n_player, _tournament_n_game);
+                _gaW = new _ChessGeneticAlgorithm(true,  false, _playW, _playB, _cfg, popsize, nbgen, _tournament_n_player, _tournament_n_game, verbose);
+                _gaB = new _ChessGeneticAlgorithm(false, false, _playW, _playB, _cfg, popsize, nbgen, _tournament_n_player, _tournament_n_game, verbose);
                 _num_iter = num_iter;
                 _verbose = verbose;
             }
@@ -64,13 +64,13 @@ namespace chess
                         for (size_t i = 0; i < 20; i++)
                         {
                             game.set_board(_playW->get_domain()->get_random_position(true));
-                            //game.print_nodes();
-                            sc = game.play(_verbose > 1, true);
-                            if (sc == chess::ExactScore::WIN)  fit += 1.0;
-                            else if (sc == chess::ExactScore::LOSS) fit -= 1.0;
+                            if (_verbose > 2) game.print_nodes();
+                            sc = game.play(_verbose, true);
+                            if (sc == chess::ExactScore::WIN)       fit += 1.0;
+                            else if (sc == chess::ExactScore::LOSS) fit += 0.0;
                             else if (sc == chess::ExactScore::DRAW) fit += 0.5;        
                         }
-                        std::cout << "score= " << fit << " / " << 20 << std::endl;
+                        std::cout << "score= " << fit << " / " << 20 << " Last game => n:" << game.num_pos_eval() << " ply: " << game.ply() << std::endl;
                     }
 
                 }

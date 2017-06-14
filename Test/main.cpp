@@ -132,14 +132,14 @@ int main(int argc, char* argv[])
 
             // Test ChessGeneticAlgorithm
             //{
-            //    chess::BaseGame_Config cfg{ 100, 1, 100, 1, 4 };
-            //    chess::ga::ChessGeneticAlgorithm<uint8_t, 6, double, 16, 10> ga_chess(true, false, playW, playB, cfg, 5, 2, 3, 2, true);
+            //    chess::BaseGame_Config cfg{ 100, 1, 100, 1, 2000, 30 };
+            //    chess::ga::ChessGeneticAlgorithm<uint8_t, 6, double, 16, 10> ga_chess(true, false, playW, playB, cfg, 5, 2, 3, 2, 1);
             //    ga_chess.run(false);
             //}
 
             // Test ChessCoEvolveGA
             {
-                chess::BaseGame_Config cfg{ 100, 1, 100, 1, 20 };
+                chess::BaseGame_Config cfg{ 1000, 1, 1000, 1, 20000, 50 };
                 // num_iter, popsize, nbgen, _tournament_n_player, _tournament_n_game, verbose
                 chess::ga::ChessCoEvolveGA<uint8_t, 6, double, 16, 10> ga_co(playW, playB, cfg, 500, 3, 1, 2, 1, 1);
                 ga_co.run();

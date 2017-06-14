@@ -52,7 +52,7 @@ namespace chess
         std::string             _domainname_key;
         std::string             _instance_key;
         std::vector<_Domain*>   _children;
-        _DomainPlayer*          _attached_domain_playerW;   // only two W+B for now...
+        _DomainPlayer*          _attached_domain_playerW;   // only two player allowed W/B per domain for now...
         _DomainPlayer*          _attached_domain_playerB;
         std::string             _gamedb_key;
         _GameDB*                _gameDB;
@@ -66,7 +66,7 @@ namespace chess
             _attached_domain_playerB(nullptr),
             _gameDB(nullptr)
         {
-            // Would load _gameDB on demand after domain is created and linked to a partition
+            // Would load _gameDB on demand (after domain is created and linked to a partition)
         }
 
         _GameDB* get_game_db()
@@ -90,6 +90,7 @@ namespace chess
                 delete _gameDB;
         }
 
+        // Does this domain support a feature
         virtual bool is_cond_feature_valid(_ConditionFeature& f) const = 0;
         virtual bool is_valu_feature_valid(_ValuationFeature& f) const = 0;
 
@@ -113,6 +114,7 @@ namespace chess
 
         virtual _Board get_random_position(bool no_check) const = 0;
 
+        // Factory
         static _Domain* make(const std::string& partition_key, const std::string& domainname_key, const std::string& instance_key)
         {
             if      (domainname_key == getDomainName(eDomainName::KvK))  return new DomainKvK <PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>(partition_key);

@@ -9,7 +9,7 @@
 #ifndef _AL_CHESS_PERSISTENCE_PERSIST_HPP
 #define _AL_CHESS_PERSISTENCE_PERSIST_HPP
 
-#include <windows.h>
+#include <windows.h>    // outch! - CreateDirectory - still no std::filesystem
 
 namespace chess
 {
@@ -62,6 +62,7 @@ namespace chess
             std::string filename = folder + instance_key + ".txt";
             return filename;
         } 
+
         const std::string get_stream_name(const std::string class1, const std::string class2, const std::string instance_key) const
         {
             std::string folder = _root_folder + class1 + "\\";
@@ -83,13 +84,13 @@ namespace chess
             _persist_key_counter++;
             std::stringstream ss;
             ss << _persist_key_counter;
-            save();                         // TODO - save less frequently...memory mapped
+            save();                         // save less frequently...memory mapped
             return ss.str();
         }
 
         static bool save()
         {
-            std::string f = _root_folder + "persistmanager" + "_" + "0" + ".txt";
+            std::string f = _root_folder + "persistmanager" + ".txt";
             std::ofstream   is;
             is.open(f.c_str(), std::fstream::out | std::fstream::trunc);
             if (is.good())
@@ -106,7 +107,7 @@ namespace chess
 
         bool load()
         {
-            std::string f = _root_folder + "persistmanager" + "_" + "0" + ".txt";
+            std::string f = _root_folder + "persistmanager" + ".txt";
             std::ifstream   is;
             is.open(f.c_str(), std::fstream::in);
             if (is.good())

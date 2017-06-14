@@ -135,7 +135,7 @@ namespace chess
         static std::map<int, std::string>                   _valu_features_name;
         static std::map<std::string, _ConditionFeature*>    _cond_features_instance;
         static std::map<std::string, _ValuationFeature*>    _valu_features_instance;
-        static std::unique_ptr<FeatureManager>  _instance;
+        static std::unique_ptr<FeatureManager>              _instance;
 
         // Other method of access
         static std::vector<_ConditionFeature*>              _v_cond_features_instance;

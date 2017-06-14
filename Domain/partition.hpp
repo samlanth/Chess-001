@@ -69,12 +69,12 @@ namespace chess
         is.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
         if (is.good())
         {
-            is << _name; is << " ";
-            is << _domains.size(); is << " ";
+            is << _name;            is << " ";
+            is << _domains.size();  is << " ";
             for (auto& v : _domains)
             {
-                is << v.second->domainname_key(); is << " ";
-                is << v.second->instance_key(); is << " ";
+                is << v.second->domainname_key();   is << " ";
+                is << v.second->instance_key();     is << " ";
             }
         }
         else

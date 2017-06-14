@@ -184,17 +184,17 @@ namespace chess
             TYPE_PARAM c = 0;
             TYPE_PARAM v = 0;
 
-            if (verbose) std::cout << _is_positive_node << " ";
+            if (verbose > 1) std::cout << _is_positive_node << " ";
             for (size_t i = 0; i < _valuations.size(); i++)
             {
                 v = _valuations[i]->compute(position, m);
                 c += (v * _weights[i]);
-                if (verbose)
+                if (verbose > 1)
                 {
                     std::cout << v << "*" << _weights[i] << " ";
                 }
             }
-            if (verbose) std::cout << "(" << c << "," << sigmoid(c) << ")" << std::endl;
+            if (verbose > 1) std::cout << "(" << c << "," << sigmoid(c) << ")" << std::endl;
             return sigmoid(c);
         }
 

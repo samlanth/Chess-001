@@ -215,7 +215,7 @@ namespace chess
             upperBound = _upperBound;
             initialSet = _initialSet;
 
-            //this->Objective = objective;
+            // this->Objective = ...
             this->nbbit = (int)_lowerBound.size()*PARAM_NBIT;
             this->nbparam = (int)_lowerBound.size();
         }
@@ -232,7 +232,7 @@ namespace chess
             }
             else
             {
-                if(_verbose) print_nodes();
+                if(_verbose > 2) print_nodes();
                 pop(0)->evaluate();
             }
             TYPE_PARAM bestResult = pop(0)->getTotal();
@@ -241,7 +241,7 @@ namespace chess
             {
                 pop.evolution();        // evaluate() called in recombination, completion newpop[i]->evaluate()
                 bestResult = pop(0)->getTotal();
-                if (_verbose) print();
+                if (_verbose > 1) print();
             }
 
             const std::shared_ptr<Chromosome<TYPE_PARAM, PARAM_NBIT>>& best_player = pop.get_cur(0);

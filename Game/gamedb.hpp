@@ -20,7 +20,7 @@ namespace chess
         Board<PieceID, _BoardSize> _board;
         PieceColor  _initial_color;
         ExactScore  _score;
-        uint64_t    _total_num_nodes_explored;
+        size_t      _total_num_nodes_explored;
         bool        _is_playW_internal;
         bool        _is_playB_internal;
         std::string _playerW_persist_id;
@@ -75,9 +75,9 @@ namespace chess
         std::string _domainname_key;
         std::string _instance_key;
         
-        uint64_t    _size;
-        std::vector<uint64_t> _vector_index_rec;
-        uint64_t _pos_rec_file = 0;
+        uint64_t                _size;
+        std::vector<uint64_t>   _vector_index_rec;
+        uint64_t                _pos_rec_file = 0;
 
     protected:
         bool open_create();
@@ -122,9 +122,9 @@ namespace chess
             }
 
             // check
-            if (_partition_key != _domain->partition_key()) { is.close(); return false; }
-            if (_domainname_key != _domain->domainname_key()) { is.close(); return false; }
-            if (_instance_key != _domain->instance_key()) { is.close(); return false; }
+            if (_partition_key != _domain->partition_key())     { is.close(); return false; }
+            if (_domainname_key != _domain->domainname_key())   { is.close(); return false; }
+            if (_instance_key != _domain->instance_key())       { is.close(); return false; }
 
             is.close();
             return true;
@@ -137,11 +137,11 @@ namespace chess
             os.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
             if (os.good())
             {        
-                os << _partition_key; os << " ";
-                os << _domainname_key; os << " ";
-                os << _instance_key;  os << " ";
-                os << _size; os << " ";
-                os << (long)0; os << " ";
+                os << _partition_key;   os << " ";
+                os << _domainname_key;  os << " ";
+                os << _instance_key;    os << " ";
+                os << _size;            os << " ";
+                os << (long)0;          os << " ";
                 os.close();
                 return true;
             }
@@ -170,7 +170,6 @@ namespace chess
                 os << _vector_index_rec.size();           os << " ";
                 for (auto &v : _vector_index_rec) { os << (long)v; os << " "; }
                 os.close();
-
                 return true;
             }
         }
@@ -190,14 +189,14 @@ namespace chess
             os.seekp(0, os.ios_base::end);
             _pos_rec_file = os.tellp();
 
-            os << rec._signature;              os << " ";
-            os << (int)rec._status;            os << " ";
-            os << rec._board;                  os << " ";
+            os << rec._signature;                       os << " ";
+            os << (int)rec._status;                     os << " ";
+            os << rec._board;                           os << " ";
             os << PieceColor_to_int(rec._initial_color);  os << " ";
             os << ExactScore_to_int(rec._score);       os << " ";
             os << rec._total_num_nodes_explored;       os << " ";
-            os << bool_to_int(rec._is_playW_internal);         os << " ";
-            os << bool_to_int(rec._is_playB_internal);         os << " ";
+            os << bool_to_int(rec._is_playW_internal); os << " ";
+            os << bool_to_int(rec._is_playB_internal); os << " ";
             os << NULLSTR(rec._playerW_persist_id);    os << " ";
             os << NULLSTR(rec._playerB_persist_id);    os << " ";
             os << (int)rec._playerW_elo;               os << " ";

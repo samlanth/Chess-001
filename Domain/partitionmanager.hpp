@@ -106,6 +106,7 @@ namespace chess
         ptr_dom_KQvK->save();
         ptr_dom_KK->save();
         p_classic->save();
+
         return true;
     }
 

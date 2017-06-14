@@ -39,16 +39,13 @@ namespace chess
         template <typename T,  int PARAM_NBIT>
         void RWS(galgo::Population<T, PARAM_NBIT>& x)
         {
-            // adjusting all fitness to positive values
-            x.adjustFitness();
-            // computing fitness sum
-            T fitsum = x.getSumFitness();
+            x.adjustFitness();              // adjusting all fitness to positive values
+            T fitsum = x.getSumFitness();   // computing fitness sum
 
             // selecting mating population
             for (int i = 0, end = x.matsize(); i < end; ++i) 
             {
-                // generating a random fitness sum in [0,fitsum)
-                T fsum = galgo::uniform<T>(0.0, fitsum);
+                T fsum = galgo::uniform<T>(0.0, fitsum);    // generating a random fitness sum in [0,fitsum)
 
                 int j = 0;
                 while (fsum >= 0.0) {
@@ -57,6 +54,7 @@ namespace chess
                     {
                         //....
                         j--;
+                        fsum -= x(j)->fitness;
                         std::cout << "Error: in RWS(galgo::Population<T, PARAM_NBIT>&) index j cannot be equal to population size.\n";
                         break;
 
