@@ -36,6 +36,8 @@ namespace chess
         }
 
     public:
+        static _Partition*      load_partition(const std::string& name);
+
         static bool             add_partition(_Partition* p);
         static _Partition*      find_partition(const std::string partition_name);
 
@@ -150,7 +152,41 @@ namespace chess
             _instance = std::unique_ptr<PartitionManager>(new PartitionManager);
             return _instance.get();
         }
-        return  _instance.get();;
+        return  _instance.get();
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT> * 
+    PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::load_partition(const std::string& name)
+    {
+        // Check if in memory
+        _Partition* pp = PartitionManager::instance()->find_partition(name);
+        if (pp == nullptr)
+        {
+            _Partition* p = new _Partition(name);
+            if (!PartitionManager::instance()->add_partition(p))
+            {
+                // remove...
+                delete p;
+                return nullptr;
+            }
+
+            // Try loading from disk
+            if (p->load() == true)  return p;
+   
+            delete p;
+            return nullptr;
+        }
+        else
+        {
+            // Reload from disk
+            if (pp->load() == false)
+            {
+                return nullptr;
+            }
+            return pp;
+        }
+        return nullptr;
     }
 
 };

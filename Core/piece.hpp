@@ -12,28 +12,11 @@
 // PieceID type must be integral type
 //
 //
-#ifndef _AL_CHESS_CORE_PIECE_H
-#define _AL_CHESS_CORE_PIECE_H
+#ifndef _AL_CHESS_CORE_PIECE_HPP
+#define _AL_CHESS_CORE_PIECE_HPP
 
 namespace chess
 {
-    enum class PieceName        { none, R, N, B, Q, K, P };
-    enum class PieceColor       { none, W, B };
-    enum class PieceMoveStyle   { none, Sliding, Jumping, SlidingDiagonalCapturePromo };
-
-    static int PieceColor_to_int(PieceColor c)
-    {
-        if      (c == PieceColor::W) return 1;
-        else if (c == PieceColor::B) return 2;
-        return 0;
-    }
-    static PieceColor int_to_PieceColor(int t)
-    {
-        if      (t == 1) return PieceColor::W;
-        else if (t == 2) return PieceColor::B;
-        return PieceColor::none;
-    }
-
     struct PieceKey
     {
         PieceName _n;

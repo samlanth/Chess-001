@@ -201,11 +201,7 @@ namespace chess
             os << NULLSTR(rec._playerB_persist_id);    os << " ";
             os << (int)rec._playerW_elo;               os << " ";
             os << (int)rec._playerB_elo;               os << " ";
-            os << (long)rec._game_config._w_max_num_position_per_move;  os << " ";
-            os << (long)rec._game_config._w_max_depth_per_move;         os << " ";
-            os << (long)rec._game_config._b_max_num_position_per_move;  os << " ";
-            os << (long)rec._game_config._b_max_depth_per_move;         os << " ";
-            os << (long)rec._game_config._max_game_ply;                 os << "\n";
+            os << rec._game_config;                    os << " ";
 
             os.close();
             return true;

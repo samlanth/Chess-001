@@ -31,6 +31,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class Domain;
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class Partition;
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class PartitionManager;
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class PlayerFactory;
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class ConditionValuationNode;
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class FeatureManager;
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class ConditionFeature;
@@ -46,12 +47,14 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize> struct GameDB_Record;
 }
 
+#include "core/util.hpp"
 #include "core/move.hpp"
 #include "core/piece.hpp"
 #include "core/board.hpp"
 #include "core/unittest.hpp"
 #include "core/testboard.hpp"
 #include "player/player.hpp"
+#include "player/playerfactory.hpp"
 #include "domain/domain.hpp"
 #include "domain/partition.hpp"
 #include "domain/partitionmanager.hpp"

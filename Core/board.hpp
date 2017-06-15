@@ -18,17 +18,6 @@
 
 namespace chess
 {
-    static int bool_to_int(bool c)
-    {
-        if (c) return 1;
-        return 0;
-    }
-    static bool int_to_bool(int t)
-    {
-        if (t == 1) return true;
-        return false;
-    }
-
     template <typename PieceID, typename uint8_t _BoardSize>
     class Board
     {

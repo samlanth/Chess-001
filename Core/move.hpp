@@ -12,8 +12,6 @@
 
 namespace chess
 {
-    static std::string NULLSTR(const std::string& s) { return (s.size() == 0) ? "NullSTR" : s; }
-
     struct MoveUnit
     {
         enum struct FLAG { none = 0, conditional = 1 };

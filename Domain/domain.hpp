@@ -13,23 +13,7 @@
 
 namespace chess
 {
-    enum class ExactScore  { LOSS, DRAW, WIN, UNKNOWN}; // white win is WIN, black win is LOSS
     enum class eDomainName {KvK, KQvK};
-
-    int ExactScore_to_int(ExactScore c)
-    {
-        if      (c == ExactScore::LOSS) return 1;
-        else if (c == ExactScore::DRAW) return 2;
-        else if (c == ExactScore::WIN)  return 3;
-        else return 0;
-    }
-    ExactScore int_to_ExactScore(int t)
-    {
-        if      (t == 1) return ExactScore::LOSS;
-        else if (t == 2) return ExactScore::DRAW;
-        else if (t == 3) return ExactScore::WIN;
-        return ExactScore::UNKNOWN;
-    }
 
     // Domain interface
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
@@ -44,8 +28,12 @@ namespace chess
         using _ConditionFeature = ConditionFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _ValuationFeature = ValuationFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _GameDB       = GameDB<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _PlayerFactory = PlayerFactory<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
         friend class _DomainPlayer;
+        friend class _PlayerFactory;
+        friend class _Partition;
+        friend class _PartitionManager;
 
     protected:
         std::string             _partition_key;

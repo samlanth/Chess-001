@@ -17,6 +17,8 @@ namespace chess
     {
         using _Partition = Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _Domain = Domain<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _DomainPlayer = DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _PartitionManager = PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
     public:
         Partition() = default;
@@ -55,7 +57,7 @@ namespace chess
             return find_domain(_Domain::domain_key(domainname_key, instance_key));
         }
 
-    private:
+     private:
         std::string                      _name;
         std::map<std::string, _Domain*>  _domains;  // on heap - owner (TODO std::unique_ptr...)
     };

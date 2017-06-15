@@ -11,7 +11,8 @@
 
 namespace chess
 {
-    enum class FeatureType :char { condition = 0, valuation = 1 };
+    //enum class FeatureType { condition = 0, valuation = 1 };
+
     enum class CondFeatureName :int {
         eConditionFeature_isOppositeKinCheck
     };
@@ -27,6 +28,7 @@ namespace chess
         using _FeatureManager   = FeatureManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _ConditionFeature = ConditionFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _ValuationFeature = ValuationFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+    
 
     public:
         BaseFeature(const FeatureType atype) : _featureType(atype) 
@@ -58,9 +60,9 @@ namespace chess
     {
         if (is.good())
         {
-            is << (char)_featureType;   is << " ";
-            is << _classtype;           is << " ";
-            is << _classtype_argument;  is << " ";
+            is << FeatureType_to_int(_featureType);    is << " ";
+            is << NULLSTR(_classtype);           is << " ";
+            is << NULLSTR(_classtype_argument);  is << " ";
             return true;
         }
         return false;
@@ -77,9 +79,9 @@ namespace chess
             std::string classtype;
             std::string classtype_argument;
 
-            char c; is >> c;
-            if (c == 0) featureType = FeatureType::condition;
-            else        featureType = FeatureType::valuation;
+            int c; is >> c;
+            int_to_FeatureType(c);
+            featureType = int_to_FeatureType(c);
             is >> classtype;
             is >> classtype_argument;
 
@@ -99,9 +101,9 @@ namespace chess
             std::string classtype;
             std::string classtype_argument;
 
-            char c; is >> c;
-            if (c == 0) featureType = FeatureType::condition;
-            else        featureType = FeatureType::valuation;
+            int c; is >> c;
+            int_to_FeatureType(c);
+            featureType = int_to_FeatureType(c);
             is >> classtype;
             is >> classtype_argument;
 

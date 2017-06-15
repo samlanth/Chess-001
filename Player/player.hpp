@@ -26,7 +26,7 @@ namespace chess
         using _BasePlayer = BasePlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
     public:
-        BasePlayer(const std::string& playername) : _playername(playername) , _PARAM_NBIT(PARAM_NBIT){}
+        BasePlayer(const std::string& playername, uint32_t ga_instance = 0) : _playername(playername) , _ga_instance(ga_instance), _ga_fitness(0), _PARAM_NBIT(PARAM_NBIT){}
         virtual ~BasePlayer() {}
 
         // Genetic Algo would play games between population members by calling select_move_algo() for fitness evolution
@@ -37,12 +37,16 @@ namespace chess
         virtual bool save() const = 0;
         virtual bool load() = 0;
 
-        const std::string playername()  const   { return _playername; }
-        const size_t param_NBIT()       const   { return _PARAM_NBIT; }
-        const size_t elo()              const   { return _elo; }
+        const std::string   playername()    const   { return _playername; }
+        uint32_t            ga_instance()   const   { return _ga_instance; }
+        TYPE_PARAM          ga_fitness()    const   { return _ga_fitness; }
+        const size_t        param_NBIT()    const   { return _PARAM_NBIT; }
+        const size_t        elo()           const   { return _elo; }
 
     protected:
         std::string     _playername;
+        uint32_t        _ga_instance;   // position in a GA population - 0 default
+        TYPE_PARAM      _ga_fitness;    // last fitness given by ga
         size_t          _PARAM_NBIT;
         uint16_t        _elo = 0;       // todo..
     };
@@ -59,11 +63,17 @@ namespace chess
         using _ConditionValuationNode = ConditionValuationNode<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _BasePlayer = BasePlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _Partition = Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _PlayerFactory = PlayerFactory<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+
+        friend class _PlayerFactory;
+        friend class _Partition;
+        friend class _PartitionManager;
 
     public:
-        DomainPlayer(   PieceColor color_player, const std::string& playername,        
+        DomainPlayer(   PieceColor color_player, const std::string& playername, uint32_t ga_instance,
                         const std::string& partition_key, const std::string& domainname_key, const std::string& instance_key);
 
+    public:
         virtual ~DomainPlayer();
 
         virtual GameDB<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>* get_game_db()
@@ -80,6 +90,7 @@ namespace chess
         const std::string persist_key() const;
         virtual bool save() const override;
         virtual bool load() override;
+        bool detachFromDomains();
 
         std::string get_partition_key()     const { return _partition_key; }
         std::string get_domainname_key()    const { return _domainname_key; }
@@ -96,8 +107,8 @@ namespace chess
 
         PieceColor              _color_player;
         std::string             _partition_key;     // partition context
-        std::string             _domainname_key;    // domain key part
-        std::string             _instance_key;      // domain key part
+        std::string             _domainname_key;    // domain name - key part
+        std::string             _instance_key;      // domain instance - key part
 
         _Domain*                _domain;
         _ConditionValuationNode* _root;             // The brain of the player that we evolve!
@@ -123,9 +134,9 @@ namespace chess
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
-    ::DomainPlayer( PieceColor color_player, const std::string& playername,
+    ::DomainPlayer( PieceColor color_player, const std::string& playername, uint32_t ga_instance,
                     const std::string& partition_key, const std::string& domainname_key, const std::string& instance_key)
-            :   _BasePlayer(playername),
+            :   _BasePlayer(playername, ga_instance),
                 _color_player(color_player),
                 _partition_key(partition_key),
                 _domainname_key(domainname_key),
@@ -162,7 +173,7 @@ namespace chess
                         {
                             if (_domain->_children[i]->_attached_domain_playerW == nullptr)
                             {
-                                _domain->_children[i]->_attached_domain_playerW = new DomainPlayer(_color_player, playername, _partition_key, _domain->_children[i]->_domainname_key, _domain->_children[i]->_instance_key);
+                                _domain->_children[i]->_attached_domain_playerW = new DomainPlayer(_color_player, playername, _ga_instance, _partition_key, _domain->_children[i]->_domainname_key, _domain->_children[i]->_instance_key);
                                 // recursion
                             }
                         }
@@ -170,7 +181,7 @@ namespace chess
                         {
                             if (_domain->_children[i]->_attached_domain_playerB == nullptr)
                             {
-                                _domain->_children[i]->_attached_domain_playerB = new DomainPlayer(_color_player, playername, _partition_key, _domain->_children[i]->_domainname_key, _domain->_children[i]->_instance_key);
+                                _domain->_children[i]->_attached_domain_playerB = new DomainPlayer(_color_player, playername, _ga_instance, _partition_key, _domain->_children[i]->_domainname_key, _domain->_children[i]->_instance_key);
                                 // recursion
                             }
                         }
@@ -226,7 +237,6 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     bool DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::save() const
     {
-        //std::string f = PersistManager::instance()->get_stream_name("player", persist_key(), playername());
         std::string f = PersistManager::instance()->get_stream_name("player", persist_key());
         std::ofstream   is;
         is.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
@@ -234,6 +244,8 @@ namespace chess
         {
             is << PieceColor_to_int(_color_player);  is << " ";
             is << playername();     is << " ";
+            is << ga_instance();    is << " ";
+            is << ga_fitness();     is << " ";
             is << _elo;             is << " ";
             is << _partition_key;   is << " ";
             is << _domainname_key;  is << " ";
@@ -301,6 +313,7 @@ namespace chess
         if (is.good())
         {
             int color;
+            uint32_t    ga_instance;
             std::string playername;
             std::string partition_key;
             std::string domainname_key;
@@ -309,6 +322,8 @@ namespace chess
 
             is >> color;
             is >> playername;
+            is >> ga_instance;
+            is >> _ga_fitness;
             is >> _elo;
             is >> partition_key;
             is >> domainname_key;
@@ -317,6 +332,7 @@ namespace chess
     
             assert(_color_player == int_to_PieceColor(color));
             assert(playername    == _playername);
+            assert(ga_instance == _ga_instance);
             assert(partition_key == _partition_key);
             assert(domainname_key == _domainname_key);
             assert(instance_key  == _instance_key);
@@ -353,6 +369,10 @@ namespace chess
             is.close();
             return true;
         }
+        std::cout << " good()=" << is.good();
+        std::cout << " eof()=" << is.eof();
+        std::cout << " fail()=" << is.fail();
+        std::cout << " bad()=" << is.bad();
         is.close();
         return false;
     }
@@ -474,6 +494,50 @@ namespace chess
         return ret_eval;
     }
 
+    // detachFromDomains()
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    bool DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>:: detachFromDomains()
+    {
+        if (this->_color_player == PieceColor::W)
+        {
+            if (this->_domain->_attached_domain_playerW != nullptr)
+            {
+                this->_domain->_attached_domain_playerW = nullptr;
+            }
+        }
+        else
+        {
+            if (this->_domain->_attached_domain_playerB != nullptr)
+            {
+                this->_domain->_attached_domain_playerB = nullptr;
+            }
+        }
+
+        for (size_t i = 0; i < this->_domain->_children.size(); i++)
+        {
+            {
+                if (this->_color_player == PieceColor::W)
+                {
+                    if (this->_domain->_children[i]->_attached_domain_playerW != nullptr)
+                    {
+                        this->_domain->_children[i]->_attached_domain_playerW->detachFromDomains();
+                        this->_domain->_children[i]->_attached_domain_playerW = nullptr;
+                        // recursion
+                    }
+                }
+                else
+                {
+                    if (this->_domain->_children[i]->_attached_domain_playerB != nullptr)
+                    {
+                        this->_domain->_children[i]->_attached_domain_playerB->detachFromDomains();
+                        this->_domain->_children[i]->_attached_domain_playerB = nullptr;
+                        // recursion
+                    }
+                }
+            }
+        }
+        return true;
+    }
 };
 
 #endif

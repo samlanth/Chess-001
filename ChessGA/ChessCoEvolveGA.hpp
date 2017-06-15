@@ -61,17 +61,21 @@ namespace chess
 
                         double fit = 0;
                         chess::ExactScore sc;
-                        for (size_t i = 0; i < 20; i++)
+                        for (size_t i = 0; i < 10; i++)
                         {
                             game.set_board(_playW->get_domain()->get_random_position(true));
                             if (_verbose > 2) game.print_nodes();
                             sc = game.play(_verbose, true);
                             if (sc == chess::ExactScore::WIN)       fit += 1.0;
                             else if (sc == chess::ExactScore::LOSS) fit += 0.0;
-                            else if (sc == chess::ExactScore::DRAW) fit += 0.5;        
+                            else if (sc == chess::ExactScore::DRAW) fit += 0.5;    
+                            if (_verbose > 0)
+                                std::cout << "score= " << fit << " / " << i + 1<< " game => n:" << game.num_pos_eval() << " ply: " << game.ply() << std::endl;
                         }
-                        std::cout << "score= " << fit << " / " << 20 << " Last game => n:" << game.num_pos_eval() << " ply: " << game.ply() << std::endl;
                     }
+
+                    _playW->save();
+                    _playB->save();
 
                 }
             }

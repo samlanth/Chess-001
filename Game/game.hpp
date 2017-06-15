@@ -20,6 +20,13 @@ namespace chess
         size_t      _max_num_position;
         uint16_t    _max_game_ply;
     };
+    std::ofstream& operator<<(std::ofstream& os, const BaseGame_Config& m)
+    {
+        os << m._w_max_num_position_per_move << " " << m._w_max_depth_per_move << " ";
+        os << m._b_max_num_position_per_move << " " << m._b_max_depth_per_move << " ";
+        os << m._max_num_position << " " << m._max_game_ply << " ";
+        return os;
+    }
 
     // BaseGame interface
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>

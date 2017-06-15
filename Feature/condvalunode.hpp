@@ -28,10 +28,11 @@ namespace chess
         using _BaseFeature = BaseFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _ConditionFeature = ConditionFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _ValuationFeature = ValuationFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
-
+        using _PlayerFactory = PlayerFactory<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        friend class _PlayerFactory;
         friend class _DomainPlayer;
 
-        const std::string NULLKEY = "NullKEY";
+        const std::string stringNULLKEY = "NULLKEY";
 
     public:
         ConditionValuationNode(ConditionValuationNode* parent, bool _is_positive_node, bool create_children):
@@ -287,49 +288,23 @@ namespace chess
     {
         if (is.good())
         {
-            is << _persist_key;         is << " ";
-            is << _is_positive_node;    is << " ";
-            is << _conditions.size();   is << " ";
-            for (auto& v : _conditions)
-            {
-                v->save(is);
-            }
-            is << _conditions_and_or.size();   is << " ";
-            for (auto v : _conditions_and_or)
-            {
-                is << v; is << " ";
-            }
-            is << _valuations.size();   is << " ";
-            for (auto& v : _valuations)
-            {
-                v->save(is);
-            }
-            is << _weights.size();   is << " ";
-            for (auto& v : _weights)
-            {
-                is << v; is << " ";
-            }
-
-            if (_parent != nullptr) { is << _parent->_persist_key; is << " "; }
-            else { is << "NULLKEY"; is << " "; }
-
-            if (_positive_child != nullptr) { is << _positive_child->_persist_key; is << " "; }
-            else { is << "NULLKEY"; is << " "; }
-
-            if (_negative_child != nullptr) { is << _negative_child->_persist_key; is << " "; }
-            else { is << "NULLKEY"; is << " "; }
-
-            if (_link_to_mirror != nullptr) { is << _link_to_mirror->_persist_key; is << " "; }
-            else { is << "NULLKEY"; is << " "; }
-
-            if (_positive_child != nullptr)
-            {
-                _positive_child->save(is);  // recursion
-            }
-            if (_negative_child != nullptr)
-            {
-                _negative_child->save(is);  // recursion
-            }
+            is << _persist_key;                         is << " ";
+            is << bool_to_int(_is_positive_node);       is << " ";
+            is << _conditions.size();                   is << " ";
+            for (auto& v : _conditions)                 v->save(is);
+            is << _conditions_and_or.size();            is << " ";
+            for (auto v : _conditions_and_or)           {is << bool_to_int(v); is << " "; }
+            is << _valuations.size();                   is << " ";
+            for (auto& v : _valuations)                 v->save(is);
+            is << _weights.size();                      is << " ";
+            for (auto& v : _weights)                    {is << v; is << " "; }
+            if (_parent != nullptr)                     { is << _parent->_persist_key;          is << " "; } else { is << stringNULLKEY; is << " "; }
+            if (_positive_child != nullptr)             { is << _positive_child->_persist_key;  is << " "; } else { is << stringNULLKEY; is << " "; }
+            if (_negative_child != nullptr)             { is << _negative_child->_persist_key;  is << " "; } else { is << stringNULLKEY; is << " "; }
+            if (_link_to_mirror != nullptr)             { is << _link_to_mirror->_persist_key;  is << " "; } else { is << stringNULLKEY; is << " "; }
+            
+            if (_positive_child != nullptr)             _positive_child->save(is);  // recursion
+            if (_negative_child != nullptr)             _negative_child->save(is);  // recursion
 
             is.close();
             return true;
@@ -358,16 +333,13 @@ namespace chess
     {
         if (is.good())
         {
-            size_t n;
-            std::string persist_key;
-            is >> persist_key;
+            std::string persist_key;    is >> persist_key;
             assert(persist_key == _persist_key);
 
-            is >> _is_positive_node;
+            int c; is >> c; _is_positive_node = int_to_bool(c);
 
             for (size_t i = 0; i < _conditions.size(); i++) _conditions[i] = nullptr; // not owner
-            _conditions.clear();
-            is >> n;
+            _conditions.clear(); size_t n; is >> n;
             for(size_t i=0; i< n; i++)
             {
                 _ConditionFeature* feature = _BaseFeature::get_cond(is);
@@ -375,18 +347,14 @@ namespace chess
                 _conditions.push_back(feature);
             }
 
-            _conditions_and_or.clear();
-            is >> n;
+            _conditions_and_or.clear(); is >> n;
             for (size_t i = 0; i< n; i++)
             {
-                bool v;
-                is >> v;
-                _conditions_and_or.push_back(v); 
+                is >> c; _conditions_and_or.push_back(int_to_bool(c));
             }
 
             for (size_t i = 0; i < _valuations.size(); i++) _valuations[i] = nullptr; // not owner
-            _valuations.clear();
-            is >> n;
+            _valuations.clear(); is >> n;
             for (size_t i = 0; i< n; i++)
             {
                 _ValuationFeature* feature = _BaseFeature::get_valu(is);
@@ -394,12 +362,10 @@ namespace chess
                 _valuations.push_back(feature);
             }
 
-            _weights.clear();
-            is >> n;
+            _weights.clear(); is >> n;
             for (size_t i = 0; i< n; i++)
             {
-                TYPE_PARAM v;
-                is >> v;
+                TYPE_PARAM v; is >> v;
                 _weights.push_back(v);
             }
 
@@ -414,7 +380,7 @@ namespace chess
             is >> _link_to_mirror_persist_key;
 
             std::map<std::string, ConditionValuationNode*> map_nodes;
-            if (_parent_persist_key == "NULLKEY")
+            if (_parent_persist_key == stringNULLKEY)
             {
                 _parent = nullptr;
             }
@@ -426,7 +392,7 @@ namespace chess
                 }
             }
 
-            if (_positive_child_persist_key == "NULLKEY")
+            if (_positive_child_persist_key == stringNULLKEY)
             {
                 _positive_child = nullptr;
             }
@@ -442,7 +408,7 @@ namespace chess
                 }
             }
 
-            if (_negative_child_persist_key == "NULLKEY")
+            if (_negative_child_persist_key == stringNULLKEY)
             {
                 _negative_child = nullptr;
             }
@@ -458,7 +424,7 @@ namespace chess
                 }
             }
 
-            if (_link_to_mirror_persist_key == "NULLKEY")
+            if (_link_to_mirror_persist_key == stringNULLKEY)
             {
                 _link_to_mirror = nullptr;
             }
@@ -480,28 +446,28 @@ namespace chess
             }
 
             // recheck
-            if ((_parent_persist_key != "NULLKEY") && (_parent == nullptr))
+            if ((_parent_persist_key != stringNULLKEY) && (_parent == nullptr))
             {
                 if (map_nodes[_parent_persist_key] != nullptr)
                 {
                     _parent = map_nodes[_parent_persist_key];
                 }
             }
-            if ((_positive_child_persist_key != "NULLKEY") && (_positive_child == nullptr))
+            if ((_positive_child_persist_key != stringNULLKEY) && (_positive_child == nullptr))
             {
                 if (map_nodes[_positive_child_persist_key] != nullptr)
                 {
                     _positive_child = map_nodes[_positive_child_persist_key];
                 }
             }
-            if ((_negative_child_persist_key != "NULLKEY") && (_negative_child == nullptr))
+            if ((_negative_child_persist_key != stringNULLKEY) && (_negative_child == nullptr))
             {
                 if (map_nodes[_negative_child_persist_key] != nullptr)
                 {
                     _negative_child = map_nodes[_negative_child_persist_key];
                 }
             }
-            if ((_link_to_mirror_persist_key != "NULLKEY") && (_link_to_mirror == nullptr))
+            if ((_link_to_mirror_persist_key != stringNULLKEY) && (_link_to_mirror == nullptr))
             {
                 if (map_nodes[_link_to_mirror_persist_key] != nullptr)
                 {

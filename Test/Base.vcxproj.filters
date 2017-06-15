@@ -123,5 +123,11 @@
     <ClInclude Include="..\Game\gamedb.hpp">
       <Filter>Game</Filter>
     </ClInclude>
+    <ClInclude Include="..\Core\util.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Player\playerfactory.hpp">
+      <Filter>Player</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
