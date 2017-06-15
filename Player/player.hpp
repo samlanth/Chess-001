@@ -76,21 +76,14 @@ namespace chess
     public:
         virtual ~DomainPlayer();
 
-        virtual GameDB<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>* get_game_db()
-        {
-            if (_domain != nullptr) 
-                return _domain->get_game_db(); 
-            else 
-                return nullptr; 
-        }
-
         virtual size_t      select_move_algo(   _Board& pos, std::vector<_Move>& m, size_t max_num_position_per_move, size_t max_num_position, uint16_t max_depth_per_move, uint16_t max_game_ply, size_t& num_pos_eval, char verbose)  override;
         virtual TYPE_PARAM  eval_position_algo( _Board& pos, std::vector<_Move>& m, char verbose = false)  override;
 
-        const std::string persist_key() const;
-        virtual bool save() const override;
-        virtual bool load() override;
-        bool detachFromDomains();
+        const std::string   persist_key() const;
+        virtual bool        save() const override;
+        virtual bool        load() override;
+        bool                detachFromDomains();
+        void                attachToDomains();
 
         std::string get_partition_key()     const { return _partition_key; }
         std::string get_domainname_key()    const { return _domainname_key; }
@@ -98,6 +91,7 @@ namespace chess
         _Domain*    get_domain()            const { return _domain; }
 
         _ConditionValuationNode* get_root() { return _root; }
+        virtual GameDB<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>* get_game_db();
 
     protected:
         TYPE_PARAM minimax(_Board& board, uint16_t depth, TYPE_PARAM alpha, TYPE_PARAM beta,
@@ -111,7 +105,8 @@ namespace chess
         std::string             _instance_key;      // domain instance - key part
 
         _Domain*                _domain;
-        _ConditionValuationNode* _root;             // The brain of the player that we evolve!
+        _ConditionValuationNode* _root;                     // The brain of the player that we evolve!
+        std::vector<_DomainPlayer*> _children_players;      // so can delete/attach/detach as needed
     };
 
 
@@ -152,17 +147,6 @@ namespace chess
             _domain = partition_ptr->find_domain(_Domain::domain_key(_domainname_key, instance_key));
             if (_domain != nullptr)
             {
-                if (_color_player == PieceColor::W)
-                {
-                    if (_domain->_attached_domain_playerW == nullptr)
-                     _domain->attach_domain_playerW(this);
-                }
-                else
-                {
-                    if (_domain->_attached_domain_playerB == nullptr)
-                        _domain->attach_domain_playerB(this);
-                }
-
                 _Domain* p_lookup_child_domain;
                 for (size_t i = 0; i < _domain->_children.size(); i++)
                 {
@@ -171,19 +155,15 @@ namespace chess
                     {
                         if (_color_player == PieceColor::W)
                         {
-                            if (_domain->_children[i]->_attached_domain_playerW == nullptr)
-                            {
-                                _domain->_children[i]->_attached_domain_playerW = new DomainPlayer(_color_player, playername, _ga_instance, _partition_key, _domain->_children[i]->_domainname_key, _domain->_children[i]->_instance_key);
-                                // recursion
-                            }
+                            _DomainPlayer* p = new DomainPlayer(_color_player, playername, _ga_instance, _partition_key, _domain->_children[i]->_domainname_key, _domain->_children[i]->_instance_key);
+                            _children_players.push_back(p);
+                            // recursion
                         }
                         else
                         {
-                            if (_domain->_children[i]->_attached_domain_playerB == nullptr)
-                            {
-                                _domain->_children[i]->_attached_domain_playerB = new DomainPlayer(_color_player, playername, _ga_instance, _partition_key, _domain->_children[i]->_domainname_key, _domain->_children[i]->_instance_key);
-                                // recursion
-                            }
+                            DomainPlayer* p = new DomainPlayer(_color_player, playername, _ga_instance, _partition_key, _domain->_children[i]->_domainname_key, _domain->_children[i]->_instance_key);
+                            _children_players.push_back(p);
+                            // recursion
                         }
                     }
                 }
@@ -195,33 +175,8 @@ namespace chess
     DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
     ::~DomainPlayer()
     {
-        if (_domain != nullptr)
-        {
-            for (size_t i = 0; i < _domain->_children.size(); i++)
-            {
-                if (_domain->_children[i] != nullptr)
-                {
-                    if (_color_player == PieceColor::W)
-                    {
-                        if (_domain->_children[i]->_attached_domain_playerW != nullptr)
-                        {
-                            delete _domain->_children[i]->_attached_domain_playerW;
-                            _domain->_children[i]->_attached_domain_playerW = nullptr;
-                            // recursion
-                        }
-                    }
-                    else
-                    {
-                        if (_domain->_children[i]->_attached_domain_playerB != nullptr)
-                        {
-                            delete _domain->_children[i]->_attached_domain_playerB;
-                            _domain->_children[i]->_attached_domain_playerB = nullptr;
-                            // recursion
-                        }
-                    }
-                }
-            }
-        }
+        detachFromDomains();
+        _children_players.clear();
         delete _root;
     }
 
@@ -233,7 +188,7 @@ namespace chess
     }
 
 
-    // DomainPlayer::save()
+    // save()
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     bool DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::save() const
     {
@@ -250,51 +205,10 @@ namespace chess
             is << _partition_key;   is << " ";
             is << _domainname_key;  is << " ";
             is << _instance_key;    is << " ";
-
             is << _root->persist_key();  is << " ";
-            _root->save_root();  // independant stream
-
-            _Partition* partition_ptr = _PartitionManager::instance()->find_partition(_partition_key);
-            if (partition_ptr != nullptr)
-            {
-                if (_domain != nullptr)
-                {
-                    if (_color_player == PieceColor::W)
-                    {
-                        if (_domain->_attached_domain_playerW != nullptr)
-                        {
-                            for (size_t i = 0; i < _domain->_children.size(); i++)
-                            {
-                                if (_domain->_children[i] != nullptr)
-                                {
-                                    if (_domain->_children[i]->_attached_domain_playerW != nullptr)
-                                    {
-                                        _domain->_children[i]->_attached_domain_playerW->save();
-                                        // recursion
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (_domain->_attached_domain_playerB != nullptr)
-                        {
-                            for (size_t i = 0; i < _domain->_children.size(); i++)
-                            {
-                                if (_domain->_children[i] != nullptr)
-                                {
-                                    if (_domain->_children[i]->_attached_domain_playerB != nullptr)
-                                    {
-                                        _domain->_children[i]->_attached_domain_playerB->save();
-                                        // recursion
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            _root->save_root(); 
+            is << _children_players.size(); is << " ";
+            for (auto& v : _children_players) v->save();
 
             is.close();
             return true;
@@ -330,40 +244,23 @@ namespace chess
             is >> instance_key;
             is >> root_persist_key;
     
-            assert(_color_player == int_to_PieceColor(color));
-            assert(playername    == _playername);
-            assert(ga_instance == _ga_instance);
-            assert(partition_key == _partition_key);
-            assert(domainname_key == _domainname_key);
-            assert(instance_key  == _instance_key);
+            assert(_color_player    == int_to_PieceColor(color));
+            assert(playername       == _playername);
+            assert(ga_instance      == _ga_instance);
+            assert(partition_key    == _partition_key);
+            assert(domainname_key   == _domainname_key);
+            assert(instance_key     == _instance_key);
     
             _root->set_persist_key(root_persist_key);
-            _root->load_root(); // root data was not load from DomainPlayer() constructor
+            _root->load_root();
 
-            _Partition* p_partition = _PartitionManager::instance()->find_partition(partition_key);
-            if (p_partition == nullptr) return false;
+            size_t n; is >> n;
+            assert(n == _children_players.size());
 
-            for (size_t i = 0; i < _domain->_children.size(); i++)
+            for (size_t i = 0; i < n; i++)
             {
-                if (_domain->_children[i] != nullptr)
-                {
-                    if (_color_player == PieceColor::W)
-                    {
-                        if (_domain->_children[i]->_attached_domain_playerW != nullptr)
-                        {
-                            _domain->_children[i]->_attached_domain_playerW->load();
-                            // recursion
-                        }
-                    }
-                    else
-                    {
-                        if (_domain->_children[i]->_attached_domain_playerB != nullptr)
-                        {
-                            _domain->_children[i]->_attached_domain_playerB->load();
-                            // recursion
-                        }
-                    }
-                }
+                _children_players[i]->load();
+                // recursion
             }
 
             is.close();
@@ -494,10 +391,21 @@ namespace chess
         return ret_eval;
     }
 
+    // ... may check if really detaching self from domain_attached_domain_playerW ...
     // detachFromDomains()
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     bool DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>:: detachFromDomains()
     {
+        _DomainPlayer* node;
+        for (auto& v : _children_players)
+        {
+            node = v;
+            if (node->_color_player == PieceColor::W)
+                node->_domain->_attached_domain_playerW = nullptr;
+            else
+                node->_domain->_attached_domain_playerB = nullptr;
+        }
+
         if (this->_color_player == PieceColor::W)
         {
             if (this->_domain->_attached_domain_playerW != nullptr)
@@ -512,31 +420,31 @@ namespace chess
                 this->_domain->_attached_domain_playerB = nullptr;
             }
         }
-
-        for (size_t i = 0; i < this->_domain->_children.size(); i++)
-        {
-            {
-                if (this->_color_player == PieceColor::W)
-                {
-                    if (this->_domain->_children[i]->_attached_domain_playerW != nullptr)
-                    {
-                        this->_domain->_children[i]->_attached_domain_playerW->detachFromDomains();
-                        this->_domain->_children[i]->_attached_domain_playerW = nullptr;
-                        // recursion
-                    }
-                }
-                else
-                {
-                    if (this->_domain->_children[i]->_attached_domain_playerB != nullptr)
-                    {
-                        this->_domain->_children[i]->_attached_domain_playerB->detachFromDomains();
-                        this->_domain->_children[i]->_attached_domain_playerB = nullptr;
-                        // recursion
-                    }
-                }
-            }
-        }
         return true;
+    }
+
+    // attachToDomains()
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    void DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::attachToDomains()
+    {
+        _DomainPlayer* node;
+        for (auto& v : _children_players)
+        {
+            node = v;
+            if (node->_color_player == PieceColor::W)
+                node->_domain->_attached_domain_playerW = node;
+            else
+                node->_domain->_attached_domain_playerB = node;
+        }
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    GameDB<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>* DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::get_game_db()
+    {
+        if (_domain != nullptr)
+            return _domain->get_game_db();
+        else
+            return nullptr;
     }
 };
 

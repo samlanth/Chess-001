@@ -17,6 +17,7 @@ namespace chess
     {
         CondFeatureSelection cond_s;
         ValuFeatureSelection valu_s;
+        bool cascading;
     };
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
@@ -61,7 +62,7 @@ namespace chess
 
         bool reconfigPlayerRoot(_DomainPlayer* player, const PlayerFactoryConfig& cfg) const
         {
-            if (player == nullptr)   return false;
+            if (player == nullptr) return true;
 
             size_t nc = _FeatureManager::instance()->count_cond_features();
             size_t nv = _FeatureManager::instance()->count_valu_features();
@@ -118,9 +119,13 @@ namespace chess
                     }
                     // child2 mirror node reuse child1 cond
 
-                    if (!config_children(player, cfg))
+                    if (cfg.cascading)
                     {
-                        return false;
+                        if (!reconfig_children(player, cfg))
+                        {
+                            //...
+                            return false;
+                        }
                     }
                     return true;
                 }
@@ -143,9 +148,13 @@ namespace chess
                             player->get_root()->add_weights(1.0);
                         }
                     }
-                    if (!config_children(player, cfg))
+                    if (cfg.cascading)
                     {
-                        return false;
+                        if (!reconfig_children(player, cfg))
+                        {
+                            //...
+                            return false;
+                        }
                     }
                     return true;
                 }
@@ -154,10 +163,11 @@ namespace chess
                     //...
                 }
             }
+            //...
             return false;
         }
 
-        bool config_children(_DomainPlayer* player, const PlayerFactoryConfig& cfg) const
+        bool reconfig_children(_DomainPlayer* player, const PlayerFactoryConfig& cfg) const
         {
             if (player == nullptr) return false;
             if (player->_domain == nullptr) return false;

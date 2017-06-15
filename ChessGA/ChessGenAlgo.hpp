@@ -224,6 +224,9 @@ namespace chess
         template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT, int WEIGHT_BOUND>
         void ChessGeneticAlgorithm<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT, WEIGHT_BOUND>::run(bool reentry)
         {
+            _player->attachToDomains();
+            _player_opposite->attachToDomains();
+
             this->check();
             if (!reentry)
             {
@@ -247,6 +250,9 @@ namespace chess
             const std::shared_ptr<Chromosome<TYPE_PARAM, PARAM_NBIT>>& best_player = pop.get_cur(0);
             std::vector<TYPE_PARAM> param_best = best_player->decode_param();
             set_player_term_nodes(_player_terminal_nodes, param_best);
+
+            _player->detachFromDomains();
+            _player_opposite->detachFromDomains();
         }
 
     };

@@ -40,6 +40,7 @@ namespace chess
 
         static bool             add_partition(_Partition* p);
         static _Partition*      find_partition(const std::string partition_name);
+        static void             remove_partition(const std::string partition_name);
 
         static const PartitionManager* instance();
         static bool make_classic_partition();       // Exemple
@@ -66,7 +67,10 @@ namespace chess
         {
             _Partition* p = new _Partition(ss_name.str());
             if (!PartitionManager::instance()->add_partition(p))
+            {
+                remove_partition(ss_name.str());
                 return false;
+            }
 
             // Try loading from disk
             if (p->load() == true)
@@ -127,6 +131,19 @@ namespace chess
         return nullptr;
     }
 
+    // remove_partition
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    void PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::remove_partition(const std::string partition_name)
+    {
+        if (_instance == nullptr) return;
+
+        auto& iter = _instance->_partitions.find(partition_name);
+        if (iter != _instance->_partitions.end())
+        {
+            _instance->_partitions.erase(iter);
+        }
+    }
+
     // add_partition
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     bool PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::add_partition(_Partition* p)
@@ -166,7 +183,7 @@ namespace chess
             _Partition* p = new _Partition(name);
             if (!PartitionManager::instance()->add_partition(p))
             {
-                // remove...
+                remove_partition(name);
                 delete p;
                 return nullptr;
             }
@@ -174,6 +191,7 @@ namespace chess
             // Try loading from disk
             if (p->load() == true)  return p;
    
+            remove_partition(name);
             delete p;
             return nullptr;
         }

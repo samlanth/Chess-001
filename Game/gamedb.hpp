@@ -197,8 +197,8 @@ namespace chess
             os << rec._total_num_nodes_explored;       os << " ";
             os << bool_to_int(rec._is_playW_internal); os << " ";
             os << bool_to_int(rec._is_playB_internal); os << " ";
-            os << NULLSTR(rec._playerW_persist_id);    os << " ";
-            os << NULLSTR(rec._playerB_persist_id);    os << " ";
+            os << toNULLSTR(rec._playerW_persist_id);    os << " ";
+            os << toNULLSTR(rec._playerB_persist_id);    os << " ";
             os << (int)rec._playerW_elo;               os << " ";
             os << (int)rec._playerB_elo;               os << " ";
             os << rec._game_config;                    os << " ";

@@ -42,7 +42,7 @@ namespace chess
     {
         os << (int)mu.x << " " << (int)mu.y << " " << (int)mu.len << " ";
         os << MoveUnit::FLAG_to_int(mu.flag) << " ";
-        os << NULLSTR(mu.context_extra) << " ";
+        os << toNULLSTR(mu.context_extra) << " ";
         return os;
     }
 

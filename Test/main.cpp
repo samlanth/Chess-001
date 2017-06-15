@@ -29,25 +29,27 @@ int main(int argc, char* argv[])
     // Test FeatureManager
     chess::FeatureManager<uint16_t, 6, float, 32>::instance();
 
-    // Prepare player
-    {
-        // Play few games        
+    // Prepare players
+    {      
         // 6x6 board
         {
             // Load a classic partition
             chess::Partition<uint8_t, 6, double, 16>* p_classic6 = chess::PartitionManager<uint8_t, 6, double, 16>::instance()->load_partition("classic6");
             if (p_classic6==nullptr)
             {
+                // Not found: create partition and save
                 chess::PartitionManager<uint8_t, 6, double, 16>::instance()->make_classic_partition();
                 p_classic6 = chess::PartitionManager<uint8_t, 6, double, 16>::instance()->find_partition("classic6");
                 assert(p_classic6 != nullptr);
+
+                p_classic6->save();
             }
             
             // Check KQvK domain exist in the partition
             chess::Domain< uint8_t, 6, double, 16>* p_domain = p_classic6->find_domain(chess::Domain<uint8_t, 6, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
             assert(p_domain != nullptr);
 
-            // Make 2 default (no brain) players
+            // Make 2 default players
             chess::DomainPlayer<uint8_t, 6, double, 16>* playW;
             chess::DomainPlayer<uint8_t, 6, double, 16>* playB;
             playW = new chess::DomainPlayer<uint8_t, 6, double, 16>(chess::PieceColor::W, std::string("wmind_oneall"), 0, "classic6", chess::Domain<uint8_t, 6, double, 16>::getDomainName(chess::eDomainName::KQvK), "0");
@@ -58,14 +60,14 @@ int main(int argc, char* argv[])
             if (false)
             {
                 // PlayerW+PlayerB [one conditional branch, all valu features]
-                player_config = { chess::CondFeatureSelection::one_random, chess::ValuFeatureSelection::all };
+                player_config = { chess::CondFeatureSelection::one_random, chess::ValuFeatureSelection::all, true };
                 chess::PlayerFactory<uint8_t, 6, double, 16>::instance()->reconfigPlayerRoot(playW, player_config);
                 chess::PlayerFactory<uint8_t, 6, double, 16>::instance()->reconfigPlayerRoot(playB, player_config);
             }
             else
             {
                 // PlayerW+PlayerB [no conditional branch, , all valu features]
-                player_config = { chess::CondFeatureSelection::none, chess::ValuFeatureSelection::all };
+                player_config = { chess::CondFeatureSelection::none, chess::ValuFeatureSelection::all, true };
                 chess::PlayerFactory<uint8_t, 6, double, 16>::instance()->reconfigPlayerRoot(playW, player_config);
                 chess::PlayerFactory<uint8_t, 6, double, 16>::instance()->reconfigPlayerRoot(playB, player_config);
             }

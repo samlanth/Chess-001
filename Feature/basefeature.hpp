@@ -61,8 +61,8 @@ namespace chess
         if (is.good())
         {
             is << FeatureType_to_int(_featureType);    is << " ";
-            is << NULLSTR(_classtype);           is << " ";
-            is << NULLSTR(_classtype_argument);  is << " ";
+            is << toNULLSTR(_classtype);           is << " ";
+            is << toNULLSTR(_classtype_argument);  is << " ";
             return true;
         }
         return false;
@@ -82,8 +82,8 @@ namespace chess
             int c; is >> c;
             int_to_FeatureType(c);
             featureType = int_to_FeatureType(c);
-            is >> classtype;
-            is >> classtype_argument;
+            is >> classtype;            fromNULLSTR(classtype);
+            is >> classtype_argument;   fromNULLSTR(classtype_argument);
 
             return _FeatureManager::get_cond_feature(classtype, classtype_argument);
         }
