@@ -46,7 +46,7 @@ namespace chess
         ConditionFeature_isOppositeKinCheck() : ConditionFeature()
         {
             _name = CondFeatureName::eConditionFeature_isOppositeKinCheck;
-            set_classtype( _FeatureManager::get_cond_feature_name(CondFeatureName::eConditionFeature_isOppositeKinCheck) );
+            set_classtype( _FeatureManager::instance()->get_cond_feature_name(CondFeatureName::eConditionFeature_isOppositeKinCheck) );
         }
         virtual ~ConditionFeature_isOppositeKinCheck() {};
         virtual bool check(const _Board& position, const std::vector<_Move>& m) const override
@@ -87,7 +87,7 @@ namespace chess
         ValuationFeature_numberMoveForPiece(const PieceName p, const PieceColor c) : _ValuationFeature() , _p(p), _c(c)
         { 
             _name = ValuFeatureName::eValuationFeature_numberMoveForPiece;
-            set_classtype(_FeatureManager::get_valu_feature_name(ValuFeatureName::eValuationFeature_numberMoveForPiece));
+            set_classtype(_FeatureManager::instance()->get_valu_feature_name(ValuFeatureName::eValuationFeature_numberMoveForPiece));
             PieceID id = _Piece::get_id(_p, _c);
             set_classtype_argument(std::to_string(id));
             if (_is_init == false)
@@ -142,7 +142,7 @@ namespace chess
         ValuationFeature_countCaptureKing(const PieceColor color): _c(color)
         {
             _name = ValuFeatureName::eValuationFeature_countCaptureKing;
-            set_classtype(_FeatureManager::get_valu_feature_name(ValuFeatureName::eValuationFeature_countCaptureKing));
+            set_classtype(_FeatureManager::instance()->get_valu_feature_name(ValuFeatureName::eValuationFeature_countCaptureKing));
 
             if (_c == PieceColor::W) set_classtype_argument("W");
             else set_classtype_argument("B");
@@ -154,13 +154,73 @@ namespace chess
 
         virtual TYPE_PARAM compute(const _Board& position, const std::vector<_Move>& m) const override
         {
-            if (position.get_color() == _c)
-                return (TYPE_PARAM) position.count_capture_king();
-            else
-                return (TYPE_PARAM) position.count_capture_opposite_king(m);
+            if (_c == position.get_color()) return (TYPE_PARAM)position.count_capture_king();
+            else                            return (TYPE_PARAM)position.count_capture_opposite_king(m);
         }
+
     private:
         PieceColor  _c;
+    };
+
+
+    // ValuationFeature_onEdge
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    class ValuationFeature_onEdge : public ValuationFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
+    {
+        using _Board    = Board<PieceID, _BoardSize>;
+        using _Move     = Move<PieceID>;
+        using _Piece    = Piece<PieceID, _BoardSize>;
+
+    public:
+        ValuationFeature_onEdge(const PieceName p, const PieceColor c) : _ValuationFeature(), _p(p), _c(c)
+        {
+            _name = ValuFeatureName::eValuationFeature_onEdge;
+            set_classtype(_FeatureManager::instance()->get_valu_feature_name(ValuFeatureName::eValuationFeature_onEdge));
+            PieceID id = _Piece::get_id(_p, _c);
+            set_classtype_argument(std::to_string(id));
+        }
+
+        virtual ~ValuationFeature_onEdge()
+        {
+        }
+
+        virtual TYPE_PARAM compute(const _Board& position, const std::vector<_Move>& m) const override
+        {
+            return (TYPE_PARAM)position.on_edge(_p, _c);
+        }
+
+        PieceName  piecename()  { return _p; }
+        PieceColor piececolor() { return _c; }
+
+    private:
+        PieceName   _p;
+        PieceColor  _c;
+    };
+
+    // ValuationFeature_distKK
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    class ValuationFeature_distKK : public ValuationFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
+    {
+        using _Board = Board<PieceID, _BoardSize>;
+        using _Move = Move<PieceID>;
+        using _Piece = Piece<PieceID, _BoardSize>;
+
+    public:
+        ValuationFeature_distKK() : _ValuationFeature()
+        {
+            _name = ValuFeatureName::eValuationFeature_distKK;
+            set_classtype(_FeatureManager::instance()->get_valu_feature_name(ValuFeatureName::eValuationFeature_distKK));
+            set_classtype_argument("");
+        }
+
+        virtual ~ValuationFeature_distKK()
+        {
+        }
+
+        virtual TYPE_PARAM compute(const _Board& position, const std::vector<_Move>& m) const override
+        {
+            return (TYPE_PARAM)position.dist(PieceName::K, PieceColor::W, PieceName::K, PieceColor::B);
+        }
     };
 
 };

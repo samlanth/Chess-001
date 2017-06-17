@@ -16,7 +16,7 @@ namespace chess
     enum class FeatureType      { condition = 0, valuation = 1 };
 
     static std::string  toNULLSTR(const std::string& s) { return (s.size() == 0) ? "NullSTR" : s; }
-    static void         fromNULLSTR(std::string& s)     { if (s.size() == 0) s = ""; }
+    static void         fromNULLSTR(std::string& s)     { if (s == "NullSTR") s = ""; }
 
     static int ExactScore_to_int(ExactScore c)
     {

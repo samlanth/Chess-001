@@ -52,6 +52,7 @@
     <ClInclude Include="..\GA\Randomize.hpp" />
     <ClInclude Include="..\Persistence\persist.hpp" />
     <ClInclude Include="..\Player\player.hpp" />
+    <ClInclude Include="..\Player\playerbase.hpp" />
     <ClInclude Include="..\Player\playerfactory.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

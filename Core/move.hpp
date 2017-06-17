@@ -164,7 +164,7 @@ namespace chess
         os << (int)m.src_x << " " << (int)m.src_y << " " << (int)m.dst_x << " " << (int)m.dst_y << " ";
         os << (int)m.prev_src_id << " " << (int)m.prev_dst_id << " ";
         os << (MoveUnit&)m.mu << " ";
-        for (size_t i = 0; i < 4; i++) { os << (int)m.state_castling[i] << " "; }
+        for (size_t i = 0; i < 4; i++)  { os << (int)m.state_castling[i] << " "; }
         for (size_t i = 0; i < 16; i++) { os << (int)m.state_ep[i]; if (i < 15) os << " "; }
         return os;
     }

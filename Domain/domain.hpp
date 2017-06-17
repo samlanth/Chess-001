@@ -277,7 +277,10 @@ namespace chess
         }
         bool is_valu_feature_valid(_ValuationFeature& f) const override
         {
-            if (f.name() == ValuFeatureName::eValuationFeature_numberMoveForPiece)
+            if (f.name() == ValuFeatureName::eValuationFeature_distKK) return true;
+
+            if ((f.name() == ValuFeatureName::eValuationFeature_numberMoveForPiece) ||
+                (f.name() == ValuFeatureName::eValuationFeature_onEdge))
             {
                 _ValuationFeature_numberMoveForPiece& r = (_ValuationFeature_numberMoveForPiece&)f;
                 if (r.piecename() == PieceName::K) return true;
@@ -380,7 +383,10 @@ namespace chess
         }
         bool is_valu_feature_valid(_ValuationFeature& f) const override
         {
-            if (f.name() == ValuFeatureName::eValuationFeature_numberMoveForPiece)
+            if (f.name() == ValuFeatureName::eValuationFeature_distKK) return true;
+
+            if ( (f.name() == ValuFeatureName::eValuationFeature_numberMoveForPiece)||
+                 (f.name() == ValuFeatureName::eValuationFeature_onEdge))
             {
                 _ValuationFeature_numberMoveForPiece& r = (_ValuationFeature_numberMoveForPiece&)f;
                 if      (r.piecename() == PieceName::K) return true;

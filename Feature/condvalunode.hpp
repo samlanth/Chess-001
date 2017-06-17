@@ -178,35 +178,35 @@ namespace chess
         bool load_root();
         bool load(std::ifstream& is);
 
-        TYPE_PARAM get_valuations_value(const _Board& position, const std::vector<_Move>& m, char verbose) const
+        TYPE_PARAM get_valuations_value(const _Board& position, const std::vector<_Move>& m, char verbose, std::stringstream& verbose_stream) const
         {
             assert(_weights.size() >= _valuations.size());
 
             TYPE_PARAM c = 0;
             TYPE_PARAM v = 0;
 
-            if (verbose > 1) std::cout << _is_positive_node << " ";
+            if (verbose > 2) verbose_stream << _is_positive_node << " ";
             for (size_t i = 0; i < _valuations.size(); i++)
             {
                 v = _valuations[i]->compute(position, m);
                 c += (v * _weights[i]);
-                if (verbose > 1)
+                if (verbose > 2)
                 {
-                    std::cout << v << "*" << _weights[i] << " ";
+                    verbose_stream << v << "*" << _weights[i] << " ";
                 }
             }
-            if (verbose > 1) std::cout << "(" << c << "," << sigmoid(c) << ")" << std::endl;
+            if (verbose > 2) verbose_stream << "(" << c << "," << sigmoid(c) << ")" << std::endl;
             return sigmoid(c);
         }
 
-        bool eval_position(const _Board& position, const std::vector<_Move>& m, TYPE_PARAM& ret_eval, char verbose) const
+        bool eval_position(const _Board& position, const std::vector<_Move>& m, TYPE_PARAM& ret_eval, char verbose, std::stringstream& verbose_stream) const
         {
             _ConditionValuationNode* terminal_node = get_terminal_node(position, m);
             if (terminal_node == nullptr)
             {
                 return false;
             }
-            ret_eval = terminal_node->get_valuations_value(position, m, verbose);
+            ret_eval = terminal_node->get_valuations_value(position, m, verbose, verbose_stream);
             return true;
         }
 

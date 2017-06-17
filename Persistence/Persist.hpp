@@ -79,7 +79,7 @@ namespace chess
             return filename;
         }
 
-        static const std::string create_persist_key()
+        std::string create_persist_key() const
         {
             _persist_key_counter++;
             std::stringstream ss;
@@ -88,7 +88,7 @@ namespace chess
             return ss.str();
         }
 
-        static bool save()
+        bool save() const
         {
             std::string f = _root_folder + "persistmanager" + ".txt";
             std::ofstream   is;
@@ -122,7 +122,7 @@ namespace chess
             return false;
         }
 
-        static bool dirExists(const std::string& dirName_in)
+        bool dirExists(const std::string& dirName_in) const
         {
             DWORD ftyp = GetFileAttributesA(dirName_in.c_str());
             if (ftyp == INVALID_FILE_ATTRIBUTES) return false;

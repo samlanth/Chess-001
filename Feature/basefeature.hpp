@@ -11,14 +11,14 @@
 
 namespace chess
 {
-    //enum class FeatureType { condition = 0, valuation = 1 };
-
     enum class CondFeatureName :int {
         eConditionFeature_isOppositeKinCheck
     };
     enum class ValuFeatureName :int {
         eValuationFeature_numberMoveForPiece,
-        eValuationFeature_countCaptureKing
+        eValuationFeature_countCaptureKing,
+        eValuationFeature_onEdge,
+        eValuationFeature_distKK
     };
 
     // Feature
@@ -85,7 +85,7 @@ namespace chess
             is >> classtype;            fromNULLSTR(classtype);
             is >> classtype_argument;   fromNULLSTR(classtype_argument);
 
-            return _FeatureManager::get_cond_feature(classtype, classtype_argument);
+            return _FeatureManager::instance()->get_cond_feature(classtype, classtype_argument);
         }
         return nullptr;
     }
@@ -104,10 +104,10 @@ namespace chess
             int c; is >> c;
             int_to_FeatureType(c);
             featureType = int_to_FeatureType(c);
-            is >> classtype;
-            is >> classtype_argument;
+            is >> classtype; fromNULLSTR(classtype);
+            is >> classtype_argument; fromNULLSTR(classtype_argument);
 
-            return _FeatureManager::get_valu_feature(classtype, classtype_argument);
+            return _FeatureManager::instance()->get_valu_feature(classtype, classtype_argument);
         }
         return nullptr;
     }

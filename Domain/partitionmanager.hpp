@@ -35,15 +35,15 @@ namespace chess
             }
         }
 
-    public:
-        static _Partition*      load_partition(const std::string& name);
-
-        static bool             add_partition(_Partition* p);
-        static _Partition*      find_partition(const std::string partition_name);
-        static void             remove_partition(const std::string partition_name);
-
         static const PartitionManager* instance();
-        static bool make_classic_partition();       // Exemple
+
+    public:
+        _Partition*     load_partition(const std::string& name) const;
+        bool            add_partition(_Partition* p)const;
+        _Partition*     find_partition(const std::string partition_name) const;
+        void            remove_partition(const std::string partition_name) const;
+
+        bool            make_classic_partition() const;       // Exemple
 
     private:
         std::map<std::string, _Partition*>          _partitions;    // TODO std_unique<> ...
@@ -56,7 +56,7 @@ namespace chess
 
     // make_classic_partition
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    bool PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::make_classic_partition()
+    bool PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::make_classic_partition() const
     {
         std::stringstream ss_name;
         ss_name << "classic" << std::to_string(_BoardSize);
@@ -119,7 +119,7 @@ namespace chess
     // find_partition
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>* 
-    PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::find_partition(const std::string partition_name)
+    PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::find_partition(const std::string partition_name) const
     {
         if (_instance == nullptr) return nullptr;
 
@@ -133,7 +133,7 @@ namespace chess
 
     // remove_partition
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    void PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::remove_partition(const std::string partition_name)
+    void PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::remove_partition(const std::string partition_name) const
     {
         if (_instance == nullptr) return;
 
@@ -146,7 +146,7 @@ namespace chess
 
     // add_partition
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    bool PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::add_partition(_Partition* p)
+    bool PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::add_partition(_Partition* p) const
     {
         if (_instance == nullptr) return false;
 
@@ -174,7 +174,7 @@ namespace chess
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT> * 
-    PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::load_partition(const std::string& name)
+    PartitionManager<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::load_partition(const std::string& name) const
     {
         // Check if in memory
         _Partition* pp = PartitionManager::instance()->find_partition(name);

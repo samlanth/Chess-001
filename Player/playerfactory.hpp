@@ -92,7 +92,7 @@ namespace chess
                     for (size_t i = 0; i < nv; i++)
                     {
                         v = _FeatureManager::instance()->get_valu_feature(i);
-                        if (player->get_domain()->is_valu_feature_valid(*v))
+                        if (player->domain()->is_valu_feature_valid(*v))
                         {
                             child1->add_valuations(_FeatureManager::instance()->get_valu_feature(i));
                             child1->add_weights(1.0);
@@ -101,7 +101,7 @@ namespace chess
                     for (size_t i = 0; i < nv; i++)
                     {
                         v = _FeatureManager::instance()->get_valu_feature(i);
-                        if (player->get_domain()->is_valu_feature_valid(*v))
+                        if (player->domain()->is_valu_feature_valid(*v))
                         {
                             child2->add_valuations(_FeatureManager::instance()->get_valu_feature(i));
                             child2->add_weights(1.0);
@@ -142,7 +142,7 @@ namespace chess
                     for (size_t i = 0; i < nv; i++)
                     {
                         v = _FeatureManager::instance()->get_valu_feature(i);
-                        if (player->get_domain()->is_valu_feature_valid(*v))
+                        if (player->domain()->is_valu_feature_valid(*v))
                         {
                             player->get_root()->add_valuations(_FeatureManager::instance()->get_valu_feature(i));
                             player->get_root()->add_weights(1.0);
@@ -167,41 +167,14 @@ namespace chess
             return false;
         }
 
+        // reconfig_children
         bool reconfig_children(_DomainPlayer* player, const PlayerFactoryConfig& cfg) const
         {
-            if (player == nullptr) return false;
-            if (player->_domain == nullptr) return false;
-
-            _Partition* partition_ptr = _PartitionManager::instance()->find_partition(player->_domain->_partition_key);
-            if (partition_ptr == nullptr) return false;
-
-            _Domain* p_lookup_child_domain;
-            for (size_t i = 0; i < player->_domain->_children.size(); i++)
-            {                
-                p_lookup_child_domain = partition_ptr->find_domain(_Domain::domain_key(player->_domain->_children[i]->_domainname_key, player->_domain->_children[i]->_instance_key));
-                if (p_lookup_child_domain != nullptr)
-                {
-                    if (player->_color_player == PieceColor::W)
-                    {
-                        if (player->_domain->_children[i]->_attached_domain_playerW != nullptr)
-                        {
-                            reconfigPlayerRoot(player->_domain->_children[i]->_attached_domain_playerW,cfg);
-                            // recursion
-                        }
-                    }
-                    else
-                    {
-                        if (player->_domain->_children[i]->_attached_domain_playerB != nullptr)
-                        {
-                            reconfigPlayerRoot(player->_domain->_children[i]->_attached_domain_playerB, cfg);
-                            // recursion
-                        }
-                    }
-                }
-                else
-                {
-                    return false;
-                }
+            if (player == nullptr) return true;
+            for (auto& v : player->_children_players)
+            {
+                reconfigPlayerRoot(v, cfg);
+                // recursion
             }
             return true;
         }
@@ -213,7 +186,5 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     std::unique_ptr<PlayerFactory<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>>
     PlayerFactory<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::_instance = nullptr;
-
-
 }
 #endif

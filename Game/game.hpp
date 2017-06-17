@@ -48,7 +48,6 @@ namespace chess
         void set_board(_Board& initial_position)    { _initial_position = initial_position; }
 
         virtual ExactScore play(char verbose = false, bool save = false);
-        void print_nodes() const;
 
         _DomainPlayer&  playerW() { return _playerW; }
         _DomainPlayer&  playerB() { return _playerB; }
@@ -56,6 +55,12 @@ namespace chess
         bool save(_Board& play_board) const;
         size_t num_pos_eval() const { return _num_pos_eval; }
         size_t ply() const { return _ply; }
+        size_t saved_index() const { return _saved_index; }
+        void set_saved_index(size_t idx) const{ _saved_index = idx; }
+        bool save_ss() const;
+        const std::string ss() const { return _ss.str(); }
+
+        void reset_game();
 
    protected:
         _DomainPlayer&          _playerW;
@@ -68,6 +73,8 @@ namespace chess
         ExactScore              _score = ExactScore::UNKNOWN;
         size_t                  _num_pos_eval = 0;
         size_t                  _ply = 0;
+        mutable size_t          _saved_index;
+        std::stringstream       _ss;
     };
 
     // BaseGame()
@@ -75,6 +82,19 @@ namespace chess
     BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
     ::BaseGame(_DomainPlayer& playerW, _DomainPlayer& playerB) : _playerW(playerW), _playerB(playerB)
     {
+        _saved_index = 0;
+    }
+
+    // reset_game
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    inline void BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::reset_game()
+    {
+        _score = ExactScore::UNKNOWN;
+        _num_pos_eval = 0;
+        _ply = 0;
+        _saved_index = 0;
+        _ss.clear();
+        _ss = std::stringstream();
     }
 
     // play()
@@ -86,15 +106,15 @@ namespace chess
 
         _Board board = _initial_position;
         _initial_color = board.get_color();
+        reset_game();
 
         if (verbose > 1)
         {
-            std::cout << "ply:" << board.get_histo_size() << std::endl;
-            if (board.is_in_check())  std::cout << "in_check " << std::endl;
-            std::cout << board.to_str() << std::endl;
+            _ss << "ply:" << board.get_histo_size() << std::endl;
+            if (board.is_in_check())  _ss << "in_check " << std::endl;
+            _ss << board.to_str() << std::endl;
         }
 
-        _num_pos_eval = 0;
         while (true)
         {
             _ply = board.get_histo_size();
@@ -113,38 +133,19 @@ namespace chess
             }
 
             // select_move_algo()
-            if (board.get_color() == PieceColor::W)
-                move_idx = _playerW.select_move_algo(board, m, _config._w_max_num_position_per_move, _config._max_num_position, _config._w_max_depth_per_move, _config._max_game_ply, _num_pos_eval, verbose);
-            else
-                move_idx = _playerB.select_move_algo(board, m, _config._b_max_num_position_per_move, _config._max_num_position, _config._b_max_depth_per_move, _config._max_game_ply, _num_pos_eval, verbose);
+            if (board.get_color() == PieceColor::W) move_idx = _playerW.select_move_algo(board, m, _config._w_max_num_position_per_move, _config._max_num_position, _config._w_max_depth_per_move, _config._max_game_ply, _num_pos_eval, verbose, _ss);
+            else                                    move_idx = _playerB.select_move_algo(board, m, _config._b_max_num_position_per_move, _config._max_num_position, _config._b_max_depth_per_move, _config._max_game_ply, _num_pos_eval, verbose, _ss);
 
             assert(move_idx < m.size());
             board.apply_move(m[move_idx]);
 
             if (verbose > 1)
             {
-                std::cout << "ply:" << board.get_histo_size() << std::endl;
-                if (board.is_in_check())  std::cout << "in_check " << std::endl;
-                std::cout << board.to_str() << std::endl;
+                _ss << "ply:" << board.get_histo_size() << std::endl;
+                if (board.is_in_check())  _ss << "in_check " << std::endl;
+                _ss << board.to_str() << std::endl;
             }
         }
-    }
-
-    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    inline void BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::print_nodes() const
-    {
-        for (int i = 0; i < _playerW.get_root()->positive_child()->weights().size(); i++)
-            std::cout << _playerW.get_root()->positive_child()->weights().at(i) << " ";
-        std::cout << " : ";
-        for (int i = 0; i < _playerW.get_root()->negative_child()->weights().size(); i++)
-            std::cout << _playerW.get_root()->negative_child()->weights().at(i) << " ";
-        std::cout << std::endl;
-        for (int i = 0; i < _playerB.get_root()->positive_child()->weights().size(); i++)
-            std::cout << _playerB.get_root()->positive_child()->weights().at(i) << " ";
-        std::cout << " : ";
-        for (int i = 0; i < _playerB.get_root()->negative_child()->weights().size(); i++)
-            std::cout << _playerB.get_root()->negative_child()->weights().at(i) << " ";
-        std::cout << std::endl;
     }
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
@@ -165,10 +166,28 @@ namespace chess
         rec._playerB_elo = 0;
         rec._game_config = _config;
 
-        _GameDB* db = _playerW.get_domain()->get_game_db();
-        return db->store_game(rec);
+        _GameDB* db = _playerW.domain()->get_game_db();
+        size_t saved_index;
+        bool r = db->store_game(rec, saved_index);
+        this->set_saved_index(saved_index);
+        return r;
     }
 
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    inline bool BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::save_ss() const
+    {
+        std::string f = PersistManager::instance()->get_stream_name("gamedisplay", std::to_string(_saved_index));
+        std::ofstream os;
+        os.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
+        if (os.good())
+        {
+            os << _ss.str() << std::endl;
+            os.close();
+            return true;
+        }
+        os.close();
+        return false;
+    }
 };
 
 #endif

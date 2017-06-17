@@ -46,12 +46,28 @@ namespace chess
             {
                 for (size_t i = 0; i < _num_iter; i++)
                 {
-                    if (_verbose) std::cout << "----------------------------\n" << "iter : " << i + 1 << " ";
+                    if (_verbose) 
+                        std::cout << "------------------------------------\n" << "ChessCoEvolveGA (" << _gaW->_player->domainname_key() << ") iteration : " << i + 1 << "\n";
+
+                    if (_verbose)
+                    {
+                        _playW->print_nodes();
+                        _playB->print_nodes();
+                    }
+
                     _gaW->setup_params();
                     _gaW->run((i>0)?true:false);
 
                     _gaB->setup_params();
                     _gaB->run((i>0) ? true : false);
+
+                    if (_verbose)
+                    {
+                        std::cout << "W population best fitness: " << _playW->ga_fitness() << std::endl;
+                        std::cout << "B population best fitness: " << _playB->ga_fitness() << std::endl;
+                        _playW->print_nodes();
+                        _playB->print_nodes();
+                    }
 
                     if (_verbose)
                     {
@@ -63,20 +79,21 @@ namespace chess
                         chess::ExactScore sc;
                         for (size_t i = 0; i < 10; i++)
                         {
-                            game.set_board(_playW->get_domain()->get_random_position(true));
-                            if (_verbose > 2) game.print_nodes();
+                            game.set_board(_playW->domain()->get_random_position(true));
+                            _verbose++;
                             sc = game.play(_verbose, true);
+                            _verbose--;
                             if (sc == chess::ExactScore::WIN)       fit += 1.0;
                             else if (sc == chess::ExactScore::LOSS) fit += 0.0;
                             else if (sc == chess::ExactScore::DRAW) fit += 0.5;    
                             if (_verbose > 0)
-                                std::cout << "score= " << fit << " / " << i + 1<< " game => n:" << game.num_pos_eval() << " ply: " << game.ply() << std::endl;
+                            {
+                                std::cout << "score= " << fit << " / " << i + 1 << " game(" << game.saved_index() << ") => n:" << game.num_pos_eval() << " ply: " << game.ply() << std::endl;
+                                if (game.ss().size() > 0)
+                                    game.save_ss();
+                            }
                         }
                     }
-
-                    _playW->save();
-                    _playB->save();
-
                 }
             }
 
@@ -88,8 +105,8 @@ namespace chess
             _ChessGeneticAlgorithm* _gaB;
 
             BaseGame_Config _cfg;
-            size_t _num_iter;
-            char _verbose;
+            size_t          _num_iter;
+            char            _verbose;
         };
 
     };

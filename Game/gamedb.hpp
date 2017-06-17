@@ -15,7 +15,8 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     struct GameDB_Record
     {
-        std::string _signature = "----";
+        std::string     _signature = "----";
+        mutable size_t  _game_index;
         uint8_t     _status;                            // (0=completed, tobe_removed, game_in_progress)
         Board<PieceID, _BoardSize> _board;
         PieceColor  _initial_color;
@@ -61,7 +62,7 @@ namespace chess
         _DomainPlayer* domain() { return _domain; }
 
         //GameDB_Record     get_game(size_t index);
-        bool        store_game(const _GameDB_Record& rec);
+        bool        store_game(const _GameDB_Record& rec, size_t& ret_index);
         //bool      remove_game(size_t index)
         //bool      load_pgn_file(const std::string filename);
 
@@ -151,7 +152,7 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    bool GameDB<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::store_game(const _GameDB_Record& rec)
+    bool GameDB<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::store_game(const _GameDB_Record& rec, size_t& ret_index)
     {
         if (_status != 0) return false;
         std::string f = PersistManager::instance()->get_stream_name("gamedb", _db_keyname);
@@ -159,10 +160,13 @@ namespace chess
         os.open(f.c_str(), std::ofstream::out | std::ofstream::trunc); 
         if (os.good())
         {
+            rec._game_index = _size + 1;
             if (store_game_rec(rec))
             {
                 _size++;
-                _vector_index_rec.push_back(_pos_rec_file);
+                _vector_index_rec.push_back(_pos_rec_file); ret_index = _size;
+                assert(_size == _vector_index_rec.size());
+
                 os << _partition_key;  os << " ";
                 os << _domainname_key; os << " ";
                 os << _instance_key;   os << " ";
@@ -190,6 +194,7 @@ namespace chess
             _pos_rec_file = os.tellp();
 
             os << rec._signature;                       os << " ";
+            os << rec._game_index;                      os << " ";
             os << (int)rec._status;                     os << " ";
             os << rec._board;                           os << " ";
             os << PieceColor_to_int(rec._initial_color);  os << " ";
@@ -201,7 +206,7 @@ namespace chess
             os << toNULLSTR(rec._playerB_persist_id);    os << " ";
             os << (int)rec._playerW_elo;               os << " ";
             os << (int)rec._playerB_elo;               os << " ";
-            os << rec._game_config;                    os << " ";
+            os << rec._game_config;                    os << "\n";
 
             os.close();
             return true;

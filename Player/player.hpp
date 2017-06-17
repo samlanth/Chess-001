@@ -17,41 +17,7 @@
 
 namespace chess
 {
-    // BasePlayer interface
-    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    class BasePlayer
-    {
-        using _Board = Board<PieceID, _BoardSize>;
-        using _Move = Move<PieceID>;
-        using _BasePlayer = BasePlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
-
-    public:
-        BasePlayer(const std::string& playername, uint32_t ga_instance = 0) : _playername(playername) , _ga_instance(ga_instance), _ga_fitness(0), _PARAM_NBIT(PARAM_NBIT){}
-        virtual ~BasePlayer() {}
-
-        // Genetic Algo would play games between population members by calling select_move_algo() for fitness evolution
-        virtual size_t      select_move_algo(    _Board& board, std::vector<_Move>& m, size_t max_num_position_per_move, size_t max_num_position, uint16_t max_depth_per_move, uint16_t max_game_ply, size_t& num_pos_eval, char verbose = 0) = 0;
-        virtual TYPE_PARAM  eval_position_algo(  _Board& board, std::vector<_Move>& m, char verbose = false) = 0;
-
-        // Persistence
-        virtual bool save() const = 0;
-        virtual bool load() = 0;
-
-        const std::string   playername()    const   { return _playername; }
-        uint32_t            ga_instance()   const   { return _ga_instance; }
-        TYPE_PARAM          ga_fitness()    const   { return _ga_fitness; }
-        const size_t        param_NBIT()    const   { return _PARAM_NBIT; }
-        const size_t        elo()           const   { return _elo; }
-
-    protected:
-        std::string     _playername;
-        uint32_t        _ga_instance;   // position in a GA population - 0 default
-        TYPE_PARAM      _ga_fitness;    // last fitness given by ga
-        size_t          _PARAM_NBIT;
-        uint16_t        _elo = 0;       // todo..
-    };
-
-    // Player (player attached to a domain and calling its child domain players as the position requires)
+    // Player (player specialized for a domain and calling its child domain players as the position requires)
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     class DomainPlayer : public BasePlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
     {
@@ -76,19 +42,22 @@ namespace chess
     public:
         virtual ~DomainPlayer();
 
-        virtual size_t      select_move_algo(   _Board& pos, std::vector<_Move>& m, size_t max_num_position_per_move, size_t max_num_position, uint16_t max_depth_per_move, uint16_t max_game_ply, size_t& num_pos_eval, char verbose)  override;
-        virtual TYPE_PARAM  eval_position_algo( _Board& pos, std::vector<_Move>& m, char verbose = false)  override;
+        virtual size_t      select_move_algo(   _Board& pos, std::vector<_Move>& m, size_t max_num_position_per_move, size_t max_num_position, uint16_t max_depth_per_move, uint16_t max_game_ply, size_t& num_pos_eval, char verbose, std::stringstream& verbose_stream)  override;
+        virtual TYPE_PARAM  eval_position_algo( _Board& pos, std::vector<_Move>& m, char verbose, std::stringstream& verbose_stream)  override;
 
-        const std::string   persist_key() const;
         virtual bool        save() const override;
         virtual bool        load() override;
+
         bool                detachFromDomains();
         void                attachToDomains();
 
-        std::string get_partition_key()     const { return _partition_key; }
-        std::string get_domainname_key()    const { return _domainname_key; }
-        std::string get_instance_key()      const { return _instance_key; }
-        _Domain*    get_domain()            const { return _domain; }
+        std::string partition_key()     const { return _partition_key; }
+        std::string domainname_key()    const { return _domainname_key; }
+        std::string instance_key()      const { return _instance_key; }
+        _Domain*    domain()            const { return _domain; }
+
+        const std::string   persist_key() const;
+        void                print_nodes() const;
 
         _ConditionValuationNode* get_root() { return _root; }
         virtual GameDB<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>* get_game_db();
@@ -97,34 +66,17 @@ namespace chess
         TYPE_PARAM minimax(_Board& board, uint16_t depth, TYPE_PARAM alpha, TYPE_PARAM beta,
                             bool isMaximizing, size_t max_num_node_per_move, size_t max_num_node, uint16_t max_game_ply,
                             size_t& ret_mv_idx, size_t& cnt_num_position_per_move, size_t& num_pos_eval,
-                            bool is_recursive_entry, char verbose);
+                            bool is_recursive_entry, char verbose, std::stringstream& verbose_stream);
+
+        bool is_same_domain(const DomainPlayer* p) const;
 
         PieceColor              _color_player;
         std::string             _partition_key;     // partition context
         std::string             _domainname_key;    // domain name - key part
         std::string             _instance_key;      // domain instance - key part
-
         _Domain*                _domain;
         _ConditionValuationNode* _root;                     // The brain of the player that we evolve!
-        std::vector<_DomainPlayer*> _children_players;      // so can delete/attach/detach as needed
-    };
-
-
-    // Exemple
-    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    class NullPlayer : public BasePlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
-    {
-        using _Board = Board<PieceID, _BoardSize>;
-        using _Move = Move<PieceID>;;
-
-    public:
-        NullPlayer() : BasePlayer("NULLPlayer"){}
-
-        size_t      select_move_algo(   _Board& board, std::vector<_Move>& m, size_t max_num_position_per_move, size_t max_num_position, uint16_t max_depth_per_move, uint16_t max_game_ply, size_t& num_pos_eval, char verbose) override { return 0; }
-        TYPE_PARAM  eval_position_algo( _Board& board, std::vector<_Move>& m, char verbose = false) override { return 0; }
-
-        bool save() const           override { return false; }
-        bool load()                 override { return false; }
+        std::vector<_DomainPlayer*> _children_players;      // can delete/attach/detach as needed
     };
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
@@ -153,18 +105,9 @@ namespace chess
                     p_lookup_child_domain = partition_ptr->find_domain(_Domain::domain_key(_domain->_children[i]->_domainname_key, _domain->_children[i]->_instance_key));
                     if (p_lookup_child_domain != nullptr)
                     {
-                        if (_color_player == PieceColor::W)
-                        {
-                            _DomainPlayer* p = new DomainPlayer(_color_player, playername, _ga_instance, _partition_key, _domain->_children[i]->_domainname_key, _domain->_children[i]->_instance_key);
-                            _children_players.push_back(p);
-                            // recursion
-                        }
-                        else
-                        {
-                            DomainPlayer* p = new DomainPlayer(_color_player, playername, _ga_instance, _partition_key, _domain->_children[i]->_domainname_key, _domain->_children[i]->_instance_key);
-                            _children_players.push_back(p);
-                            // recursion
-                        }
+                        _DomainPlayer* p = new DomainPlayer(_color_player, playername, _ga_instance, _partition_key, _domain->_children[i]->_domainname_key, _domain->_children[i]->_instance_key);
+                        _children_players.push_back(p);
+                        // recursion
                     }
                 }
             }
@@ -172,8 +115,7 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
-    DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>
-    ::~DomainPlayer()
+    DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::~DomainPlayer()
     {
         detachFromDomains();
         _children_players.clear();
@@ -186,7 +128,6 @@ namespace chess
     {
         return playername() + "_" + _partition_key + "_" + _domainname_key + "_" + _instance_key;
     }
-
 
     // save()
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
@@ -217,7 +158,7 @@ namespace chess
         return false;
     }
 
-    // DomainPlayer::load()
+    // load()
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     bool DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::load()
     {
@@ -252,7 +193,11 @@ namespace chess
             assert(instance_key     == _instance_key);
     
             _root->set_persist_key(root_persist_key);
-            _root->load_root();
+            if (!_root->load_root())
+            {
+                is.close();
+                return false;
+            }
 
             size_t n; is >> n;
             assert(n == _children_players.size());
@@ -266,10 +211,6 @@ namespace chess
             is.close();
             return true;
         }
-        std::cout << " good()=" << is.good();
-        std::cout << " eof()=" << is.eof();
-        std::cout << " fail()=" << is.fail();
-        std::cout << " bad()=" << is.bad();
         is.close();
         return false;
     }
@@ -280,22 +221,33 @@ namespace chess
     minimax(_Board& board, uint16_t depth, TYPE_PARAM a, TYPE_PARAM b, bool isMaximizing, 
             size_t max_num_position_per_move, size_t max_num_node, uint16_t max_game_ply,
             size_t& ret_mv_idx, size_t& cnt_num_position_per_move, size_t& cnt_num_pos_eval, 
-            bool is_recursive_entry, char verbose)
+            bool is_recursive_entry, char verbose, std::stringstream& verbose_stream)
     {
         size_t best_a_idx = 0;
         size_t best_b_idx = 0;
 
         std::vector<_Move> m = board.generate_moves();
-        if ((depth == 0) || (board.is_final(m)) || (cnt_num_position_per_move >= max_num_position_per_move) || (cnt_num_pos_eval >= max_num_node) || (board.get_histo_size() >= max_game_ply))
+        if (board.is_final(m))
+        {
+            ExactScore sc = board.final_score(m);
+            assert(sc != ExactScore::UNKNOWN);
+            if (sc == ExactScore::WIN)  return (TYPE_PARAM)+1.0;
+            if (sc == ExactScore::LOSS) return (TYPE_PARAM)+0.0;
+            return (TYPE_PARAM)+0.5;
+        }
+        else if (   (depth == 0) || 
+                    (cnt_num_position_per_move >= max_num_position_per_move) || 
+                    (cnt_num_pos_eval >= max_num_node) || 
+                    (board.get_histo_size() >= max_game_ply))
         {
             cnt_num_pos_eval++;
             cnt_num_position_per_move++;
-            if (verbose > 1)
+            if (verbose > 2)
             {
                 _Move m = board.last_history_move();
-                std::cout << "[" << std::to_string(m.src_x) << std::to_string(m.src_y) << std::to_string(m.dst_x) << std::to_string(m.dst_y) << "]";
+                verbose_stream << "[" << std::to_string(m.src_x) << std::to_string(m.src_y) << std::to_string(m.dst_x) << std::to_string(m.dst_y) << "]";
             }
-            return eval_position_algo(board, m, verbose);
+            return eval_position_algo(board, m, verbose, verbose_stream);
         }
 
         if (isMaximizing)
@@ -303,7 +255,7 @@ namespace chess
             for (size_t i = 0; i < m.size(); i++)
             {
                 board.apply_move(m[i]);
-                TYPE_PARAM temp = this->minimax(board, depth - 1, a, b, false, max_num_position_per_move, max_num_node, max_game_ply, ret_mv_idx, cnt_num_position_per_move, cnt_num_pos_eval, true, verbose);
+                TYPE_PARAM temp = this->minimax(board, depth - 1, a, b, false, max_num_position_per_move, max_num_node, max_game_ply, ret_mv_idx, cnt_num_position_per_move, cnt_num_pos_eval, true, verbose, verbose_stream);
                 if (temp >= a) best_a_idx = i;
                 a = std::max<TYPE_PARAM>(a, temp);
                 board.undo_move();
@@ -320,7 +272,7 @@ namespace chess
             for (size_t i = 0; i < m.size(); i++)
             {
                 board.apply_move(m[i]);
-                TYPE_PARAM temp = this->minimax(board, depth - 1, a, b, true, max_num_position_per_move, max_num_node, max_game_ply, ret_mv_idx, cnt_num_position_per_move, cnt_num_pos_eval, true, verbose);
+                TYPE_PARAM temp = this->minimax(board, depth - 1, a, b, true, max_num_position_per_move, max_num_node, max_game_ply, ret_mv_idx, cnt_num_position_per_move, cnt_num_pos_eval, true, verbose, verbose_stream);
                 if (temp <= b) best_b_idx = i;
                 b = std::min(b, temp);
                 board.undo_move();
@@ -340,7 +292,7 @@ namespace chess
     select_move_algo(   _Board&     pos,                            std::vector<_Move>& m, 
                         size_t      max_num_position_per_move,      size_t max_num_position, 
                         uint16_t    max_depth_per_move,             uint16_t max_game_ply, 
-                        size_t&     cnt_num_pos_eval,               char verbose)
+                        size_t&     cnt_num_pos_eval,               char verbose, std::stringstream& verbose_stream)
     {
         if (_domain != nullptr)
         {
@@ -359,17 +311,17 @@ namespace chess
         size_t      cnt_num_position_per_move = 0;
         TYPE_PARAM  e = minimax(pos, max_depth_per_move, a, b, pos.get_color() == PieceColor::W,    
                                 max_num_position_per_move, max_num_position, max_game_ply, 
-                                ret_best_move_index, cnt_num_position_per_move, cnt_num_pos_eval, false, verbose);
+                                ret_best_move_index, cnt_num_position_per_move, cnt_num_pos_eval, false, verbose, verbose_stream);
         return ret_best_move_index;
     }
 
     // eval_position_algo
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     TYPE_PARAM DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::
-    eval_position_algo(_Board& pos, std::vector<_Move>& m, char verbose)
+    eval_position_algo(_Board& pos, std::vector<_Move>& m, char verbose, std::stringstream& verbose_stream)
     {
         TYPE_PARAM ret_eval = 0.5;
-        bool ret = _root->eval_position(pos, m, ret_eval, verbose);
+        bool ret = _root->eval_position(pos, m, ret_eval, verbose, verbose_stream);
         if (ret == true) return ret_eval;
 
         // This is first layer of children domain (should make sure it cover all sub domains)
@@ -377,11 +329,11 @@ namespace chess
         {
             if (_color_player == PieceColor::W)
             {
-                ret = _domain->_children[i]->_attached_domain_playerW->_root->eval_position(pos, m, ret_eval, verbose);
+                ret = _domain->_children[i]->_attached_domain_playerW->_root->eval_position(pos, m, ret_eval, verbose, verbose_stream);
             }
             else
             {
-                ret = _domain->_children[i]->_attached_domain_playerB->_root->eval_position(pos, m, ret_eval, verbose);
+                ret = _domain->_children[i]->_attached_domain_playerB->_root->eval_position(pos, m, ret_eval, verbose, verbose_stream);
             }
             if (ret == true) return ret_eval;
         }
@@ -391,7 +343,6 @@ namespace chess
         return ret_eval;
     }
 
-    // ... may check if really detaching self from domain_attached_domain_playerW ...
     // detachFromDomains()
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     bool DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>:: detachFromDomains()
@@ -401,23 +352,31 @@ namespace chess
         {
             node = v;
             if (node->_color_player == PieceColor::W)
-                node->_domain->_attached_domain_playerW = nullptr;
+            {
+                if (node->is_same_domain(node->_domain->_attached_domain_playerW))
+                    node->_domain->_attached_domain_playerW = nullptr;
+            }
             else
-                node->_domain->_attached_domain_playerB = nullptr;
+            {
+                if (node->is_same_domain(node->_domain->_attached_domain_playerB))
+                    node->_domain->_attached_domain_playerB = nullptr;
+            }
         }
 
         if (this->_color_player == PieceColor::W)
         {
             if (this->_domain->_attached_domain_playerW != nullptr)
             {
-                this->_domain->_attached_domain_playerW = nullptr;
+                if (this->is_same_domain(this->_domain->_attached_domain_playerW))
+                    this->_domain->_attached_domain_playerW = nullptr;
             }
         }
         else
         {
             if (this->_domain->_attached_domain_playerB != nullptr)
             {
-                this->_domain->_attached_domain_playerB = nullptr;
+                if (this->is_same_domain(this->_domain->_attached_domain_playerB))
+                    this->_domain->_attached_domain_playerB = nullptr;
             }
         }
         return true;
@@ -428,6 +387,12 @@ namespace chess
     void DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::attachToDomains()
     {
         _DomainPlayer* node;
+        node = this;
+        if (_color_player == PieceColor::W)
+            node->_domain->_attached_domain_playerW = node;
+        else
+            node->_domain->_attached_domain_playerB = node;
+
         for (auto& v : _children_players)
         {
             node = v;
@@ -446,6 +411,37 @@ namespace chess
         else
             return nullptr;
     }
+
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    bool DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::is_same_domain(const DomainPlayer* p) const
+    {
+        if (p == nullptr) return false;
+        if ((this->_partition_key == p->_partition_key) &&
+            (this->domainname_key() == p->domainname_key()))
+            return true;
+        return false;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
+    void DomainPlayer<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::print_nodes() const
+    {
+        if (_color_player == PieceColor::W) std::cout << "W:"; 
+        else                                std::cout << "B:";
+        for (int i = 0; i < _root->weights().size(); i++)
+            std::cout << std::showpos << std::setw(6) << std::fixed << std::setprecision(5) << _root->weights().at(i) << " ";
+        std::cout << std::endl;
+
+        if (_root->positive_child() && _root->negative_child())
+        {
+            std::cout << "childs:";
+            for (int i = 0; i < _root->positive_child()->weights().size(); i++)
+                std::cout << std::showpos << std::setw(6) << std::fixed << std::setprecision(5) << _root->positive_child()->weights().at(i) << " ";
+            for (int i = 0; i < _root->negative_child()->weights().size(); i++)
+                std::cout << std::showpos << std::setw(6) << std::fixed << std::setprecision(5) << _root->negative_child()->weights().at(i) << " ";
+            std::cout << std::endl;
+        }
+    }
+
 };
 
 #endif

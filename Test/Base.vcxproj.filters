@@ -129,5 +129,8 @@
     <ClInclude Include="..\Player\playerfactory.hpp">
       <Filter>Player</Filter>
     </ClInclude>
+    <ClInclude Include="..\Player\playerbase.hpp">
+      <Filter>Player</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

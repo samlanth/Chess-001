@@ -16,19 +16,27 @@ namespace chess
         using _ConditionFeature = ConditionFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
         using _ValuationFeature = ValuationFeature<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
-        using _ConditionFeature_isOppositeKinCheck = ConditionFeature_isOppositeKinCheck<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
-        using _ValuationFeature_numberMoveForPiece = ValuationFeature_numberMoveForPiece<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
-        using _ValuationFeature_countCaptureKing = ValuationFeature_countCaptureKing<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _ConditionFeature_isOppositeKinCheck  = ConditionFeature_isOppositeKinCheck<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _ValuationFeature_numberMoveForPiece  = ValuationFeature_numberMoveForPiece<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _ValuationFeature_countCaptureKing    = ValuationFeature_countCaptureKing<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _ValuationFeature_onEdge              = ValuationFeature_onEdge<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
+        using _ValuationFeature_distKK              = ValuationFeature_distKK<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>;
 
         using _Piece = Piece<PieceID, _BoardSize>;
 
     private:
-        FeatureManager() 
+        FeatureManager()
+        {
+        }
+
+        void load()
         {
             _cond_features_name[(int)CondFeatureName::eConditionFeature_isOppositeKinCheck] = "ConditionFeature_isOppositeKinCheck";
            
             _valu_features_name[(int)ValuFeatureName::eValuationFeature_numberMoveForPiece] = "ValuationFeature_numberMoveForPiece";
             _valu_features_name[(int)ValuFeatureName::eValuationFeature_countCaptureKing]   = "ValuationFeature_countCaptureKing";
+            _valu_features_name[(int)ValuFeatureName::eValuationFeature_onEdge]             = "ValuationFeature_onEdge";
+            _valu_features_name[(int)ValuFeatureName::eValuationFeature_distKK]             = "ValuationFeature_distKK";
 
             // cond set
             _cond_features_instance[get_cond_feature_name(CondFeatureName::eConditionFeature_isOppositeKinCheck)] = (_ConditionFeature*)new _ConditionFeature_isOppositeKinCheck();
@@ -46,8 +54,25 @@ namespace chess
             _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_numberMoveForPiece) + std::to_string(_Piece::get_id(PieceName::B, PieceColor::B))] = (_ValuationFeature*)new _ValuationFeature_numberMoveForPiece(PieceName::B, PieceColor::B);
             _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_numberMoveForPiece) + std::to_string(_Piece::get_id(PieceName::Q, PieceColor::B))] = (_ValuationFeature*)new _ValuationFeature_numberMoveForPiece(PieceName::Q, PieceColor::B);
             _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_numberMoveForPiece) + std::to_string(_Piece::get_id(PieceName::P, PieceColor::B))] = (_ValuationFeature*)new _ValuationFeature_numberMoveForPiece(PieceName::P, PieceColor::B);
+            
             _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_countCaptureKing) + "W"] = (_ValuationFeature*)new _ValuationFeature_countCaptureKing(PieceColor::W);
             _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_countCaptureKing) + "B"] = (_ValuationFeature*)new _ValuationFeature_countCaptureKing(PieceColor::B);
+
+            _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_onEdge) + std::to_string(_Piece::get_id(PieceName::K, PieceColor::W))] = (_ValuationFeature*)new _ValuationFeature_onEdge(PieceName::K, PieceColor::W);
+            _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_onEdge) + std::to_string(_Piece::get_id(PieceName::R, PieceColor::W))] = (_ValuationFeature*)new _ValuationFeature_onEdge(PieceName::R, PieceColor::W);
+            _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_onEdge) + std::to_string(_Piece::get_id(PieceName::N, PieceColor::W))] = (_ValuationFeature*)new _ValuationFeature_onEdge(PieceName::N, PieceColor::W);
+            _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_onEdge) + std::to_string(_Piece::get_id(PieceName::B, PieceColor::W))] = (_ValuationFeature*)new _ValuationFeature_onEdge(PieceName::B, PieceColor::W);
+            _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_onEdge) + std::to_string(_Piece::get_id(PieceName::Q, PieceColor::W))] = (_ValuationFeature*)new _ValuationFeature_onEdge(PieceName::Q, PieceColor::W);
+            _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_onEdge) + std::to_string(_Piece::get_id(PieceName::P, PieceColor::W))] = (_ValuationFeature*)new _ValuationFeature_onEdge(PieceName::P, PieceColor::W);
+            _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_onEdge) + std::to_string(_Piece::get_id(PieceName::K, PieceColor::B))] = (_ValuationFeature*)new _ValuationFeature_onEdge(PieceName::K, PieceColor::B);
+            _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_onEdge) + std::to_string(_Piece::get_id(PieceName::R, PieceColor::B))] = (_ValuationFeature*)new _ValuationFeature_onEdge(PieceName::R, PieceColor::B);
+            _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_onEdge) + std::to_string(_Piece::get_id(PieceName::N, PieceColor::B))] = (_ValuationFeature*)new _ValuationFeature_onEdge(PieceName::N, PieceColor::B);
+            _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_onEdge) + std::to_string(_Piece::get_id(PieceName::B, PieceColor::B))] = (_ValuationFeature*)new _ValuationFeature_onEdge(PieceName::B, PieceColor::B);
+            _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_onEdge) + std::to_string(_Piece::get_id(PieceName::Q, PieceColor::B))] = (_ValuationFeature*)new _ValuationFeature_onEdge(PieceName::Q, PieceColor::B);
+            _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_onEdge) + std::to_string(_Piece::get_id(PieceName::P, PieceColor::B))] = (_ValuationFeature*)new _ValuationFeature_onEdge(PieceName::P, PieceColor::B);
+
+            _valu_features_instance[get_valu_feature_name(ValuFeatureName::eValuationFeature_distKK)] = (_ValuationFeature*)new _ValuationFeature_distKK();
+
 
             for (auto it = _cond_features_instance.begin(); it != _cond_features_instance.end(); ++it)
             {
@@ -88,43 +113,45 @@ namespace chess
         }
 
     public:
-        static size_t count_cond_features() { return _cond_features_instance.size(); }
-        static size_t count_valu_features() { return _valu_features_instance.size(); }
+        size_t count_cond_features() const { return _cond_features_instance.size(); }
+        size_t count_valu_features() const { return _valu_features_instance.size(); }
 
-        static _ConditionFeature* get_cond_feature(size_t idx)  { return _v_cond_features_instance[idx]; }
-        static _ValuationFeature* get_valu_feature(size_t idx)  { return _v_valu_features_instance[idx]; }
+        _ConditionFeature* get_cond_feature(size_t idx)  const { return _v_cond_features_instance[idx]; }
+        _ValuationFeature* get_valu_feature(size_t idx)  const { return _v_valu_features_instance[idx]; }
 
-        static std::string get_cond_feature_name(CondFeatureName n)
+        std::string get_cond_feature_name(CondFeatureName n) const
         {
             auto it = _cond_features_name.find((int)n);
             if (it == _cond_features_name.end()) return "";
             return _cond_features_name[(int)n];
         }
-        static std::string get_valu_feature_name(ValuFeatureName n)
+        std::string get_valu_feature_name(ValuFeatureName n) const
         {
             auto it = _valu_features_name.find((int)n);
             if (it == _valu_features_name.end()) return "";
             return _valu_features_name[(int)n];
         }
 
-        static _ConditionFeature* get_cond_feature(const std::string name, const std::string arg) 
+        _ConditionFeature* get_cond_feature(const std::string name, const std::string arg) const
         {
             auto it = _cond_features_instance.find(name + arg);
             if (it == _cond_features_instance.end()) return nullptr;
             return _cond_features_instance[name+arg];
         }
-        static _ValuationFeature* get_valu_feature(const std::string name, const std::string arg)
+        _ValuationFeature* get_valu_feature(const std::string name, const std::string arg) const
         {
             auto it = _valu_features_instance.find(name + arg);
             if (it == _valu_features_instance.end()) return nullptr;
             return _valu_features_instance[name+arg];
         }
 
+    public:
         static const FeatureManager* instance()
         {
             if (_instance == nullptr)
             {
                 _instance = std::unique_ptr<FeatureManager>(new FeatureManager);
+                _instance->load();
                 return _instance.get();
             }
             return  _instance.get();

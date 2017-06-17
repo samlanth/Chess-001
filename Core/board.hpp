@@ -57,6 +57,8 @@ namespace chess
         void set_classic_pos();
         bool has_piece(PieceName n, PieceColor c) const;
         size_t cnt_piece(PieceName n, PieceColor c) const;
+        uint8_t on_edge(PieceName n, PieceColor c) const;
+        uint8_t dist(PieceName n, PieceColor c, PieceName n2, PieceColor c2) const;
         size_t cnt_all_piece() const;
         size_t cnt_move(PieceName n, PieceColor c, const std::vector<_Move>& m) const;
         size_t cnt_move_oppo(PieceName n, PieceColor c, const std::vector<_Move>& m) const;
@@ -691,5 +693,64 @@ namespace chess
         return s;
     }
 
+    // on_edge
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline uint8_t Board<PieceID, _BoardSize>::on_edge(PieceName n, PieceColor c) const
+    {
+        uint8_t cnt = 0;
+        PieceID id = _Piece::get_id(n, c);
+
+        for (uint8_t x = 0; x < _BoardSize; x++)
+        {
+            for (uint8_t y = 0; y < _BoardSize; y++)
+            {
+                if ((x == 0) || (x == _BoardSize - 1) || (y == 0) || (y == _BoardSize - 1))
+                {
+                    if (get_pieceid_at(x, y) == id)
+                    {
+                        cnt++;
+                    }
+                }
+            }
+        }
+        return cnt;
+    }
+
+    // dist
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline uint8_t Board<PieceID, _BoardSize>::dist(PieceName n, PieceColor c, PieceName n2, PieceColor c2) const
+    {
+        size_t cnt = 0;
+        PieceID id1 = _Piece::get_id(n, c);
+        PieceID id2 = _Piece::get_id(n2, c2);
+        uint8_t x1;
+        uint8_t y1;
+        uint8_t x2;
+        uint8_t y2;
+        bool found1 = false;
+        bool found2 = false;
+
+        for (uint8_t x = 0; x < _BoardSize; x++)
+        {
+            for (uint8_t y = 0; y < _BoardSize; y++)
+            {
+                if (get_pieceid_at(x, y) == id1)
+                {
+                    x1 = x; y1 = y;
+                    found1 = true;
+                }
+                else if (get_pieceid_at(x, y) == id2)
+                {
+                    x2 = x; y2 = y;
+                    found2 = true;
+                }
+            }
+        }
+        if (found1 && found2)
+        {
+            return std::max( std::abs(x2 - x1), std::abs(y2 - y1) );
+        }
+        return 0;
+    }
 };
 #endif
