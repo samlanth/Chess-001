@@ -9,7 +9,7 @@ Learning players using genetical algorithm.
 Persistence of all objects.  
 Variable board size (ex: 6x6 board or 255x255).  
  Best games database for discovery of better predictors and classifiers as time goes.  
- Endgame tablebase generator for variable size board.  
+ Endgame tablebase generator for variable board size.  
  No manual fine tuning of parameters.  
  Hiearchical decomposition of the problem.  
  Splitting of intensive computation into multi-threads.  
