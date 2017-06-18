@@ -41,6 +41,7 @@ namespace chess
 
         const PieceID get_pieceid_at(uint8_t x, uint8_t y) const { return _cells.at(index_at(x, y)); }
         void          set_pieceid_at(PieceID id, uint8_t x, uint8_t y) { _cells.at(index_at(x, y)) = id; }
+        void          set_pieceid_at(PieceID id, uint16_t sq) { _cells.at(index_at((uint8_t)(sq%_BoardSize), (uint8_t)(sq/_BoardSize))) = id; }
 
         const PieceColor    get_color() const;
         void                set_color(PieceColor c) { _color_toplay = c; }
@@ -64,6 +65,7 @@ namespace chess
         size_t cnt_move_oppo(PieceName n, PieceColor c, const std::vector<_Move>& m) const;
         bool is_final(const std::vector<_Move>& m) const;
         ExactScore final_score(const std::vector<_Move>& m) const;
+        ExactScore minmax_score(const std::vector<_Move>& m);
 
         const std::vector<_Move>    generate_moves(bool is_recursive_call = false);
         const std::list<_Move>      get_history_moves() const { return _history_moves; }
@@ -79,6 +81,15 @@ namespace chess
         bool check_50_moves_draw()   const       { return _check_50_moves_draw;}
 
         _Move last_history_move() const { return _history_moves.back(); }
+        uint16_t get_square_ofpiece(PieceName n, PieceColor c) const;
+
+        void clear()
+        {
+            _color_toplay = PieceColor::W;
+            for (auto& v : _cells) v = Piece<PieceID, _BoardSize>::empty_id();
+            _history_moves.clear();
+
+        }
 
     private:
         PieceColor              _color_toplay;
@@ -213,6 +224,24 @@ namespace chess
         for (uint8_t i = 0; i<8; i++) set_pieceid_at(_Piece::get_id(chess::PieceName::P, chess::PieceColor::B), i, 6);
     }
 
+    // get_square_ofpiece
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline uint16_t Board<PieceID, _BoardSize>::get_square_ofpiece(PieceName n, PieceColor c) const
+    {
+        PieceID id = _Piece::get_id(n, c);
+        for (uint8_t x = 0; x < _BoardSize; x++)
+        {
+            for (uint8_t y = 0; y < _BoardSize; y++)
+            {
+                if (_cells.at(index_at(x, y)) == id)
+                {
+                    return y*_BoardSize + x;
+                }
+            }
+        }
+        return _BoardSize*_BoardSize; // invalid
+    }
+
     // has_piece()
     template <typename PieceID, typename uint8_t _BoardSize>
     inline bool Board<PieceID, _BoardSize>::has_piece(PieceName n, PieceColor c) const
@@ -324,12 +353,57 @@ namespace chess
         return b.can_capture_opposite_king(m, mv);
     }
 
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline ExactScore Board<PieceID, _BoardSize>::minmax_score(const std::vector<_Move>& m)
+    {
+        ExactScore sc = final_score(m);
+        if (sc != ExactScore::UNKNOWN) return sc;
+
+        ExactScore max_score = ExactScore::UNKNOWN;
+        std::vector<_Move> m_child;
+
+        for (const auto &mv : m)
+        {
+            apply_move(mv);
+            m_child = generate_moves();
+            sc = final_score(m_child);
+            if (sc != ExactScore::UNKNOWN)
+            {
+                undo_move();
+                return ExactScore::UNKNOWN;
+            }
+            else
+            {
+                if (get_color() == PieceColor::B)
+                {
+                    if (sc == ExactScore::WIN) max_score = ExactScore::WIN;
+                    else if (sc == ExactScore::DRAW)
+                    {
+                        if (max_score != ExactScore::WIN)  max_score = ExactScore::DRAW;
+                    }
+                    else max_score = ExactScore::LOSS;
+                }
+                else
+                {
+                    if (sc == ExactScore::LOSS) max_score = ExactScore::LOSS;
+                    else if (sc == ExactScore::DRAW)
+                    {
+                        if (max_score != ExactScore::LOSS)  max_score = ExactScore::DRAW;
+                    }
+                    else max_score = ExactScore::WIN;
+                }
+            }
+            undo_move();
+        }
+        return max_score;
+    }
+
     // final_score()
     template <typename PieceID, typename uint8_t _BoardSize>
     inline ExactScore Board<PieceID, _BoardSize>::final_score(const std::vector<_Move>& m) const
     {
-        if (!has_piece(PieceName::K, PieceColor::W)) return ExactScore::LOSS;
         if (!has_piece(PieceName::K, PieceColor::B)) return ExactScore::WIN;
+        if (!has_piece(PieceName::K, PieceColor::W)) return ExactScore::LOSS;
         if (m.size() == 0) return ExactScore::DRAW;
         return ExactScore::UNKNOWN;
     }

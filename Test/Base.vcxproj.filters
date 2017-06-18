@@ -29,6 +29,9 @@
     <Filter Include="ChessGA">
       <UniqueIdentifier>{4dcc54cb-8c55-47d5-ab8d-ed4c898a5d58}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Tablebase">
+      <UniqueIdentifier>{694f2286-a2ab-4282-8b45-cd13fca13647}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -131,6 +134,15 @@
     </ClInclude>
     <ClInclude Include="..\Player\playerbase.hpp">
       <Filter>Player</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Tablebase\tablebase.hpp">
+      <Filter>Tablebase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Tablebase\tablebase_1v1.hpp">
+      <Filter>Tablebase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Tablebase\tablebase_1v0.hpp">
+      <Filter>Tablebase</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

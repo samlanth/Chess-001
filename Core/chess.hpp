@@ -18,6 +18,8 @@
 #include <list>
 #include <future>
 #include <conio.h>
+#include <bitset>
+#include <cmath>
 
 namespace chess
 {
@@ -70,5 +72,8 @@ namespace chess
 #include "ga/galgo_example.hpp"
 #include "ChessGA/ChessGenAlgo.hpp"
 #include "ChessGA/ChessCoEvolveGA.hpp"
+#include "Tablebase/tablebase.hpp"
+#include "Tablebase/tablebase_1v0.hpp"
+#include "Tablebase/tablebase_1v1.hpp"
 
 #endif

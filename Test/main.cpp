@@ -19,7 +19,23 @@ int main(int argc, char* argv[])
     // Test PersisteManager
     chess::PersistManager::instance();
 
-    // Prepare players
+    // Test
+    std::vector<uint8_t> vv;
+    vv.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
+    chess::Tablebase_1v0<uint8_t, 6> tb_Kv0(vv, chess::PieceColor::W);
+    chess::Board<uint8_t, 6> b;
+    b.set_pieceid_at(5, 0); b.set_color(chess::PieceColor::B);
+    std::vector<chess::Move<uint8_t>> m = b.generate_moves();
+    tb_Kv0.build();
+
+    // Test TablebaseHandler_1v1
+    std::vector<uint8_t> v;
+    v.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
+    v.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
+    chess::TablebaseHandler_1v1<uint8_t, 6> tbh_KvK(v);
+    tbh_KvK.build();
+
+    // Prepare players for GA
     {
         // 6x6 board
         {
