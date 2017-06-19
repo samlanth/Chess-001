@@ -3,9 +3,13 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
+// Tablebase
+//
 //
 #ifndef _AL_CHESS_TABLEBASE_TABLEBASE_HPP
 #define _AL_CHESS_TABLEBASE_TABLEBASE_HPP
+
+#include <tuple>
 
 namespace chess
 {
@@ -48,10 +52,10 @@ namespace chess
 
         virtual bool load() = 0;
         virtual bool save() = 0;
-        virtual bool build() = 0;
+        virtual bool build(char verbose) = 0;
 
         bool        is_build()                      { return _is_build; }
-        PieceColor  color()                         { return _color; }
+        PieceColor  color()     const               { return _color; }
         uint8_t     square(uint8_t x, uint8_t y)    { return __BoardSize*y + x; }
 
         uint64_t index_item(const uint16_t& sq0)  const
@@ -137,7 +141,7 @@ namespace chess
         }
         void set_marker(const uint16_t& sq0, const uint16_t& sq1, const uint16_t& sq2, bool v)
         {
-            set_bit(index_item(sq0, sq1, sq2), 2, v)
+            set_bit(index_item(sq0, sq1, sq2), 2, v);
         }
 
         void square_at_index(uint64_t idx, uint16_t& sq0) const
@@ -154,6 +158,10 @@ namespace chess
             uint64_t t = idx - (sq0 * _dim2);  square_at_index(t, sq1, sq2);
         }
 
+        void print() const;
+        std::vector<TablebaseBase*>& children() { return _children; }
+        bool check_unknown() const;
+        void set_unknown_to_draw();
 
     protected:
         const uint8_t     _size_item = TB_size_item();
@@ -171,6 +179,7 @@ namespace chess
         std::bitset<TB_size(_BoardSize, NPIECE) * TB_size_item()>   _bits;
         std::vector<TablebaseBase*>      _children;
         _Board*                         _work_board;
+
 
         ExactScore score_at_idx(const uint64_t& idx_item)  const
         {
@@ -191,6 +200,75 @@ namespace chess
 
     };
 
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
+    void Tablebase<PieceID, _BoardSize, NPIECE>::print() const
+    {
+        uint64_t n = 0;
+        uint64_t n_win = 0;
+        uint64_t n_loss = 0;
+        uint64_t n_draw = 0;
+        ExactScore sc;
+
+        if (this->color() == PieceColor::W) std::cout << "TB Color: White" << std::endl;
+        else std::cout << "TB Color: Black" << std::endl;
+        std::cout << "TB size: " << this->_size_tb << std::endl;
+        std::cout << "TB Number pieces: " << (int)this->_NPIECE << std::endl;
+        for (auto& v : _piecesID)
+        {
+            std::cout << _Piece::to_str(v);
+        }
+        std::cout << std::endl;
+        {
+            n = 0; n_win = 0; n_loss = 0; n_draw = 0;
+            for (uint64_t i = 0; i < this->_size_tb; i++)
+            {
+                sc = this->score_at_idx(i * this->_size_item);
+                if (sc != ExactScore::UNKNOWN) n++;
+                if (sc == ExactScore::WIN) n_win++;
+                if (sc == ExactScore::LOSS) n_loss++;
+                if (sc == ExactScore::DRAW)
+                    n_draw++;
+            }
+            std::cout << "score positions: " << n << std::endl;
+            std::cout << "win  positions:  " << n_win << std::endl;
+            std::cout << "loss positions:  " << n_loss << std::endl;
+            std::cout << "draw/illegal positions:  " << n_draw << std::endl;
+            std::cout << std::endl;
+        }
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
+    bool Tablebase<PieceID, _BoardSize, NPIECE>::check_unknown() const
+    {
+        uint64_t n = 0;
+        ExactScore sc;
+        {
+            for (uint64_t i = 0; i < this->_size_tb; i++)
+            {
+                sc = this->score_at_idx(i * this->_size_item);
+                if (sc == ExactScore::UNKNOWN) n++;
+            }
+        }
+        if (n > 0) return true;
+        return false;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
+    void Tablebase<PieceID, _BoardSize, NPIECE>::set_unknown_to_draw()
+    {
+        uint64_t n = 0;
+        ExactScore sc;
+        {
+            for (uint64_t i = 0; i < this->_size_tb; i++)
+            {
+                sc = this->score_at_idx(i * this->_size_item);
+                if (sc == ExactScore::UNKNOWN)                      // ILLEGAL position exist in the TB _bits.....
+                {
+                    set_score_at_idx(i * _size_item, ExactScore::DRAW);
+                }
+            }
+        }
+    }
 };
 #endif
 

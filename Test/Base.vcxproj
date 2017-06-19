@@ -57,6 +57,8 @@
     <ClInclude Include="..\Tablebase\tablebase.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_1v0.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_1v1.hpp" />
+    <ClInclude Include="..\Tablebase\tablebase_2v0.hpp" />
+    <ClInclude Include="..\Tablebase\tablebase_2v1.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3A1269FE-3B8D-44BF-9899-3D95F9F6488D}</ProjectGuid>
