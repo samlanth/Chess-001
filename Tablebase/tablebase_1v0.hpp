@@ -54,6 +54,7 @@ namespace chess
         }
         _is_build = true;
         set_unknown_to_draw();
+
         if (verbose) print();
         assert(check_unknown() == false);
         return true;

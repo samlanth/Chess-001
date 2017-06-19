@@ -56,7 +56,7 @@ namespace chess
 
         bool        is_build()                      { return _is_build; }
         PieceColor  color()     const               { return _color; }
-        uint8_t     square(uint8_t x, uint8_t y)    { return __BoardSize*y + x; }
+        uint16_t    square(uint8_t x, uint8_t y)    { return __BoardSize*y + x; }
 
         uint64_t index_item(const uint16_t& sq0)  const
         {
@@ -162,6 +162,7 @@ namespace chess
         std::vector<TablebaseBase*>& children() { return _children; }
         bool check_unknown() const;
         void set_unknown_to_draw();
+        void clear_marker();
 
     protected:
         const uint8_t     _size_item = TB_size_item();
@@ -196,6 +197,11 @@ namespace chess
             else if (sc == ExactScore::DRAW)    { set_bit(idx_item, 0, 1); set_bit(idx_item, 1, 0); }
             else if (sc == ExactScore::LOSS)    { set_bit(idx_item, 0, 0); set_bit(idx_item, 1, 1); }
             else                                { set_bit(idx_item, 0, 0); set_bit(idx_item, 1, 0); }
+        }
+        void set_marker_at_idx(const uint64_t& idx_item, bool v)
+        {
+            if (v == true) set_bit(idx_item, 2, 1); 
+            else  set_bit(idx_item, 2, 0);
         }
 
     };
@@ -269,6 +275,20 @@ namespace chess
             }
         }
     }
+
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
+    void Tablebase<PieceID, _BoardSize, NPIECE>::clear_marker()
+    {
+        {
+            for (uint64_t i = 0; i < this->_size_tb; i++)
+            {
+                {
+                    set_marker_at_idx(i * _size_item, false);
+                }
+            }
+        }
+    }
+
 };
 #endif
 

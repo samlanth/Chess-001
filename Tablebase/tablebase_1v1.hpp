@@ -123,6 +123,7 @@ namespace chess
         }
 
         uint64_t n = 0;
+        uint64_t m = 0;
         int iter = 0;
         
         set_mate_score(PieceColor::W, _tb_W);
@@ -130,25 +131,24 @@ namespace chess
 
         do
         {
-            iter++;  if (verbose) { std::cout << "Iteration: " << iter << std::endl; }
+            iter++;  if (verbose) { std::cout << "Iteration TablebaseHandler_1v1: " << iter << std::endl; }
 
-            n  = set_marker(PieceColor::W, _tb_W, _tb_B);
-            n += set_marker(PieceColor::B, _tb_B, _tb_W);
+            n = set_marker(PieceColor::W, _tb_W, _tb_B);
+            if (verbose) { std::cout << "W set_marker positions:" << n << std::endl; }
 
-            if (verbose) { std::cout << "set_marker positions:" << n << std::endl; }
-            if (n == 0)
-            {
-                if (verbose) print();
-                return true;
-            }
+            n = process_marker(PieceColor::B, _tb_B, _tb_W);
+            if (verbose) { std::cout << "B process_marker positions:" << n << std::endl; }
 
-            n =  process_marker(PieceColor::W, _tb_W, _tb_B);
-            n += process_marker(PieceColor::B, _tb_B, _tb_W);
+            m = set_marker(PieceColor::B, _tb_B, _tb_W);
+            if (verbose) { std::cout << "B set_marker positions:" << m << std::endl; }
 
-            if (verbose) { std::cout << "process_marker positions:" << n << std::endl; }
+            m = process_marker(PieceColor::W, _tb_W, _tb_B);
+            if (verbose) { std::cout << "W process_marker positions:" << m << std::endl; }
+
             if (verbose) print();
+            if ((n + m) == 0) break;
 
-        } while (n > 0);
+        } while (n+m > 0);
 
         _tb_W->_is_build = true;
         _tb_B->_is_build = true;
@@ -180,16 +180,16 @@ namespace chess
             }
         // 0 B
         if (_Piece::get(tb->_child_piece_2[0])->get_color() == PieceColor::B)
-            if (tb->_work_board->has_piece(_Piece::get(tb->_child_piece_0[0])->get_name(), PieceColor::B))
+            if (tb->_work_board->has_piece(_Piece::get(tb->_child_piece_2[0])->get_name(), PieceColor::B))
             {
-                ret_child_sq0 = tb->_work_board->get_square_ofpiece(_Piece::get(tb->_child_piece_0[0])->get_name(), PieceColor::B);
+                ret_child_sq0 = tb->_work_board->get_square_ofpiece(_Piece::get(tb->_child_piece_2[0])->get_name(), PieceColor::B);
                 return (Tablebase_1v0<PieceID, _BoardSize>*)tb->_children[2];
             }
         // 1 B
         if (_Piece::get(tb->_child_piece_3[0])->get_color() == PieceColor::B)
-            if (tb->_work_board->has_piece(_Piece::get(tb->_child_piece_1[0])->get_name(), PieceColor::B))
+            if (tb->_work_board->has_piece(_Piece::get(tb->_child_piece_3[0])->get_name(), PieceColor::B))
             {
-                ret_child_sq0 = tb->_work_board->get_square_ofpiece(_Piece::get(tb->_child_piece_1[0])->get_name(), PieceColor::B);
+                ret_child_sq0 = tb->_work_board->get_square_ofpiece(_Piece::get(tb->_child_piece_3[0])->get_name(), PieceColor::B);
                 return (Tablebase_1v0<PieceID, _BoardSize>*)tb->_children[3];
             }
 
@@ -235,6 +235,9 @@ namespace chess
         Move<PieceID> mv;
         uint16_t sq0, sq1;
         std::vector<Move<PieceID>> m_child;
+
+        tb->clear_marker();
+        tb_oppo->clear_marker();
 
         for (uint64_t i = 0; i < tb->_size_tb; i++)
         {
@@ -309,8 +312,9 @@ namespace chess
                             if (tb_oppo->marker(child_sq0, child_sq1) == false)
                             {
                                 tb_oppo->set_marker(child_sq0, child_sq1, true);
-                                n_changes++;
+                                //n_changes++;
                             } 
+                            n_changes++;
                             one_mark = true;
                         }
                     }
@@ -331,8 +335,9 @@ namespace chess
                     if (tb->marker(sq0, sq1) == false)
                     {
                         tb->set_marker(sq0, sq1, true);
-                        n_changes++;
+                        //n_changes++;
                     }
+                    n_changes++;
                 }
             }
             
@@ -347,6 +352,7 @@ namespace chess
                     {
                         tb->set_score(sq0, sq1, sc);
                         tb->set_marker(sq0, sq1, false);
+                        n_changes++;
                     }
                     else
                     {

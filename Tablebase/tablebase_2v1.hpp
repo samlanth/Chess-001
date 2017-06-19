@@ -132,47 +132,55 @@ namespace chess
             Tablebase_2v0<PieceID, _BoardSize>* tb_5 = ((Tablebase_2v0<PieceID, _BoardSize>*)_tb_W->children()[5]);
             tb_5->build(verbose);
 
+            assert(_tbh_child_piece_1v1_02w->tb_W()->is_build() == true);
+            assert(_tbh_child_piece_1v1_12w->tb_W()->is_build() == true);
+            assert(_tbh_child_piece_1v1_02b->tb_W()->is_build() == true);
+            assert(_tbh_child_piece_1v1_12b->tb_W()->is_build() == true);
             assert(tb_2->is_build() == true);
             assert(tb_5->is_build() == true);
         }
         {
-           /* _tbh_child_piece_1v1_02w->build(verbose);
-            _tbh_child_piece_1v1_12w->build(verbose);*/
             Tablebase_2v0<PieceID, _BoardSize>* tb_2 = ((Tablebase_2v0<PieceID, _BoardSize>*)_tb_B->children()[2]);
             tb_2->build(verbose);
-            /*_tbh_child_piece_1v1_02b->build(verbose);
-            _tbh_child_piece_1v1_12b->build(verbose);*/
             Tablebase_2v0<PieceID, _BoardSize>* tb_5 = ((Tablebase_2v0<PieceID, _BoardSize>*)_tb_B->children()[5]);
             tb_5->build(verbose);
 
+            assert(_tbh_child_piece_1v1_02w->tb_B()->is_build() == true);
+            assert(_tbh_child_piece_1v1_12w->tb_B()->is_build() == true);
+            assert(_tbh_child_piece_1v1_02b->tb_B()->is_build() == true);
+            assert(_tbh_child_piece_1v1_12b->tb_B()->is_build() == true);
             assert(tb_2->is_build() == true);
             assert(tb_5->is_build() == true);
         }
 
         uint64_t n = 0;
+        uint64_t m = 0;
         int iter = 0;
         
-        if (verbose) { std::cout << "scanning mate..." << n << std::endl; }
+        if (verbose) { std::cout << "scanning mate..." << std::endl; }
         set_mate_score(PieceColor::W, _tb_W);
         set_mate_score(PieceColor::B, _tb_B);
 
         do
         {
-            iter++;  if (verbose) { std::cout << "Iteration: " << iter << std::endl; }
+            iter++;  if (verbose) { std::cout << "Iteration TablebaseHandler_2v1: " << iter << std::endl; }
 
-            n  = set_marker(PieceColor::W, _tb_W, _tb_B);
-            n += set_marker(PieceColor::B, _tb_B, _tb_W);
+            n = set_marker(PieceColor::W, _tb_W, _tb_B);
+            if (verbose) { std::cout << "W set_marker positions:" << n << std::endl; }
 
-            if (verbose) { std::cout << "set_marker positions:" << n << std::endl; }
-            if (n == 0) return true;
+            n = process_marker(PieceColor::B, _tb_B, _tb_W);
+            if (verbose) { std::cout << "B process_marker positions:" << n << std::endl; }
 
-            n =  process_marker(PieceColor::W, _tb_W, _tb_B);
-            n += process_marker(PieceColor::B, _tb_B, _tb_W);
+            m = set_marker(PieceColor::B, _tb_B, _tb_W);
+            if (verbose) { std::cout << "B set_marker positions:" << m << std::endl; }
 
-            if (verbose) { std::cout << "process_marker positions:" << n << std::endl; }
+            m = process_marker(PieceColor::W, _tb_W, _tb_B);
+            if (verbose) { std::cout << "W process_marker positions:" << m << std::endl; }
+
             if (verbose) print();
+            if ((n+m) == 0) break;
 
-        } while (n > 0);
+        } while (n+m > 0);
 
         _tb_W->_is_build = true;
         _tb_B->_is_build = true;
@@ -306,7 +314,9 @@ namespace chess
         Move<PieceID> mv;
         uint16_t sq0, sq1, sq2;
         std::vector<Move<PieceID>> m_child;
-
+        
+        tb->clear_marker();
+        tb_oppo->clear_marker();
         for (uint64_t i = 0; i < tb->_size_tb; i++)
         {
             tb->square_at_index(i, sq0, sq1, sq2);
@@ -341,7 +351,7 @@ namespace chess
                 else
                 {
                     uint16_t child_sq0; uint16_t child_sq1;
-                    {
+                    //{
                         Tablebase_1v1<PieceID, _BoardSize>* tb_child_1v1 = locate_children_1v1(tb->_work_board->get_color(), tb, tb_oppo, child_sq0, child_sq1);
                         if (tb_child_1v1 == nullptr)
                         {
@@ -359,7 +369,7 @@ namespace chess
                         {
                             sc = tb_child_1v1->score(child_sq0, child_sq1);
                         }
-                    }
+                    //}
                     if (sc != ExactScore::UNKNOWN)
                     {
                         one_child_has_score = true;
@@ -393,8 +403,9 @@ namespace chess
                             if (tb_oppo->marker(child_sq0, child_sq1, child_sq2) == false)
                             {
                                 tb_oppo->set_marker(child_sq0, child_sq1, child_sq2, true);
-                                n_changes++;
+                                //n_changes++;
                             } 
+                            n_changes++;
                             one_mark = true;
                         }
                     }
@@ -415,8 +426,9 @@ namespace chess
                     if (tb->marker(sq0, sq1, sq2) == false)
                     {
                         tb->set_marker(sq0, sq1, sq2, true);
-                        n_changes++;
+                        //n_changes++;
                     }
+                    n_changes++;
                 }
             }
             
@@ -431,6 +443,7 @@ namespace chess
                     {
                         tb->set_score(sq0, sq1, sq2, sc);
                         tb->set_marker(sq0, sq1, sq2, false);
+                        n_changes++;                                // continu since something changes
                     }
                     else
                     {
@@ -526,28 +539,27 @@ namespace chess
                     continue;
                 }
 
-                uint16_t child_sq0; uint16_t child_sq1;
+                uint16_t child_sq0; uint16_t child_sq1;                
+                Tablebase_1v1<PieceID, _BoardSize>* tb_child_1v1 = locate_children_1v1(tb->_work_board->get_color(), tb, tb_oppo, child_sq0, child_sq1);
+                if (tb_child_1v1 == nullptr)
                 {
-                    Tablebase_1v1<PieceID, _BoardSize>* tb_child_1v1 = locate_children_1v1(tb->_work_board->get_color(), tb, tb_oppo, child_sq0, child_sq1);
-                    if (tb_child_1v1 == nullptr)
+                    Tablebase_2v0<PieceID, _BoardSize>* tb_child_2v0 = locate_children_2v0(tb->_work_board->get_color(), tb, tb_oppo, child_sq0, child_sq1);
+                    if (tb_child_2v0 != nullptr)
                     {
-                        Tablebase_2v0<PieceID, _BoardSize>* tb_child_2v0 = locate_children_2v0(tb->_work_board->get_color(), tb, tb_oppo, child_sq0, child_sq1);
-                        if (tb_child_2v0 != nullptr)
-                        {
-                            sc = tb_child_2v0->score(child_sq0, child_sq1);
-                        }
-                        else
-                        {
-                            has_all_child_score = false;
-                            assert(false);
-                            continue;
-                        }
+                        sc = tb_child_2v0->score(child_sq0, child_sq1);
                     }
                     else
                     {
-                        sc = tb_child_1v1->score(child_sq0, child_sq1);
+                        has_all_child_score = false;
+                        assert(false);
+                        continue;
                     }
                 }
+                else
+                {
+                    sc = tb_child_1v1->score(child_sq0, child_sq1);
+                }
+                
 
                 if (sc == ExactScore::UNKNOWN)
                 {
