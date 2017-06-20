@@ -13,12 +13,9 @@
 
 namespace chess
 {
-    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_1v1;
-    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_2v1;
-
     template <typename PieceID, typename uint8_t _BoardSize>
     class Tablebase_1v1 : public Tablebase<PieceID, _BoardSize, 2>
-    {
+    {        
         using _Piece = Piece<PieceID, _BoardSize>;
         using _Board = Board<PieceID, _BoardSize>;
         using _Move = Move<PieceID>;
@@ -83,7 +80,7 @@ namespace chess
         }
 
         bool build(char verbose = 0) override;
-        bool is_build() const override  { return _tb_W->_is_build && _tb_B->_is_build; }
+        bool is_build() const override  { return _tb_W->is_build() && _tb_B->is_build(); }
         bool load() override;
         bool save() const override;
 
@@ -180,8 +177,8 @@ namespace chess
 
         } while (n+m > 0);
 
-        _tb_W->_is_build = true;
-        _tb_B->_is_build = true;
+        _tb_W->set_build(true);
+        _tb_B->set_build(true);
         _tb_W->set_unknown_to_draw();
         _tb_B->set_unknown_to_draw();
 

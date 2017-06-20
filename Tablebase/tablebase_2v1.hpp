@@ -13,7 +13,6 @@
 
 namespace chess
 {
-    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_2v1;
     template <typename PieceID, typename uint8_t _BoardSize> class Tablebase_2v0;
 
     template <typename PieceID, typename uint8_t _BoardSize>
@@ -58,6 +57,8 @@ namespace chess
         using _Piece = Piece<PieceID, _BoardSize>;
         using _Board = Board<PieceID, _BoardSize>;
 
+        friend class TablebaseHandler_1v1<PieceID, _BoardSize>;
+
     public:
         TablebaseHandler_2v1(std::vector<PieceID>& v) : TablebaseBaseHandler<PieceID, _BoardSize>(v)
         {
@@ -87,9 +88,12 @@ namespace chess
         }
 
         bool build(char verbose = 0) override;
-        bool is_build() const override { return _tb_W->_is_build && _tb_B->_is_build; }
+        bool is_build() const override { return _tb_W->is_build() && _tb_B->is_build(); }
         bool load() override;
         bool save() const override;
+
+        Tablebase_2v1<PieceID, _BoardSize>* tb_W() { return _tb_W };
+        Tablebase_2v1<PieceID, _BoardSize>* tb_B() { return _tb_B; }
 
     protected:
         uint64_t set_mate_score(PieceColor color_to_play, Tablebase_2v1<PieceID, _BoardSize>* tb);
@@ -190,8 +194,8 @@ namespace chess
 
         } while (n+m > 0);
 
-        _tb_W->_is_build = true;
-        _tb_B->_is_build = true;
+        _tb_W->set_build(true);
+        _tb_B->set_build(true);
         _tb_W->set_unknown_to_draw();
         _tb_B->set_unknown_to_draw();
         return true;

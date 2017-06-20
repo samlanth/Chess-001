@@ -23,6 +23,8 @@ namespace chess
     class TablebaseBase
     {
     public:
+        TablebaseBase() {}
+        virtual ~TablebaseBase() {}
     };
 
     // Tablebase
@@ -33,6 +35,9 @@ namespace chess
         using _Board = Board<PieceID, _BoardSize>;
         using _Move = Move<PieceID>;
         using _Tablebase = Tablebase<PieceID, _BoardSize, NPIECE>;
+
+        friend class TablebaseHandler_1v1<PieceID, _BoardSize>;
+        friend class TablebaseHandler_2v1<PieceID, _BoardSize>;
 
     public:
         Tablebase(std::vector<PieceID>& v, PieceColor c) : _color(c), _NPIECE(NPIECE), _bits(0), _work_board(nullptr)
@@ -55,13 +60,14 @@ namespace chess
         virtual bool build(char verbose) = 0;
         virtual bool isPiecesMatch(const _Board& pos) = 0;
 
-        virtual bool save_tb() const;
-        virtual bool read_tb();
+        bool        is_build() { return _is_build; }
+        PieceColor  color() const { return _color; }
 
-        bool        is_build()                      { return _is_build; }
-        PieceColor  color()     const               { return _color; }
-        uint16_t    square(uint8_t x, uint8_t y)    { return __BoardSize*y + x; }
+    protected:
+        bool save_tb() const;
+        bool read_tb();
 
+        uint16_t square(uint8_t x, uint8_t y)    { return __BoardSize*y + x; }
         uint64_t index_item(const uint16_t& sq0)  const
         {
             return (sq0) * _size_item;
@@ -166,6 +172,7 @@ namespace chess
         bool check_unknown() const;
         void set_unknown_to_draw();
         void clear_marker();
+        void set_build(bool v) { _is_build = v; }
 
     protected:
         const uint8_t     _size_item = TB_size_item();
@@ -183,7 +190,6 @@ namespace chess
         std::bitset<TB_size(_BoardSize, NPIECE) * TB_size_item()>   _bits;
         std::vector<TablebaseBase*>      _children;
         _Board*                         _work_board;
-
 
         ExactScore score_at_idx(const uint64_t& idx_item)  const
         {
