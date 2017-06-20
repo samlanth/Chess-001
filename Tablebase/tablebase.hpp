@@ -15,10 +15,10 @@ namespace chess
 {
     enum class TB_Marker { none, GRAY };
 
-    constexpr uint64_t  powN(uint8_t v, uint8_t n) { return (n > 0) ? v * powN(v, n - 1) : 1; }
-    constexpr uint64_t  TB_size(int boardsize, int N) { return powN(boardsize*boardsize, N); }
-    constexpr uint8_t   TB_size_item() { return 3; }    // score = 2 bits + marker = 1 bit
-    constexpr uint64_t  TB_size_dim(int boardsize) { return boardsize*boardsize; }
+    constexpr uint64_t  powN(uint8_t v, uint8_t n)      { return (n > 0) ? v * powN(v, n - 1) : 1; }
+    constexpr uint64_t  TB_size(int boardsize, int N)   { return powN(boardsize*boardsize, N); }
+    constexpr uint8_t   TB_size_item()                  { return 3; }    // score = 2 bits + marker = 1 bit
+    constexpr uint64_t  TB_size_dim(int boardsize)      { return boardsize*boardsize; }
 
     class TablebaseBase
     {
@@ -51,7 +51,7 @@ namespace chess
         }
 
         virtual bool load() = 0;
-        virtual bool save() = 0;
+        virtual bool save() const = 0;
         virtual bool build(char verbose) = 0;
         virtual bool isPiecesMatch(const _Board& pos) = 0;
 
@@ -163,7 +163,6 @@ namespace chess
         }
 
         void print() const;
-        std::vector<TablebaseBase*>& children() { return _children; }
         bool check_unknown() const;
         void set_unknown_to_draw();
         void clear_marker();

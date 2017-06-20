@@ -21,11 +21,10 @@ namespace chess
     public:
         Tablebase_0v1(std::vector<PieceID>& v, PieceColor c) : Tablebase<PieceID, _BoardSize, 1>(v, c)
         {
-            // no _children
         }
 
         bool load() override { return read_tb(); }
-        bool save() override { return save_tb(); }
+        bool save() const override { return save_tb(); }
         bool build(char verbose = 0) override;
         bool isPiecesMatch(const _Board& pos) override;
     };

@@ -73,6 +73,7 @@ namespace chess
 #include "ChessGA/ChessGenAlgo.hpp"
 #include "ChessGA/ChessCoEvolveGA.hpp"
 #include "Tablebase/tablebase.hpp"
+#include "Tablebase/tablebasehandler.hpp"
 #include "Tablebase/tablebase_1v0.hpp"
 #include "Tablebase/tablebase_0v1.hpp"
 #include "Tablebase/tablebase_1v1.hpp"

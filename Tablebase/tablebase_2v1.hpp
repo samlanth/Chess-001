@@ -31,7 +31,7 @@ namespace chess
         }
 
         bool load() override { return read_tb(); }
-        bool save() override { return save_tb(); }
+        bool save() const override { return save_tb(); }
         bool build(char verbose = 0) override { return false; }
         bool isPiecesMatch(const _Board& pos) override;
 
@@ -53,13 +53,13 @@ namespace chess
 
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    class TablebaseHandler_2v1
+    class TablebaseHandler_2v1 : public TablebaseBaseHandler<PieceID, _BoardSize>
     {
         using _Piece = Piece<PieceID, _BoardSize>;
         using _Board = Board<PieceID, _BoardSize>;
 
     public:
-        TablebaseHandler_2v1(std::vector<PieceID>& v) : _piecesID(v)
+        TablebaseHandler_2v1(std::vector<PieceID>& v) : TablebaseBaseHandler<PieceID, _BoardSize>(v)
         {
             _tb_W = new Tablebase_2v1<PieceID, _BoardSize>(v, PieceColor::W);
             _tb_B = new Tablebase_2v1<PieceID, _BoardSize>(v, PieceColor::B);
@@ -86,24 +86,20 @@ namespace chess
             delete _tbh_1_1v1;;
         }
 
-        bool build(char verbose = 0);
-        bool is_build() const {return _tb_W->_is_build && _tb_B->_is_build;}
-        void print() const;
-
-        bool load() { _tb_W->read_tb(); _tb_B->read_tb(); return true; }
-        bool save() { _tb_W->save_tb(); _tb_B->save_tb(); return true; }
+        bool build(char verbose = 0) override;
+        bool is_build() const override { return _tb_W->_is_build && _tb_B->_is_build; }
+        bool load() override;
+        bool save() const override;
 
     protected:
         uint64_t set_mate_score(PieceColor color_to_play, Tablebase_2v1<PieceID, _BoardSize>* tb);
         uint64_t set_marker(    PieceColor color_to_play, Tablebase_2v1<PieceID, _BoardSize>* tb, Tablebase_2v1<PieceID, _BoardSize>* tb_oppo);
         uint64_t process_marker(PieceColor color_to_play, Tablebase_2v1<PieceID, _BoardSize>* tb, Tablebase_2v1<PieceID, _BoardSize>* tb_oppo);
-
-        ExactScore best_score(PieceColor color_child, ExactScore current_score, ExactScore best_score) const;
         ExactScore minmax_score(const uint64_t& idx_item, Tablebase_2v1<PieceID, _BoardSize>* tb, Tablebase_2v1<PieceID, _BoardSize>* tb_oppo);
-
         bool find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const;
         Tablebase_2v0<PieceID, _BoardSize>* locate_children_2v0(const _Board& pos, PieceColor c, uint16_t& ret_child_sq0, uint16_t& ret_child_sq1) const;
         Tablebase_1v1<PieceID, _BoardSize>* locate_children_1v1(const _Board& pos, PieceColor c, uint16_t& ret_child_sq0, uint16_t& ret_child_sq1) const;
+        void print() const;
 
         std::vector<PieceID>                _piecesID;
         Tablebase_2v1<PieceID, _BoardSize>* _tb_W;
@@ -119,6 +115,29 @@ namespace chess
         TablebaseHandler_1v1<PieceID, _BoardSize>* _tbh_0_1v1;
         TablebaseHandler_1v1<PieceID, _BoardSize>* _tbh_1_1v1;
     };
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool TablebaseHandler_2v1<PieceID, _BoardSize>::save()  const
+    {
+        if (!_tb_W->save()) return false;
+        if (!_tb_B->save()) return false;
+        if (!_tb_2v0_w->save()) return false;
+        if (!_tb_2v0_b->save()) return false;
+        if (!_tbh_0_1v1->save()) return false;
+        if (!_tbh_1_1v1->save()) return false;
+        return true;
+    }
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool TablebaseHandler_2v1<PieceID, _BoardSize>::load()
+    {
+        if (!_tb_W->load()) return false;
+        if (!_tb_B->load()) return false;
+        if (!_tb_2v0_w->load()) return false;
+        if (!_tb_2v0_b->load()) return false;
+        if (!_tbh_0_1v1->load()) return false;
+        if (!_tbh_1_1v1->load()) return false;
+        return true;
+    }
 
     template <typename PieceID, typename uint8_t _BoardSize>
     bool TablebaseHandler_2v1<PieceID, _BoardSize>::build(char verbose)
@@ -537,53 +556,11 @@ namespace chess
 
         if (has_all_child_score)
         {
-            if (max_score == ExactScore::LOSS)
-            {
-                int debug = 1;
-            }
             return max_score;
         }
-
         if ((tb->_work_board->get_color() == PieceColor::W) && (max_score == ExactScore::WIN))  return ExactScore::WIN;
         if ((tb->_work_board->get_color() == PieceColor::B) && (max_score == ExactScore::LOSS)) return ExactScore::LOSS;
         return ExactScore::UNKNOWN;
-    }
-
-    template <typename PieceID, typename uint8_t _BoardSize>
-    ExactScore TablebaseHandler_2v1<PieceID, _BoardSize>::best_score(PieceColor color_child, ExactScore sc, ExactScore best_score) const
-    {
-        if (color_child == PieceColor::B) // W at parent
-        {
-            if (sc == ExactScore::WIN) return ExactScore::WIN;
-            else if (sc == ExactScore::DRAW)
-            {
-                if (best_score != ExactScore::WIN)
-                    return ExactScore::DRAW;
-            }
-            else
-            {
-                // sc == ExactScore::LOSS
-                if (best_score == ExactScore::UNKNOWN)
-                    return ExactScore::LOSS;
-            }
-        }
-        else
-        {
-            if (sc == ExactScore::LOSS)
-                return ExactScore::LOSS;
-            else if (sc == ExactScore::DRAW)
-            {
-                if (best_score != ExactScore::LOSS)
-                    return ExactScore::DRAW;
-            }
-            else
-            {
-                // sc == ExactScore::WIN
-                if (best_score == ExactScore::UNKNOWN)
-                    return ExactScore::WIN;
-            }
-        }
-        return best_score;
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>

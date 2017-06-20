@@ -31,12 +31,10 @@ namespace chess
         {
         }
 
-        bool load() override { return read_tb(); }
-        bool save() override { return save_tb(); }
+        bool load() override        { return read_tb(); }
+        bool save() const override  { return save_tb(); }
         bool build(char verbose = 0) override { return false; }
         bool isPiecesMatch(const _Board& pos) override;
-
-    protected:
     };
 
     template <typename PieceID, typename uint8_t _BoardSize>
@@ -52,7 +50,7 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    class TablebaseHandler_1v1
+    class TablebaseHandler_1v1 : public TablebaseBaseHandler<PieceID, _BoardSize>
     {
         using _Piece = Piece<PieceID, _BoardSize>;
         using _Board = Board<PieceID, _BoardSize>;
@@ -60,7 +58,7 @@ namespace chess
         friend class TablebaseHandler_2v1<PieceID, _BoardSize>;
 
     public:
-        TablebaseHandler_1v1(std::vector<PieceID>& v)
+        TablebaseHandler_1v1(std::vector<PieceID>& v) : TablebaseBaseHandler<PieceID, _BoardSize>(v)
         {
             _tb_W = new Tablebase_1v1<PieceID, _BoardSize>(v, PieceColor::W);
             _tb_B = new Tablebase_1v1<PieceID, _BoardSize>(v, PieceColor::B);
@@ -84,10 +82,10 @@ namespace chess
             delete _tb_0v1_b;
         }
 
-        bool build(char verbose = 0);
-        bool is_build() const { return _tb_W->_is_build && _tb_B->_is_build; }
-        bool load() { _tb_W->read_tb(); _tb_B->read_tb(); return true; }
-        bool save() { _tb_W->save_tb(); _tb_B->save_tb(); return true; }
+        bool build(char verbose = 0) override;
+        bool is_build() const override  { return _tb_W->_is_build && _tb_B->_is_build; }
+        bool load() override;
+        bool save() const override;
 
         Tablebase_1v1<PieceID, _BoardSize>* tb_W() { return _tb_W; }
         Tablebase_1v1<PieceID, _BoardSize>* tb_B() { return _tb_B; }
@@ -99,10 +97,8 @@ namespace chess
         ExactScore minmax_score(const uint64_t& idx_item, Tablebase_1v1<PieceID, _BoardSize>* tb, Tablebase_1v1<PieceID, _BoardSize>* tb_oppo);
         Tablebase_1v0<PieceID, _BoardSize>* locate_children_1v0(const _Board& pos, PieceColor c, uint16_t& ret_child_sq0) const;
         Tablebase_0v1<PieceID, _BoardSize>* locate_children_0v1(const _Board& pos, PieceColor c, uint16_t& ret_child_sq0) const;
-        ExactScore best_score(PieceColor color_child, ExactScore current_score, ExactScore best_score) const;
-        void print() const;
-
         bool find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const;
+        void print() const;
 
         Tablebase_1v1<PieceID, _BoardSize>* _tb_W;
         Tablebase_1v1<PieceID, _BoardSize>* _tb_B;
@@ -116,6 +112,29 @@ namespace chess
         Tablebase_0v1<PieceID, _BoardSize>* _tb_0v1_w;
         Tablebase_0v1<PieceID, _BoardSize>* _tb_0v1_b;
     };
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool TablebaseHandler_1v1<PieceID, _BoardSize>::save()  const
+    {
+        if (!_tb_W->save()) return false;
+        if (!_tb_B->save()) return false;
+        if (!_tb_1v0_w->save()) return false;
+        if (!_tb_1v0_b->save()) return false;
+        if (!_tb_0v1_w->save()) return false;
+        if (!_tb_0v1_b->save()) return false;
+        return true;
+    }
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool TablebaseHandler_1v1<PieceID, _BoardSize>::load()
+    {
+        if (!_tb_W->load()) return false;
+        if (!_tb_B->load()) return false;
+        if (!_tb_1v0_w->load()) return false;
+        if (!_tb_1v0_b->load()) return false;
+        if (!_tb_0v1_w->load()) return false;
+        if (!_tb_0v1_b->load()) return false;
+        return true;
+    }
 
     template <typename PieceID, typename uint8_t _BoardSize>
     bool TablebaseHandler_1v1<PieceID, _BoardSize>::build(char verbose)
@@ -491,15 +510,6 @@ namespace chess
                     continue;
                 }
 
-                //uint16_t child_sq0;
-                //Tablebase_1v0<PieceID, _BoardSize>* tb_child = locate_children(tb->_work_board->get_color(), tb, tb_oppo, child_sq0);
-                //if (tb_child == nullptr)
-                //{
-                //    has_all_child_score = false;
-                //    assert(false);
-                //    continue;
-                //}
-
                 //sc = tb_child->score(child_sq0);
                 if (sc == ExactScore::UNKNOWN)
                 {
@@ -525,43 +535,6 @@ namespace chess
         if ((tb->_work_board->get_color() == PieceColor::W) && (max_score == ExactScore::WIN))  return ExactScore::WIN;
         if ((tb->_work_board->get_color() == PieceColor::B) && (max_score == ExactScore::LOSS)) return ExactScore::LOSS;
         return ExactScore::UNKNOWN;
-    }
-
-    template <typename PieceID, typename uint8_t _BoardSize>
-    ExactScore TablebaseHandler_1v1<PieceID, _BoardSize>::best_score(PieceColor color_child, ExactScore sc, ExactScore best_score) const
-    {
-        if (color_child == PieceColor::B) // W at parent
-        {
-            if (sc == ExactScore::WIN) return ExactScore::WIN;
-            else if (sc == ExactScore::DRAW)
-            {
-                if (best_score != ExactScore::WIN)
-                    return ExactScore::DRAW;
-            }
-            else
-            {
-                // sc == ExactScore::LOSS
-                if (best_score == ExactScore::UNKNOWN)
-                    return ExactScore::LOSS;
-            }
-        }
-        else
-        {
-            if (sc == ExactScore::LOSS)
-                return ExactScore::LOSS;
-            else if (sc == ExactScore::DRAW)
-            {
-                if (best_score != ExactScore::LOSS)
-                    return ExactScore::DRAW;
-            }
-            else
-            {
-                // sc == ExactScore::WIN
-                if (best_score == ExactScore::UNKNOWN)
-                    return ExactScore::WIN;
-            }
-        }
-        return best_score;
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>

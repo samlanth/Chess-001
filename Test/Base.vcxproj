@@ -55,7 +55,9 @@
     <ClInclude Include="..\Player\playerbase.hpp" />
     <ClInclude Include="..\Player\playerfactory.hpp" />
     <ClInclude Include="..\Tablebase\tablebase.hpp" />
+    <ClInclude Include="..\Tablebase\tablebasehandler.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_0v1.hpp" />
+    <ClInclude Include="..\Tablebase\tablebase_0v2.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_1v0.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_1v1.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_2v0.hpp" />
@@ -153,7 +155,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\000Chess\000Base\Core\Chess-001\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\000Chess\000Base\Core\Chess-001;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
