@@ -34,7 +34,9 @@ int main(int argc, char* argv[])
     v.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
     v.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
     chess::TablebaseHandler_1v1<uint8_t, 6> tbh_KvK(v);
-    //tbh_KvK.build(1);
+    tbh_KvK.build(1);
+    tbh_KvK.save();
+    tbh_KvK.load();
 
     // Test TablebaseHandler_2v1
     std::vector<uint8_t> w;
@@ -43,6 +45,8 @@ int main(int argc, char* argv[])
     w.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
     chess::TablebaseHandler_2v1<uint8_t, 6> tbh_KQvK(w);
     tbh_KQvK.build(1);
+    tbh_KQvK.save();
+    tbh_KQvK.load();
 
     // Prepare players for GA
     {

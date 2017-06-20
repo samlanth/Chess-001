@@ -55,6 +55,7 @@
     <ClInclude Include="..\Player\playerbase.hpp" />
     <ClInclude Include="..\Player\playerfactory.hpp" />
     <ClInclude Include="..\Tablebase\tablebase.hpp" />
+    <ClInclude Include="..\Tablebase\tablebase_0v1.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_1v0.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_1v1.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_2v0.hpp" />

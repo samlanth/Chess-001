@@ -50,7 +50,7 @@ namespace chess
         static const PieceID get_id(PieceName _name, PieceColor _c);
         static const _Piece* get(PieceID id);
         static void init();
-        static const std::string to_str(PieceID id);
+        static const std::string to_str(PieceID id, bool with_space = true);
         static const uint8_t Piece<PieceID, _BoardSize>::to_uint8(PieceID id);
         static size_t pieces_size() { return pieces.size(); }
 
@@ -128,7 +128,7 @@ namespace chess
 
     // to_str()
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline const std::string Piece<PieceID, _BoardSize>::to_str(PieceID id)
+    inline const std::string Piece<PieceID, _BoardSize>::to_str(PieceID id, bool with_space)
     {
         if (!Piece::is_init) init();
 
@@ -149,11 +149,12 @@ namespace chess
                 else if (p->name == PieceName::P) s += "P";
                 else s += "-";
 
-                s += " ";
+                if (with_space) s += " ";
                 return s;
             }
         }
-        return "-- ";
+        if (with_space) return "-- ";
+        return "--";
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>

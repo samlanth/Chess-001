@@ -23,17 +23,27 @@ namespace chess
         {
             // no _children
         }
-        bool load() override { return true; }
-        bool save() override { return true; }
+        bool load() override { return read_tb(); }
+        bool save() override { return save_tb(); }
         bool build(char verbose = 0) override;
+        bool isPiecesMatch(const _Board& pos) override;
     };
 
- 
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool Tablebase_1v0<PieceID, _BoardSize>::isPiecesMatch(const _Board& pos)
+    {
+        if ((pos.cnt_all_piece() == 1) &&
+            (pos.has_piece(_Piece::get(_piecesID[0])->get_name(), PieceColor::W)))
+        {
+            return true;
+        }
+        return false;
+    }
+
     template <typename PieceID, typename uint8_t _BoardSize>
     bool Tablebase_1v0<PieceID, _BoardSize>::build(char verbose)
     {
         ExactScore sc;
-        uint64_t n_changes = 0;
         std::vector<_Move> m;
 
         for (uint16_t sq0 = 0; sq0 < _dim1; sq0++)

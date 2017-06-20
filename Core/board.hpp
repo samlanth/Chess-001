@@ -367,12 +367,12 @@ namespace chess
             apply_move(mv);
             m_child = generate_moves();
             sc = final_score(m_child);
-            if (sc != ExactScore::UNKNOWN)
-            {
-                undo_move();
-                return ExactScore::UNKNOWN;
-            }
-            else
+            //if (sc != ExactScore::UNKNOWN)
+            //{
+            //    undo_move();
+            //    return ExactScore::UNKNOWN;
+            //}
+            //else
             {
                 if (get_color() == PieceColor::B)
                 {

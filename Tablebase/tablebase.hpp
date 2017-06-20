@@ -53,6 +53,10 @@ namespace chess
         virtual bool load() = 0;
         virtual bool save() = 0;
         virtual bool build(char verbose) = 0;
+        virtual bool isPiecesMatch(const _Board& pos) = 0;
+
+        virtual bool save_tb() const;
+        virtual bool read_tb();
 
         bool        is_build()                      { return _is_build; }
         PieceColor  color()     const               { return _color; }
@@ -203,7 +207,8 @@ namespace chess
             if (v == true) set_bit(idx_item, 2, 1); 
             else  set_bit(idx_item, 2, 0);
         }
-
+        void writeBits(std::ostream& os) const;
+        void readBits(std::istream& is);
     };
 
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
@@ -279,16 +284,108 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
     void Tablebase<PieceID, _BoardSize, NPIECE>::clear_marker()
     {
+        for (uint64_t i = 0; i < this->_size_tb; i++)
         {
-            for (uint64_t i = 0; i < this->_size_tb; i++)
+            set_marker_at_idx(i * _size_item, false);
+        }
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
+    bool Tablebase<PieceID, _BoardSize, NPIECE>::save_tb() const
+    {
+        std::string str_pieces;
+        if (_color == PieceColor::W) str_pieces = "W_"; else str_pieces = "B_";
+        for (auto& v : _piecesID) str_pieces += _Piece::to_str(v, false);
+
+        std::string f = PersistManager::instance()->get_stream_name("tablebase", str_pieces);
+        std::ofstream os;
+        os.open(f.c_str(), std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
+        if (os.good())
+        {
+            writeBits(os);
+            if (os.good())
             {
+                os.close();
+                return true;
+            }
+        }
+        os.close();
+        return false;
+    }
+
+
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
+    void Tablebase<PieceID, _BoardSize, NPIECE>::writeBits(std::ostream& os) const
+    {
+        for (std::size_t bit_pos = 0; bit_pos < _bits.size(); )
+        {
+            unsigned char currentByte = 0;
+            for (int currentBit = 0; currentBit < 8*sizeof(unsigned char) && bit_pos < _bits.size(); ++currentBit, ++bit_pos)
+            {
+                currentByte |= _bits[bit_pos] ? (0x80 >> currentBit) : 0;
+            }
+            os << currentByte;
+        }
+            //0x80 >> 0 = 0b10000000
+            //0x80 >> 1 = 0b01000000
+            //0x80 >> 2 = 0b00100000
+            //0x80 >> 3 = 0b00010000
+            //0x80 >> 4 = 0b00001000
+            //0x80 >> 5 = 0b00000100
+            //0x80 >> 6 = 0b00000010
+            //0x80 >> 7 = 0b00000001
+    }
+
+
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
+    bool Tablebase<PieceID, _BoardSize, NPIECE>::read_tb()
+    {
+        std::string str_pieces;
+        if (_color == PieceColor::W) str_pieces = "W_"; else str_pieces = "B_";
+        for (auto& v : _piecesID)str_pieces += _Piece::to_str(v, false);
+
+        std::string f = PersistManager::instance()->get_stream_name("tablebase", str_pieces);
+        std::ifstream is;
+        is.open(f.c_str(), std::ofstream::in | std::ofstream::binary);
+        if (is.good())
+        {
+            readBits(is);
+            if (is.good())
+            {
+                is.close();
+                return true;
+            }
+        }
+        is.close();
+        return false;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
+    void Tablebase<PieceID, _BoardSize, NPIECE>::readBits(std::istream& is)
+    {
+        std::size_t num_bits = _bits.size();
+        _bits.reset();
+        std::size_t total_bytes = num_bits / (8*sizeof(unsigned char)) + 1;
+        std::size_t bit_pos = 0;
+        for (std::size_t i = 0;
+            is &&
+            i < total_bytes &&
+            bit_pos < num_bits;
+            ++i)
+        {
+            unsigned char currentByte = 0;
+            if (is >> currentByte)
+            {
+                for (int currentBit = 0;
+                    currentBit < (8 * sizeof(unsigned char)) &&
+                    bit_pos < num_bits;
+                    ++currentBit, ++bit_pos)
                 {
-                    set_marker_at_idx(i * _size_item, false);
+                    _bits[bit_pos] = (currentByte &  (0x80 >> currentBit)) > 0;
                 }
             }
         }
     }
-
 };
 #endif
 
