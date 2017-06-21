@@ -35,45 +35,77 @@ namespace chess
     protected:
         std::vector<PieceID> _piecesID;
 
-        ExactScore best_score(PieceColor color_child, ExactScore sc, ExactScore best_score) const;
+        ExactScore best_score(PieceColor color_child, ExactScore sc, ExactScore best_score, bool& is_same, bool& is_better) const;
     };
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    ExactScore TablebaseBaseHandler<PieceID, _BoardSize>::best_score(PieceColor color_child, ExactScore sc, ExactScore best_score) const
+    ExactScore TablebaseBaseHandler<PieceID, _BoardSize>::best_score(PieceColor color_child, ExactScore sc, ExactScore best_score,
+                                    bool& is_same, bool& is_better) const
     {
+        is_same     = false;
+        is_better   = false;
+
         if (color_child == PieceColor::B) // W at parent
         {
-            if (sc == ExactScore::WIN) return ExactScore::WIN;
+            if (sc == ExactScore::WIN)
+            {
+                if (best_score == ExactScore::WIN) is_same = true;
+                else is_better = true;
+
+                return ExactScore::WIN;
+            }
             else if (sc == ExactScore::DRAW)
             {
                 if (best_score != ExactScore::WIN)
+                {
+                    if (best_score == ExactScore::DRAW) is_same = true;
+                    else is_better = true;
+
                     return ExactScore::DRAW;
+                }
             }
             else
             {
                 // sc == ExactScore::LOSS
                 if (best_score == ExactScore::UNKNOWN)
+                {
+                    is_better = true;
                     return ExactScore::LOSS;
+                }
             }
         }
         else
         {
             if (sc == ExactScore::LOSS)
+            {
+                if (best_score == ExactScore::LOSS) is_same = true;
+                else is_better = true;
+
                 return ExactScore::LOSS;
+            }
             else if (sc == ExactScore::DRAW)
             {
                 if (best_score != ExactScore::LOSS)
+                {
+                    if (best_score == ExactScore::DRAW) is_same = true;
+                    else is_better = true;
+
                     return ExactScore::DRAW;
+                }
             }
             else
             {
                 // sc == ExactScore::WIN
                 if (best_score == ExactScore::UNKNOWN)
+                {
+                    is_better = true;
                     return ExactScore::WIN;
+                }
             }
         }
         return best_score;
     }
+
 };
 #endif
 

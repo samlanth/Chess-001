@@ -34,6 +34,13 @@ namespace chess
         return ExactScore::UNKNOWN;
     }
 
+    static std::string ExactScore_to_string(ExactScore c)
+    {
+        if (c == ExactScore::LOSS) return "LOSS";
+        else if (c == ExactScore::DRAW) return "DRAW";
+        else if (c == ExactScore::WIN)  return "WIN";
+        else return "UNKNOWN";
+    }
     static int FeatureType_to_int(FeatureType c)
     {
         if (c == FeatureType::valuation) return 1;

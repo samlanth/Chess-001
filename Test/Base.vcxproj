@@ -56,6 +56,8 @@
     <ClInclude Include="..\Player\playerfactory.hpp" />
     <ClInclude Include="..\Tablebase\tablebase.hpp" />
     <ClInclude Include="..\Tablebase\tablebasehandler.hpp" />
+    <ClInclude Include="..\Tablebase\tablebasemanager.hpp" />
+    <ClInclude Include="..\Tablebase\tablebaseutil.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_0v1.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_0v2.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_1v0.hpp" />

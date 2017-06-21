@@ -23,10 +23,16 @@ namespace chess
         {
         }
 
-        bool load() override { return read_tb(); }
+        bool load() override 
+        { 
+            _is_build = read_tb(); 
+            if (_is_build) TablebaseManager<PieceID, _BoardSize>::instance()->add(name(), this);
+            return _is_build; 
+        }
+
         bool save() const override { return save_tb(); }
         bool build(char verbose = 0) override;
-        bool isPiecesMatch(const _Board& pos) override;
+        bool isPiecesMatch(const _Board& pos) override;        
     };
 
     template <typename PieceID, typename uint8_t _BoardSize>
@@ -64,6 +70,8 @@ namespace chess
         }
         _is_build = true;
         set_unknown_to_draw();
+
+        TablebaseManager<PieceID, _BoardSize>::instance()->add(name(), this);
 
         if (verbose) print();
         assert(check_unknown() == false);

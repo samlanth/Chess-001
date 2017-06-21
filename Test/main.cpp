@@ -20,23 +20,14 @@ int main(int argc, char* argv[])
     chess::PersistManager::instance();
 
     // Test Tablebase_1v0
-    std::vector<uint8_t> vv;
-    vv.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
-    chess::Tablebase_1v0<uint8_t, 6> tb_Kv0(vv, chess::PieceColor::W);
-    chess::Board<uint8_t, 6> b;
-    b.set_pieceid_at(5, 0); b.set_color(chess::PieceColor::B);
-    std::vector<chess::Move<uint8_t>> m = b.generate_moves();
-    //tb_Kv0.build();
-    //tb_Kv0.print();
-
-    // Test TablebaseHandler_1v1
-    std::vector<uint8_t> v;
-    v.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
-    v.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
-    chess::TablebaseHandler_1v1<uint8_t, 6> tbh_KvK(v);
-    tbh_KvK.build(1);
-    tbh_KvK.save();
-    tbh_KvK.load();
+    std::vector<uint8_t> uu;
+    uu.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
+    chess::Tablebase_1v0<uint8_t, 6> tb_0vKb(uu, chess::PieceColor::B);
+    tb_0vKb.build();
+    tb_0vKb.print_score(5);
+    tb_0vKb.save();
+    tb_0vKb.load();
+    tb_0vKb.print_score(5);
 
     // Test TablebaseHandler_2v1
     std::vector<uint8_t> w;
@@ -45,8 +36,28 @@ int main(int argc, char* argv[])
     w.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
     chess::TablebaseHandler_2v1<uint8_t, 6> tbh_KQvK(w);
     tbh_KQvK.build(1);
+    //tbh_KQvK.tb_W()->print_score(200);
+    tbh_KQvK.tb_W()->print_dtc(10);
     tbh_KQvK.save();
     tbh_KQvK.load();
+    //tbh_KQvK.tb_W()->print_score(200);
+
+    srand((unsigned int)time(NULL));
+    chess::Board<uint8_t, 6> b;
+    chess::Board<uint8_t, 6> bt = b.get_random_position_KQK(true);
+    b = bt; // save initial pos
+    chess::TablebaseUtil<uint8_t, 6> tbu;
+    tbu.expand_position(bt);
+    std::vector<chess::Move<uint8_t>>  m = b.generate_moves();
+    std::list<chess::Move<uint8_t>>  mh = bt.get_history_moves();
+    std::cout << b.to_str() << std::endl;
+    while (!b.is_final(m))
+    {
+        if (mh.size() == 0) break;
+        b.apply_move(mh.front()); mh.pop_front();
+        std::cout << b.to_str() << std::endl;
+        m = b.generate_moves();
+    }
 
     // Prepare players for GA
     {

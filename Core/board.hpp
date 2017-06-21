@@ -58,6 +58,8 @@ namespace chess
         void set_classic_pos();
         bool has_piece(PieceName n, PieceColor c) const;
         size_t cnt_piece(PieceName n, PieceColor c) const;
+        std::vector<PieceID> get_piecesID() const;
+        std::vector<uint16_t> get_square_of_pieces() const;
         uint8_t on_edge(PieceName n, PieceColor c) const;
         uint8_t dist(PieceName n, PieceColor c, PieceName n2, PieceColor c2) const;
         size_t cnt_all_piece() const;
@@ -88,8 +90,9 @@ namespace chess
             _color_toplay = PieceColor::W;
             for (auto& v : _cells) v = Piece<PieceID, _BoardSize>::empty_id();
             _history_moves.clear();
-
         }
+
+        Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KQK(bool no_check = false) const;
 
     private:
         PieceColor              _color_toplay;
@@ -239,7 +242,64 @@ namespace chess
                 }
             }
         }
-        return _BoardSize*_BoardSize; // invalid
+        assert(false);
+        return _BoardSize*_BoardSize; // invalid.......
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline std::vector<uint16_t> Board<PieceID, _BoardSize>::get_square_of_pieces() const
+    {
+        std::vector<uint16_t> v;
+        for (uint8_t x = 0; x < _BoardSize; x++)
+        {
+            for (uint8_t y = 0; y < _BoardSize; y++)
+            {
+                if (_cells.at(index_at(x, y)) != _Piece::empty_id())
+                {
+                    v.push_back(y*_BoardSize+x);
+                }
+            }
+        }
+        return v;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    std::vector<PieceID> Board<PieceID, _BoardSize>::get_piecesID() const
+    {
+        struct
+        {
+            bool operator() (const PieceID& lhs, const PieceID& rhs)
+            {
+                const _Piece* a = _Piece::get(lhs);
+                const _Piece* b = _Piece::get(rhs);
+                if      ((a->get_color() == PieceColor::W) && (b->get_color() == PieceColor::B)) return true;
+                else if ((a->get_color() == PieceColor::B) && (b->get_color() == PieceColor::W)) return false;
+                else
+                {
+                    // KQRBNP 
+                    if ((a->get_name() == PieceName::K) && (b->get_name() != PieceName::K)) return true;
+                    if ((a->get_name() == PieceName::Q) && (b->get_name() == PieceName::R)) return true;
+                    if ((a->get_name() == PieceName::Q) && (b->get_name() == PieceName::B)) return true;
+                    if ((a->get_name() == PieceName::Q) && (b->get_name() == PieceName::N)) return true;
+                    if ((a->get_name() == PieceName::Q) && (b->get_name() == PieceName::P)) return true;
+                    if ((a->get_name() == PieceName::R) && (b->get_name() == PieceName::B)) return true;
+                    if ((a->get_name() == PieceName::R) && (b->get_name() == PieceName::N)) return true;
+                    if ((a->get_name() == PieceName::R) && (b->get_name() == PieceName::P)) return true;
+                    if ((a->get_name() == PieceName::B) && (b->get_name() == PieceName::N)) return true;
+                    if ((a->get_name() == PieceName::B) && (b->get_name() == PieceName::P)) return true;
+                    return false;
+                }
+            }
+        } sorter_less_pieces;
+
+        std::vector<PieceID> v;
+        for (const auto& m : _cells)
+        {
+            if (m != _Piece::empty_id())
+                v.push_back(m);
+        }
+        std::sort(v.begin(), v.end(), sorter_less_pieces);
+        return v;
     }
 
     // has_piece()
@@ -825,6 +885,41 @@ namespace chess
             return std::max( std::abs(x2 - x1), std::abs(y2 - y1) );
         }
         return 0;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KQK(bool no_check) const
+    {
+        uint8_t wQ = 0;
+        uint8_t wK = 0;
+        uint8_t bK = 0;
+        while ((wK == bK) || (wK == wQ) || (bK == wQ))
+        {
+            wQ = (std::rand() % (_BoardSize*_BoardSize));
+            wK = (std::rand() % (_BoardSize*_BoardSize));
+            bK = (std::rand() % (_BoardSize*_BoardSize));
+        }
+        Board<PieceID, _BoardSize>  b;
+        b.set_pieceid_at(_Piece::get_id(PieceName::Q, PieceColor::W), wQ % _BoardSize, ((uint8_t)(wQ / _BoardSize)));
+        b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::W), wK % _BoardSize, ((uint8_t)(wK / _BoardSize)));
+        b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::B), bK % _BoardSize, ((uint8_t)(bK / _BoardSize)));
+        b.set_color(PieceColor::W);
+
+        if (no_check)
+        {
+            if (b.is_in_check())
+            {
+                return get_random_position_KQK(no_check);
+            }
+            else
+            {
+                std::vector<_Move> m = b.generate_moves();
+                size_t mv;
+                if (b.can_capture_opposite_king(m, mv))
+                    return get_random_position_KQK(no_check);
+            }
+        }
+        return b;
     }
 };
 #endif

@@ -29,7 +29,13 @@ namespace chess
         {
         }
 
-        bool load() override { return read_tb(); }
+        bool load() override
+        {
+            _is_build = read_tb();
+            if (_is_build) TablebaseManager<PieceID, _BoardSize>::instance()->add(name(), this);
+            return _is_build;
+        }
+
         bool save() const override { return save_tb(); }
         bool build(char verbose = 0) override { return false; }
         bool isPiecesMatch(const _Board& pos) override;
@@ -92,14 +98,14 @@ namespace chess
         bool load() override;
         bool save() const override;
 
-        Tablebase_2v1<PieceID, _BoardSize>* tb_W() { return _tb_W };
+        Tablebase_2v1<PieceID, _BoardSize>* tb_W() { return _tb_W; }
         Tablebase_2v1<PieceID, _BoardSize>* tb_B() { return _tb_B; }
 
     protected:
         uint64_t set_mate_score(PieceColor color_to_play, Tablebase_2v1<PieceID, _BoardSize>* tb);
         uint64_t set_marker(    PieceColor color_to_play, Tablebase_2v1<PieceID, _BoardSize>* tb, Tablebase_2v1<PieceID, _BoardSize>* tb_oppo);
         uint64_t process_marker(PieceColor color_to_play, Tablebase_2v1<PieceID, _BoardSize>* tb, Tablebase_2v1<PieceID, _BoardSize>* tb_oppo);
-        ExactScore minmax_score(const uint64_t& idx_item, Tablebase_2v1<PieceID, _BoardSize>* tb, Tablebase_2v1<PieceID, _BoardSize>* tb_oppo);
+        ExactScore minmax_score(const uint64_t& idx_item, Tablebase_2v1<PieceID, _BoardSize>* tb, Tablebase_2v1<PieceID, _BoardSize>* tb_oppo, uint8_t& ret_dtc, size_t& ret_child);
         bool find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const;
         Tablebase_2v0<PieceID, _BoardSize>* locate_children_2v0(const _Board& pos, PieceColor c, uint16_t& ret_child_sq0, uint16_t& ret_child_sq1) const;
         Tablebase_1v1<PieceID, _BoardSize>* locate_children_1v1(const _Board& pos, PieceColor c, uint16_t& ret_child_sq0, uint16_t& ret_child_sq1) const;
@@ -134,12 +140,12 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     bool TablebaseHandler_2v1<PieceID, _BoardSize>::load()
     {
-        if (!_tb_W->load()) return false;
-        if (!_tb_B->load()) return false;
         if (!_tb_2v0_w->load()) return false;
         if (!_tb_2v0_b->load()) return false;
         if (!_tbh_0_1v1->load()) return false;
         if (!_tbh_1_1v1->load()) return false;
+        if (!_tb_W->load()) return false;
+        if (!_tb_B->load()) return false;
         return true;
     }
 
@@ -189,6 +195,7 @@ namespace chess
             m = process_marker(PieceColor::W, _tb_W, _tb_B);
             if (verbose) { std::cout << "W process_marker positions:" << m << std::endl; }
 
+            if (verbose) _tb_W->print_dtc(20);
             if (verbose) print();
             if ((n+m) == 0) break;
 
@@ -198,6 +205,8 @@ namespace chess
         _tb_B->set_build(true);
         _tb_W->set_unknown_to_draw();
         _tb_B->set_unknown_to_draw();
+        TablebaseManager<PieceID, _BoardSize>::instance()->add(_tb_W->name(), _tb_W);
+        TablebaseManager<PieceID, _BoardSize>::instance()->add(_tb_B->name(), _tb_B);
         return true;
     }
 
@@ -294,6 +303,7 @@ namespace chess
                 sc = tb->_work_board->final_score(m);
                 if (sc != ExactScore::UNKNOWN)
                 {
+                    //tb->set_dtc(sq0, sq1, sq2, 0); // default is 0
                     tb->set_score(sq0, sq1, sq2, sc);
                     tb->set_marker(sq0, sq1, sq2, false);
                     n_changes++;
@@ -305,12 +315,14 @@ namespace chess
                     {
                         if (tb->_work_board->get_color() == PieceColor::W)
                         {
+                            tb->set_dtc(sq0, sq1, sq2, 1);
                             tb->set_score(sq0, sq1, sq2, ExactScore::WIN);
                             tb->set_marker(sq0, sq1, sq2, false);
                             n_changes++;
                         }
                         else
                         {
+                            tb->set_dtc(sq0, sq1, sq2, 1);
                             tb->set_score(sq0, sq1, sq2, ExactScore::LOSS);
                             tb->set_marker(sq0, sq1, sq2, false);
                             n_changes++;
@@ -443,9 +455,11 @@ namespace chess
                 sc = tb->score(sq0, sq1, sq2);
                 if (sc == ExactScore::UNKNOWN)
                 {
-                    sc = this->minmax_score(tb->index_item(sq0, sq1, sq2), tb, tb_oppo);
+                    uint8_t ret_dtc; size_t ret_child_index;
+                    sc = this->minmax_score(tb->index_item(sq0, sq1, sq2), tb, tb_oppo, ret_dtc, ret_child_index);
                     if (sc != ExactScore::UNKNOWN)
                     {
+                        tb->set_dtc(sq0, sq1, sq2, ret_dtc);
                         tb->set_score(sq0, sq1, sq2, sc);
                         tb->set_marker(sq0, sq1, sq2, false);
                         n_changes++;                                // continu since score changes
@@ -485,15 +499,19 @@ namespace chess
             sc = tb->_work_board->final_score(m);
             if (sc != ExactScore::UNKNOWN)
             {
+                //tb->set_dtc(sq0, sq1, 1+dtc(...)); // NOT HAPPENING!
                 tb->set_score(sq0, sq1, sq2, sc);
                 tb->set_marker(sq0, sq1, sq2, false);
                 n_changes++;
             }
             else
             {
-                sc = this->minmax_score(tb->index_item(sq0, sq1, sq2), tb, tb_oppo);
+                uint8_t ret_dtc; size_t ret_child_index;
+                sc = this->minmax_score(tb->index_item(sq0, sq1, sq2), tb, tb_oppo, ret_dtc, ret_child_index);
+
                 if (sc != ExactScore::UNKNOWN)
                 {
+                    tb->set_dtc(sq0, sq1, sq2, ret_dtc);
                     tb->set_score(sq0, sq1, sq2, sc);
                     tb->set_marker(sq0, sq1, sq2, false);
                     n_changes++;
@@ -504,7 +522,7 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    ExactScore TablebaseHandler_2v1<PieceID, _BoardSize>::minmax_score(const uint64_t& idx_item ,Tablebase_2v1<PieceID, _BoardSize>* tb, Tablebase_2v1<PieceID, _BoardSize>* tb_oppo)
+    ExactScore TablebaseHandler_2v1<PieceID, _BoardSize>::minmax_score(const uint64_t& idx_item ,Tablebase_2v1<PieceID, _BoardSize>* tb, Tablebase_2v1<PieceID, _BoardSize>* tb_oppo, uint8_t& ret_dtc, size_t& ret_child)
     {
         ExactScore sc = tb->score_at_idx(idx_item);
         if (sc != ExactScore::UNKNOWN)
@@ -512,6 +530,11 @@ namespace chess
 
         bool has_all_child_score = true;
         ExactScore max_score = ExactScore::UNKNOWN;
+
+        uint8_t     best_dtc = -1;
+        size_t      best_dtc_child_index = -1;
+        ret_dtc     = 0;
+        ret_child   = 0;
 
         Move<PieceID> mv;
         std::vector<Move<PieceID>> m_child = tb->_work_board->generate_moves();
@@ -531,7 +554,38 @@ namespace chess
                 }
                 else
                 {
-                    max_score = best_score(tb->_work_board->get_color(), sc, max_score);
+                    bool is_same; bool is_better;
+                    max_score = best_score(tb->_work_board->get_color(), sc, max_score, is_same, is_better);
+                    if (is_better)
+                    {
+                        best_dtc = 1 + tb_oppo->dtc(child_sq0, child_sq1, child_sq2);
+                        best_dtc_child_index = i;
+                    }
+                    else if (is_same)
+                    {
+                        if (best_dtc == -1)
+                        {
+                            best_dtc = 1 + tb_oppo->dtc(child_sq0, child_sq1, child_sq2);
+                            best_dtc_child_index = i;
+                        }
+                        else if ( ((tb->_work_board->get_opposite_color() == PieceColor::W) && (max_score == ExactScore::WIN)) ||
+                                  ((tb->_work_board->get_opposite_color() == PieceColor::B) && (max_score == ExactScore::LOSS)) )
+                        {
+                            if (best_dtc > 1 + tb_oppo->dtc(child_sq0, child_sq1, child_sq2))  // seek lower dtc
+                            {
+                                best_dtc = 1 + tb_oppo->dtc(child_sq0, child_sq1, child_sq2);
+                                best_dtc_child_index = i;
+                            }
+                        }
+                        else
+                        {
+                            if (best_dtc < 1 + tb_oppo->dtc(child_sq0, child_sq1, child_sq2))  // seek higher dtc
+                            {
+                                best_dtc = 1 + tb_oppo->dtc(child_sq0, child_sq1, child_sq2);
+                                best_dtc_child_index = i;
+                            }
+                        }
+                    }
                 }
             }
             else
@@ -553,11 +607,14 @@ namespace chess
                         continue;
                     }
                 }
-                max_score = best_score(tb->_work_board->get_color(), sc, max_score);
+                bool is_same; bool is_better;
+                max_score = best_score(tb->_work_board->get_color(), sc, max_score, is_same, is_better);
             }
             tb->_work_board->undo_move();
         }
 
+        ret_dtc = best_dtc;
+        ret_child = best_dtc_child_index;
         if (has_all_child_score)
         {
             return max_score;
