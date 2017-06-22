@@ -151,41 +151,6 @@ namespace chess
         return nullptr;
     }
 
-    //// add
-    //template <typename PieceID, typename uint8_t _BoardSize>
-    //template <>
-    //bool TablebaseManager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 2>& tb) const
-    //{
-    //    if (_instance == nullptr) return false;
-    //    {
-    //        auto iter = _tbs2.find(name);
-    //        if (iter == _tbs2.end())
-    //        {
-    //            _tbs2.insert(std::pair<std::string, Tablebase<PieceID, _BoardSize, 2>&>({ name, tb }));
-    //            return true;
-    //        }
-    //        return false;
-    //    }
-    //    return false;
-    //}
-
-    //template <typename PieceID, typename uint8_t _BoardSize>
-    //template <>
-    //bool TablebaseManager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 3>& tb) const
-    //{
-    //    if (_instance == nullptr) return false;
-    //    {
-    //        auto iter = _tbs3.find(name);
-    //        if (iter == _tbs3.end())
-    //        {
-    //            _tbs3.insert(std::pair<std::string, Tablebase<PieceID, _BoardSize, 3>&>({ name, tb }));
-    //            return true;
-    //        }
-    //        return false;
-    //    }
-    //    return false;
-    //}
-
     // instance()
     template <typename PieceID, typename uint8_t _BoardSize>
     const TablebaseManager<PieceID, _BoardSize>* 

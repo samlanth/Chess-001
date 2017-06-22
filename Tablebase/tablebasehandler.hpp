@@ -35,27 +35,27 @@ namespace chess
         virtual bool is_build() const = 0;
         virtual bool find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const = 0;
 
+        static ExactScore TablebaseBaseHandlerCore<PieceID, _BoardSize>::minmax_dtc(
+            PieceColor color_parent,
+            const std::vector<ExactScore>& child_sc, const std::vector<uint8_t>& child_dtc, 
+            uint8_t& ret_dtc, size_t& ret_idx);
+
     protected:
         std::vector<PieceID> _piecesID;
         _Board*              _work_board;
-
-        ExactScore TablebaseBaseHandlerCore<PieceID, _BoardSize>::minmax_dtc(
-            PieceColor                  color_parent,
-            std::vector<ExactScore>&    child_sc,
-            std::vector<uint8_t>&       child_dtc,
-            uint8_t&                    ret_dtc) const;
     };
     
     template <typename PieceID, typename uint8_t _BoardSize>
     ExactScore TablebaseBaseHandlerCore<PieceID, _BoardSize>::minmax_dtc(
         PieceColor                  color_parent,
-        std::vector<ExactScore>&    child_sc,
-        std::vector<uint8_t>&       child_dtc,
-        uint8_t&                    ret_dtc) const
+        const std::vector<ExactScore>&    child_sc,
+        const std::vector<uint8_t>&       child_dtc,
+        uint8_t&                    ret_dtc, size_t& ret_idx)
     {
         if (child_sc.size() == 0)
         {
             ret_dtc = 0;
+            ret_idx = 0;
             return ExactScore::UNKNOWN;
         }
 
@@ -74,6 +74,7 @@ namespace chess
                             if (child_dtc[j] < min_dtc) { min_dtc = child_dtc[j]; min_idx = j; }
                     }
                     ret_dtc = child_dtc[min_idx];
+                    ret_idx = min_idx;
                     return ExactScore::WIN;
                 }
             }
@@ -106,6 +107,7 @@ namespace chess
                             if (child_dtc[j] > max_dtc) { max_dtc = child_dtc[j]; max_idx = j; }
                     }
                     ret_dtc = child_dtc[max_idx];
+                    ret_idx = max_idx;
                     return ExactScore::LOSS;
                 }
             }
@@ -125,6 +127,7 @@ namespace chess
                             if (child_dtc[j] < min_dtc) { min_dtc = child_dtc[j]; min_idx = j; }
                     }
                     ret_dtc = child_dtc[min_idx];
+                    ret_idx = min_idx;
                     return ExactScore::LOSS;
                 }
             }
@@ -157,6 +160,7 @@ namespace chess
                             if (child_dtc[j] > max_dtc) { max_dtc = child_dtc[j]; max_idx = j; }
                     }
                     ret_dtc = child_dtc[max_idx];
+                    ret_idx = max_idx;
                     return ExactScore::WIN;
                 }
             }

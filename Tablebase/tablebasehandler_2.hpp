@@ -149,8 +149,8 @@ namespace chess
             sc = tb->score(sq0, sq1);
             if (sc == ExactScore::UNKNOWN)
             {
-                uint8_t ret_dtc;
-                sc = minmax_dtc(tb->color(), child_sc, child_dtc, ret_dtc);
+                uint8_t ret_dtc; size_t ret_idx;
+                sc = minmax_dtc(tb->color(), child_sc, child_dtc, ret_dtc, ret_idx);
                 if (sc != ExactScore::UNKNOWN)
                 {
                     tb->set_dtc(sq0, sq1, 1 + ret_dtc);
@@ -239,8 +239,8 @@ namespace chess
                     _work_board->undo_move();
                 }
 
-                uint8_t ret_dtc;
-                sc = minmax_dtc(tb->color(), child_sc, child_dtc, ret_dtc);
+                uint8_t ret_dtc; size_t ret_idx;
+                sc = minmax_dtc(tb->color(), child_sc, child_dtc, ret_dtc, ret_idx);
                 if (sc != ExactScore::UNKNOWN)
                 {
                     tb->set_dtc(sq0, sq1, 1 + ret_dtc);
