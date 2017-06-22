@@ -49,6 +49,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize> struct GameDB_Record;
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class BasePlayer;
 
+    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandler;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_1v1;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_2v1;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseManager;

@@ -20,14 +20,14 @@ int main(int argc, char* argv[])
     chess::PersistManager::instance();
 
     // Test Tablebase_1v0
-    std::vector<uint8_t> uu;
-    uu.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
-    chess::Tablebase_1v0<uint8_t, 6> tb_0vKb(uu, chess::PieceColor::B);
-    tb_0vKb.build();
-    tb_0vKb.print_score(5);
-    tb_0vKb.save();
-    tb_0vKb.load();
-    tb_0vKb.print_score(5);
+    //std::vector<uint8_t> uu;
+    //uu.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
+    //chess::Tablebase_1v0<uint8_t, 6> tb_0vKb(uu, chess::PieceColor::B);
+    //tb_0vKb.build();
+    //tb_0vKb.print_score(5);
+    //tb_0vKb.save();
+    //tb_0vKb.load();
+    //tb_0vKb.print_score(5);
 
     // Test TablebaseHandler_2v1
     std::vector<uint8_t> w;
@@ -35,29 +35,30 @@ int main(int argc, char* argv[])
     w.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::Q, chess::PieceColor::W));
     w.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
     chess::TablebaseHandler_2v1<uint8_t, 6> tbh_KQvK(w);
-    tbh_KQvK.build(1);
-    //tbh_KQvK.tb_W()->print_score(200);
-    tbh_KQvK.tb_W()->print_dtc(10);
+    tbh_KQvK.build(1); 
+    std::cout << "checksum: " << (int)tbh_KQvK.tb_W()->checksum_dtc() << std::endl;
     tbh_KQvK.save();
     tbh_KQvK.load();
-    //tbh_KQvK.tb_W()->print_score(200);
+    std::cout << "checksum: " << (int)tbh_KQvK.tb_W()->checksum_dtc() << std::endl;
 
-    srand((unsigned int)time(NULL));
-    chess::Board<uint8_t, 6> b;
-    chess::Board<uint8_t, 6> bt = b.get_random_position_KQK(true);
-    b = bt; // save initial pos
-    chess::TablebaseUtil<uint8_t, 6> tbu;
-    tbu.expand_position(bt);
-    std::vector<chess::Move<uint8_t>>  m = b.generate_moves();
-    std::list<chess::Move<uint8_t>>  mh = bt.get_history_moves();
-    std::cout << b.to_str() << std::endl;
-    while (!b.is_final(m))
-    {
-        if (mh.size() == 0) break;
-        b.apply_move(mh.front()); mh.pop_front();
-        std::cout << b.to_str() << std::endl;
-        m = b.generate_moves();
-    }
+ 
+
+    //srand((unsigned int)time(NULL));
+    //chess::Board<uint8_t, 6> b;
+    //chess::Board<uint8_t, 6> bt = b.get_random_position_KQK(true);
+    //b = bt; // save initial pos
+    //chess::TablebaseUtil<uint8_t, 6> tbu;
+    //tbu.expand_position(bt, true);
+    //std::vector<chess::Move<uint8_t>>  m = b.generate_moves();
+    //std::list<chess::Move<uint8_t>>  mh = bt.get_history_moves();
+    //std::cout << b.to_str() << std::endl;
+    //while (!b.is_final(m))
+    //{
+    //    if (mh.size() == 0) break;
+    //    b.apply_move(mh.front()); mh.pop_front();
+    //    std::cout << b.to_str() << std::endl;
+    //    m = b.generate_moves();
+    //}
 
     // Prepare players for GA
     {

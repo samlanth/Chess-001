@@ -38,6 +38,7 @@ namespace chess
 
         friend class TablebaseHandler_1v1<PieceID, _BoardSize>;
         friend class TablebaseHandler_2v1<PieceID, _BoardSize>;
+        friend class TablebaseBaseHandler<PieceID, _BoardSize>;
 
     public:
         Tablebase(std::vector<PieceID>& v, PieceColor c) : _color(c), _NPIECE(NPIECE), _bits(0), _work_board(nullptr)
@@ -50,6 +51,8 @@ namespace chess
             _work_board = new _Board();
             _is_build = false;
             _dtc.fill(0);
+            for (uint64_t i = 0; i < this->_size_tb; i++) set_score_at_idx(i* this->_size_item, ExactScore::UNKNOWN);
+            clear_marker();
         }
         virtual ~Tablebase()
         {
@@ -69,11 +72,14 @@ namespace chess
             for (auto& v : _piecesID) str_pieces += _Piece::to_str(v, false);
             return str_pieces;
         }
+        PieceID pieceID(uint8_t idx) { return _piecesID[idx]; }
 
         bool        is_build()      { return _is_build; }
         PieceColor  color() const   { return _color; }
         void        print_score(int n) const;
         void        print_dtc(int n) const;
+        uint8_t     checksum_dtc() const;
+        std::vector<uint64_t> get_index_dtc(uint8_t value_dtc, ExactScore value_sc) const;
 
         ExactScore score(const uint16_t& sq0)  const
         {
@@ -107,9 +113,25 @@ namespace chess
             return dtc_at_idx(index_dtc(sq0, sq1, sq2));
         }
 
+        void square_at_index(uint64_t idx, uint16_t& sq0) const
+        {
+            sq0 = (uint16_t)(idx % _dim1);
+        }
+        void square_at_index(uint64_t idx, uint16_t& sq0, uint16_t& sq1) const
+        {
+            sq0 = (uint16_t)(idx / _dim1); sq1 = (uint16_t)(idx % _dim1);
+        }
+        void square_at_index(uint64_t idx, uint16_t& sq0, uint16_t& sq1, uint16_t& sq2) const
+        {
+            sq0 = (uint16_t)(idx / _dim2);
+            uint64_t t = idx - (sq0 * _dim2);  square_at_index(t, sq1, sq2);
+        }
+
     protected:
         bool save_tb() const;
+        bool save_tb_dtc() const;
         bool read_tb();
+        bool read_tb_dtc();
 
         uint16_t square(uint8_t x, uint8_t y)    { return __BoardSize*y + x; }
         uint64_t index_item(const uint16_t& sq0)  const
@@ -216,20 +238,6 @@ namespace chess
         void set_marker(const uint16_t& sq0, const uint16_t& sq1, const uint16_t& sq2, bool v)
         {
             set_bit(index_item(sq0, sq1, sq2), 2, v);
-        }
-
-        void square_at_index(uint64_t idx, uint16_t& sq0) const
-        {
-            sq0 = (uint16_t)(idx % _dim1);
-        }
-        void square_at_index(uint64_t idx, uint16_t& sq0, uint16_t& sq1) const
-        {
-            sq0 = (uint16_t)(idx / _dim1); sq1 = (uint16_t)(idx % _dim1);
-        }
-        void square_at_index(uint64_t idx, uint16_t& sq0, uint16_t& sq1, uint16_t& sq2) const
-        {
-            sq0 = (uint16_t)(idx / _dim2);
-            uint64_t t = idx - (sq0 * _dim2);  square_at_index(t, sq1, sq2);
         }
 
         void print() const;
@@ -383,6 +391,7 @@ namespace chess
             if (!os.bad())
             {
                 os.close();
+                return save_tb_dtc();
                 return true;
             }
         }
@@ -390,6 +399,28 @@ namespace chess
         return false;
     }
 
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
+    bool Tablebase<PieceID, _BoardSize, NPIECE>::save_tb_dtc() const
+    {
+        std::string f = PersistManager::instance()->get_stream_name("tablebase", name()+".dtc");
+        std::ofstream os;
+        os.open(f.c_str(), std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
+        if (os.good())
+        {
+            os << (size_t)_dtc.size();
+            for (uint64_t i = 0; i < _dtc.size(); i++)
+            {
+                os << (unsigned char)_dtc[i];
+            }
+            if (!os.bad())
+            {
+                os.close();
+                return true;
+            }
+        }
+        os.close();
+        return false;
+    }
 
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
     void Tablebase<PieceID, _BoardSize, NPIECE>::writeBits(std::ostream& os) const
@@ -426,6 +457,42 @@ namespace chess
             if (!is.bad())
             {
                 is.close();
+                return read_tb_dtc();     
+            }
+        }
+        std::cout << is.eof() << std::endl;
+        std::cout << is.fail() << std::endl;
+        std::cout << is.good() << std::endl;
+        std::cout << is.bad() << std::endl;
+        is.close();
+        return false;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
+    bool Tablebase<PieceID, _BoardSize, NPIECE>::read_tb_dtc()
+    {
+        std::string f = PersistManager::instance()->get_stream_name("tablebase", name()+".dtc");
+        std::ifstream is;
+        is.open(f.c_str(), std::ofstream::in | std::ofstream::binary);
+        if (is.good())
+        {
+            size_t n; is >> n;
+            assert(n == _dtc.size());
+            _dtc.fill(0);
+
+            char* buffer = new char[n];
+            is.read(buffer, n);
+            if (is.bad())
+            {
+                is.close();
+                return false;
+            }
+            for (uint64_t i = 0; i < n; i++) _dtc[i] = buffer[i];
+            delete[]buffer;
+
+            if (!is.bad())
+            {
+                is.close();
                 return true;
             }
         }
@@ -437,6 +504,20 @@ namespace chess
         return false;
     }
 
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
+    uint8_t Tablebase<PieceID, _BoardSize, NPIECE>::checksum_dtc() const
+    {
+        uint16_t sum1 = 0;
+        uint16_t sum2 = 0;
+
+        for (uint64_t i = 0; i < _dtc.size(); i++)
+        {
+            sum1 = (sum1 + _dtc[i]) % 255;
+            sum2 = (sum2 + sum1) % 255;
+        }
+        return (sum2 << 8) | sum1;
+    }
+    
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
     void Tablebase<PieceID, _BoardSize, NPIECE>::readBits(std::istream& is)
     {
@@ -481,17 +562,48 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
     void Tablebase<PieceID, _BoardSize, NPIECE>::print_dtc(int n) const
     {
-        std::vector<long> v;
-        for (uint64_t i = 0; i < 256; i++) v.push_back(0);
+        std::vector<long> v_win;
+        std::vector<long> v_loss;
+        std::vector<long> v_draw;
+        for (uint64_t i = 0; i < 256; i++) { v_win.push_back(0); v_loss.push_back(0); v_draw.push_back(0);}
 
+        ExactScore sc;
         for (uint64_t i = 0; i < this->_size_tb; i++)
         {
-            int k = _dtc[i];
-            v[k] = v[k] + 1;
+            sc = this->score_at_idx(i * this->_size_item);
+            if (sc == ExactScore::WIN)
+            {
+                int k = _dtc[i];
+                v_win[k] = v_win[k] + 1;
+            }
+            if (sc == ExactScore::LOSS)
+            {
+                int k = _dtc[i];
+                v_loss[k] = v_loss[k] + 1;
+            }
+            if (sc == ExactScore::DRAW)
+            {
+                int k = _dtc[i];
+                v_draw[k] = v_draw[k] + 1;
+            }
         }
         for (uint64_t i = 0; i < n; i++)
-            std::cout << i << " : " << v[i] << std::endl;
+            std::cout << i << " : " << v_win[i] << " " << v_loss[i] << " " << v_draw[i] << std::endl;
     }
+
+
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
+    std::vector<uint64_t> Tablebase<PieceID, _BoardSize, NPIECE>::get_index_dtc(uint8_t value_dtc, ExactScore value_sc) const
+    {
+        std::vector<uint64_t> v;
+        for (uint64_t i = 0; i < this->_size_tb; i++)
+        {
+            if ((this->score_at_idx(i * this->_size_item) == value_sc) && (_dtc[i] == value_dtc))
+                v.push_back(i);
+        }
+        return v;
+    }
+
 };
 #endif
 

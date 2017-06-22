@@ -238,7 +238,7 @@ namespace chess
             {
                 if (_cells.at(index_at(x, y)) == id)
                 {
-                    return y*_BoardSize + x;
+                    return (y*_BoardSize) + x;
                 }
             }
         }
@@ -822,7 +822,7 @@ namespace chess
                 id = get_pieceid_at(i, j - 1);
                 s += _Piece::to_str(id);
             }
-            s += "\n";
+            if (j > 1)  s += "\n";
         }
         return s;
     }
