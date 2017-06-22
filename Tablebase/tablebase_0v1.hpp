@@ -51,13 +51,14 @@ namespace chess
     {
         ExactScore sc;
         std::vector<_Move> m;
+        _Board* _work_board = new _Board();
 
         for (uint16_t sq0 = 0; sq0 < _dim1; sq0++)
         {
             _work_board->clear();
             _work_board->set_color(_color);
-            _work_board->set_pieceid_at(_piecesID[0], sq0);
-            m = _work_board->generate_moves();
+            _work_board->set_pieceid_at(_piecesID[0], sq0);         
+            m = _work_board->generate_moves();            
             sc = _work_board->final_score(m);
             if (sc != ExactScore::UNKNOWN)
             {
@@ -75,6 +76,7 @@ namespace chess
 
         if (verbose) print();
         assert(check_unknown() == false);
+        delete _work_board;
         return true;
     }
 };

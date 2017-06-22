@@ -23,6 +23,7 @@ namespace chess
         using _Move = Move<PieceID>;
 
         friend class TablebaseHandler_2v1<PieceID, _BoardSize>;
+        friend class TablebaseBaseHandler_3<PieceID, _BoardSize>;
 
     public:
         Tablebase_2v1(std::vector<PieceID>& v, PieceColor c) : Tablebase<PieceID, _BoardSize, 3>(v, c)
@@ -39,8 +40,6 @@ namespace chess
         bool save() const override { return save_tb(); }
         bool build(char verbose = 0) override { return false; }
         bool isPiecesMatch(const _Board& pos) override;
-
-    protected:
     };
 
     template <typename PieceID, typename uint8_t _BoardSize>
@@ -56,17 +55,14 @@ namespace chess
         return false;
     }
 
-
     template <typename PieceID, typename uint8_t _BoardSize>
-    class TablebaseHandler_2v1 : public TablebaseBaseHandler<PieceID, _BoardSize>
+    class TablebaseHandler_2v1 : public TablebaseBaseHandler_3<PieceID, _BoardSize>
     {
         using _Piece = Piece<PieceID, _BoardSize>;
         using _Board = Board<PieceID, _BoardSize>;
 
-        friend class TablebaseHandler_1v1<PieceID, _BoardSize>;
-
     public:
-        TablebaseHandler_2v1(std::vector<PieceID>& v) : TablebaseBaseHandler<PieceID, _BoardSize>(v)
+        TablebaseHandler_2v1(std::vector<PieceID>& v) : TablebaseBaseHandler_3<PieceID, _BoardSize>(v)
         {
             _tb_W = new Tablebase_2v1<PieceID, _BoardSize>(v, PieceColor::W);
             _tb_B = new Tablebase_2v1<PieceID, _BoardSize>(v, PieceColor::B);
@@ -101,15 +97,14 @@ namespace chess
         Tablebase_2v1<PieceID, _BoardSize>* tb_W() { return _tb_W; }
         Tablebase_2v1<PieceID, _BoardSize>* tb_B() { return _tb_B; }
 
-        void print_pos_with_dtc_score(uint8_t value_dtc, ExactScore value_sc) const;
-
     protected:      
         bool find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const override;
         Tablebase_2v0<PieceID, _BoardSize>* locate_children_2v0(const _Board& pos, PieceColor c, uint16_t& ret_child_sq0, uint16_t& ret_child_sq1) const;
         Tablebase_1v1<PieceID, _BoardSize>* locate_children_1v1(const _Board& pos, PieceColor c, uint16_t& ret_child_sq0, uint16_t& ret_child_sq1) const;
-  
-        void print() const;
  
+        void print_pos_with_dtc_score(uint8_t value_dtc, ExactScore value_sc) const;
+        void print() const;
+
         std::vector<PieceID>                _piecesID;
         Tablebase_2v1<PieceID, _BoardSize>* _tb_W;
         Tablebase_2v1<PieceID, _BoardSize>* _tb_B;
@@ -163,65 +158,9 @@ namespace chess
 
         std::string str_pieces;
         for (auto& v : _piecesID )str_pieces += _Piece::to_str(v);
-
-        uint64_t n = 0;
-        uint64_t m = 0;
-        int iter = 0;
-        
         if (verbose) { std::cout << "TablebaseHandler_2v1: " << str_pieces << std::endl; }
-        if (verbose) { std::cout << "scanning mate in (0/1) ply ..." << std::endl; }
-
-        n = set_mate_score_3(PieceColor::W, _tb_W); 
-        if (verbose) { std::cout << "W (0/1 move) mate positions:" << n << std::endl; }
-        if (verbose) _tb_W->print_dtc(10);
-
-        n = set_mate_score_3(PieceColor::B, _tb_B);
-        if (verbose) { std::cout << "B (0/1 move) mate positions:" << n << std::endl; }
-        if (verbose) _tb_W->print_dtc(10);
-
-        do
-        {
-            iter++;  if (verbose) { std::cout << "Iteration: " << iter << std::endl; }
-
-            _tb_W->clear_marker();
-            _tb_B->clear_marker();
-
-            n = set_marker_3(PieceColor::W, _tb_W, _tb_B);
-            if (verbose) { std::cout << "W set_marker positions:" << n << std::endl; }
-
-            n = process_marker_3(PieceColor::B, _tb_B, _tb_W);
-            if (verbose) { std::cout << "B process_marker positions:" << n << std::endl; }
-            if (verbose) _tb_W->print_dtc(10);
-            
-            m = process_marker_3(PieceColor::W, _tb_W, _tb_B);
-            if (verbose) { std::cout << "W process_marker positions:" << m << std::endl; }
-            if (verbose) _tb_W->print_dtc(10);
-
-
-            m = set_marker_3(PieceColor::B, _tb_B, _tb_W);
-            if (verbose) { std::cout << "B set_marker positions:" << m << std::endl; }
-
-            n = process_marker_3(PieceColor::B, _tb_B, _tb_W);
-            if (verbose) { std::cout << "B process_marker positions:" << n << std::endl; }
-            if (verbose) _tb_W->print_dtc(10);
-
-            m = process_marker_3(PieceColor::W, _tb_W, _tb_B);
-            if (verbose) { std::cout << "W process_marker positions:" << m << std::endl; }
-            if (verbose) _tb_W->print_dtc(10);
-
-            if ((n+m) == 0) break;
-        } while (n+m > 0);
-
-        if (verbose) _tb_W->print_dtc(20);
-        if (verbose) print_pos_with_dtc_score(3, ExactScore::WIN);
-
-        _tb_W->set_build(true);
-        _tb_B->set_build(true);
-        _tb_W->set_unknown_to_draw();
-        _tb_B->set_unknown_to_draw();
-        TablebaseManager<PieceID, _BoardSize>::instance()->add(_tb_W->name(), _tb_W);
-        TablebaseManager<PieceID, _BoardSize>::instance()->add(_tb_B->name(), _tb_B);
-        return true;
+        
+        return build_base(_tb_W, _tb_B, verbose);        
     }
 
     // find_score_children_tb

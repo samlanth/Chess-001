@@ -52,6 +52,7 @@ namespace chess
     {
         ExactScore sc;
         std::vector<_Move> m;
+        _Board* _work_board = new _Board();
 
         for (uint16_t sq0 = 0; sq0 < _dim1; sq0++)
         for (uint16_t sq1 = 0; sq1 < _dim1; sq1++)
@@ -79,6 +80,8 @@ namespace chess
 
         if (verbose) print();
         assert(check_unknown() == false);
+
+        delete _work_board;
         return true;
     }
 };

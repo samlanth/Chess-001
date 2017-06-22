@@ -21,7 +21,6 @@ namespace chess
         using _Move = Move<PieceID>;
 
         friend class TablebaseHandler_1v1<PieceID, _BoardSize>;
-        friend class TablebaseHandler_2v1<PieceID, _BoardSize>;
 
     public:
         Tablebase_1v1(std::vector<PieceID>& v, PieceColor c) : Tablebase<PieceID, _BoardSize, 2>(v, c)
@@ -53,15 +52,15 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    class TablebaseHandler_1v1 : public TablebaseBaseHandler<PieceID, _BoardSize>
+    class TablebaseHandler_1v1 : public TablebaseBaseHandler_2<PieceID, _BoardSize>
     {
         using _Piece = Piece<PieceID, _BoardSize>;
         using _Board = Board<PieceID, _BoardSize>;
 
-        friend class TablebaseHandler_2v1<PieceID, _BoardSize>;
+        friend class TablebaseHandler_2v1<PieceID, _BoardSize>;       
 
     public:
-        TablebaseHandler_1v1(std::vector<PieceID>& v) : TablebaseBaseHandler<PieceID, _BoardSize>(v)
+        TablebaseHandler_1v1(std::vector<PieceID>& v) : TablebaseBaseHandler_2<PieceID, _BoardSize>(v)
         {
             _tb_W = new Tablebase_1v1<PieceID, _BoardSize>(v, PieceColor::W);
             _tb_B = new Tablebase_1v1<PieceID, _BoardSize>(v, PieceColor::B);
@@ -94,10 +93,6 @@ namespace chess
         Tablebase_1v1<PieceID, _BoardSize>* tb_B() { return _tb_B; }
 
     protected:
-        uint64_t set_mate_score(PieceColor color_to_play, Tablebase_1v1<PieceID, _BoardSize>* tb);
-        uint64_t set_marker(PieceColor color_to_play, Tablebase_1v1<PieceID, _BoardSize>* tb, Tablebase_1v1<PieceID, _BoardSize>* tb_oppo);
-        uint64_t process_marker(PieceColor color_to_play, Tablebase_1v1<PieceID, _BoardSize>* tb, Tablebase_1v1<PieceID, _BoardSize>* tb_oppo);
-        ExactScore minmax_score(const uint64_t& idx_item, Tablebase_1v1<PieceID, _BoardSize>* tb, Tablebase_1v1<PieceID, _BoardSize>* tb_oppo, uint8_t& ret_dtc, size_t& ret_child);
         Tablebase_1v0<PieceID, _BoardSize>* locate_children_1v0(const _Board& pos, PieceColor c, uint16_t& ret_child_sq0) const;
         Tablebase_0v1<PieceID, _BoardSize>* locate_children_0v1(const _Board& pos, PieceColor c, uint16_t& ret_child_sq0) const;
         bool find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const;
@@ -152,47 +147,7 @@ namespace chess
         assert(_tb_0v1_w->is_build() == true);
         assert(_tb_0v1_b->is_build() == true);
 
-        uint64_t n = 0;
-        uint64_t m = 0;
-        int iter = 0;
-        
-        set_mate_score(PieceColor::W, _tb_W);
-        set_mate_score(PieceColor::B, _tb_B);
-
-        do
-        {
-            iter++;  if (verbose) { std::cout << "Iteration TablebaseHandler_1v1: " << iter << std::endl; }
-
-            _tb_W->clear_marker();
-            _tb_B->clear_marker();
-
-            n = set_marker(PieceColor::W, _tb_W, _tb_B);
-            if (verbose) { std::cout << "W set_marker positions:" << n << std::endl; }
-
-            n = process_marker(PieceColor::B, _tb_B, _tb_W);
-            if (verbose) { std::cout << "B process_marker positions:" << n << std::endl; }
-
-            m = set_marker(PieceColor::B, _tb_B, _tb_W);
-            if (verbose) { std::cout << "B set_marker positions:" << m << std::endl; }
-
-            m = process_marker(PieceColor::W, _tb_W, _tb_B);
-            if (verbose) { std::cout << "W process_marker positions:" << m << std::endl; }
-
-            if (verbose) print();
-            if ((n + m) == 0) break;
-
-        } while (n+m > 0);
-
-        _tb_W->set_build(true);
-        _tb_B->set_build(true);
-        _tb_W->set_unknown_to_draw();
-        _tb_B->set_unknown_to_draw();
-        TablebaseManager<PieceID, _BoardSize>::instance()->add(_tb_W->name(), _tb_W);
-        TablebaseManager<PieceID, _BoardSize>::instance()->add(_tb_B->name(), _tb_B);
-
-        assert(_tb_W->check_unknown() == false);
-        assert(_tb_B->check_unknown() == false);
-        return true;
+        return build_base(_tb_W, _tb_B, verbose);
     }
 
     // find_score_children_tb
@@ -246,355 +201,6 @@ namespace chess
             return _tb_0v1_b;
         }
         return nullptr;
-    }
-
-    template <typename PieceID, typename uint8_t _BoardSize>
-    uint64_t TablebaseHandler_1v1<PieceID, _BoardSize>::set_mate_score(PieceColor color_to_play, Tablebase_1v1<PieceID, _BoardSize>* tb)
-    {      
-        uint64_t n_changes = 0;
-        ExactScore sc;
-        std::vector<Move<PieceID>> m;
-
-        for (uint16_t sq0 = 0; sq0 < tb->_dim1; sq0++)
-        {
-            for (uint16_t sq1 = 0; sq1 < tb->_dim1; sq1++)
-            {
-                if (sq0 != sq1)
-                {
-                    tb->_work_board->clear();
-                    tb->_work_board->set_color(color_to_play);
-                    tb->_work_board->set_pieceid_at(tb->_piecesID[0], sq0);
-                    tb->_work_board->set_pieceid_at(tb->_piecesID[1], sq1);
-                    m = tb->_work_board->generate_moves();
-                    sc = tb->_work_board->final_score(m);
-                    if (sc != ExactScore::UNKNOWN)
-                    {
-                        //tb->set_dtc(sq0, sq1, 0);
-                        tb->set_score(sq0, sq1, sc);
-                        tb->set_marker(sq0, sq1, false);
-                        n_changes++;
-                    }
-                }
-            }
-        }
-        return n_changes;
-    }
-
-    template <typename PieceID, typename uint8_t _BoardSize>
-    uint64_t TablebaseHandler_1v1<PieceID, _BoardSize>::set_marker(PieceColor color_to_play, Tablebase_1v1<PieceID, _BoardSize>* tb, Tablebase_1v1<PieceID, _BoardSize>* tb_oppo)
-    {
-        uint64_t n_changes = 0;
-        ExactScore sc;
-        Move<PieceID> mv;
-        uint16_t sq0, sq1;
-        std::vector<Move<PieceID>> m_child;
-
-        for (uint64_t i = 0; i < tb->_size_tb; i++)
-        {
-            tb->square_at_index(i, sq0, sq1);
-            if (sq0 == sq1) continue;
-
-            sc = tb->score(sq0, sq1);
-            if (sc != ExactScore::UNKNOWN) continue;
-
-            tb->_work_board->clear();
-            tb->_work_board->set_color(color_to_play);
-            tb->_work_board->set_pieceid_at(tb->_piecesID[0], sq0);
-            tb->_work_board->set_pieceid_at(tb->_piecesID[1], sq1);
-
-            // if one child has a score, will mark all other child without score
-            m_child = tb->_work_board->generate_moves();
-            bool one_child_has_score = false;
-            bool one_mark = false;
-            for (size_t k = 0; k < m_child.size(); k++)
-            {
-                mv = m_child[k];
-                tb->_work_board->apply_move(mv);
-
-                if (tb->_work_board->cnt_all_piece() == tb->_NPIECE)
-                {
-                    uint16_t child_sq0 = tb->_work_board->get_square_ofpiece(tb->_pieces[0]->get_name(), tb->_pieces[0]->get_color());
-                    uint16_t child_sq1 = tb->_work_board->get_square_ofpiece(tb->_pieces[1]->get_name(), tb->_pieces[1]->get_color());
-                    sc = tb_oppo->score(child_sq0, child_sq1);
-                    if (sc != ExactScore::UNKNOWN)
-                    {
-                        one_child_has_score = true;
-                    }
-                }
-                else
-                {
-                    if (find_score_children_tb(*tb->_work_board, tb->_work_board->get_color(), sc))
-                    {
-                        if (sc != ExactScore::UNKNOWN)
-                        {
-                            one_child_has_score = true;
-                        }
-                        else
-                        {
-                            assert(false);
-                        }
-                    }
-                    else
-                    {
-                        assert(false);
-                    }
-                }
-
-                tb->_work_board->undo_move();
-                if (one_child_has_score)
-                    break;
-            }
-
-            if (one_child_has_score)
-            {
-                for (size_t j = 0; j < m_child.size(); j++)
-                {
-                    mv = m_child[j];
-                    tb->_work_board->apply_move(mv);
-                    if (tb->_work_board->cnt_all_piece() == tb->_NPIECE)
-                    {
-                        uint16_t child_sq0 = tb->_work_board->get_square_ofpiece(tb->_pieces[0]->get_name(), tb->_pieces[0]->get_color());
-                        uint16_t child_sq1 = tb->_work_board->get_square_ofpiece(tb->_pieces[1]->get_name(), tb->_pieces[1]->get_color());
-                        sc = tb_oppo->score(child_sq0, child_sq1);
-                        if (sc == ExactScore::UNKNOWN)
-                        {
-                            // mark child
-                            if (tb_oppo->marker(child_sq0, child_sq1) == false)
-                            {
-                                tb_oppo->set_marker(child_sq0, child_sq1, true);
-                                //n_changes++;
-                            } 
-                            n_changes++;
-                            one_mark = true;
-                        }
-                    }
-                    else
-                    {
-                        // child not in this tb
-                    }
-                    tb->_work_board->undo_move();
-                }
-            }
-
-            if (one_mark)
-            {
-                // mark parent also
-                sc = tb->score(sq0, sq1);
-                if (sc == ExactScore::UNKNOWN)
-                {
-                    if (tb->marker(sq0, sq1) == false)
-                    {
-                        tb->set_marker(sq0, sq1, true);
-                        //n_changes++;
-                    }
-                    n_changes++;
-                }
-            }
-            
-            if ((!one_mark) && (one_child_has_score))
-            {
-                // all known child score
-                sc = tb->score(sq0, sq1);
-                if (sc == ExactScore::UNKNOWN)
-                {
-                    uint8_t ret_dtc; size_t ret_child_index;
-                    sc = this->minmax_score(tb->index_item(sq0, sq1), tb, tb_oppo, ret_dtc, ret_child_index);
-                    if (sc != ExactScore::UNKNOWN)
-                    {
-                        tb->set_dtc(sq0, sq1, ret_dtc);
-                        tb->set_score(sq0, sq1, sc);
-                        tb->set_marker(sq0, sq1, false);
-                        n_changes++;
-                    }
-                    else
-                    {
-                        assert(false);
-                    }
-                }
-            }
-        }
-        return n_changes;
-    }
-
-    template <typename PieceID, typename uint8_t _BoardSize>
-    uint64_t TablebaseHandler_1v1<PieceID, _BoardSize>::process_marker(PieceColor color_to_play, Tablebase_1v1<PieceID, _BoardSize>* tb, Tablebase_1v1<PieceID, _BoardSize>* tb_oppo)
-    {
-        uint64_t n_changes = 0;
-        ExactScore sc;
-        uint16_t sq0, sq1;
-        std::vector<Move<PieceID>> m;
-
-        for (uint64_t i = 0; i < tb->_size_tb; i++)
-        {
-            tb->square_at_index(i, sq0, sq1);
-            if (sq0 == sq1) continue;
-            if (tb->marker(sq0, sq1) == false) 
-                continue;
-
-            tb->_work_board->clear();
-            tb->_work_board->set_color(color_to_play);
-            tb->_work_board->set_pieceid_at(tb->_piecesID[0], sq0);
-            tb->_work_board->set_pieceid_at(tb->_piecesID[1], sq1);
-
-            m = tb->_work_board->generate_moves();
-            sc = tb->_work_board->final_score(m);
-            if (sc != ExactScore::UNKNOWN)
-            {
-                //tb->set_dtc(sq0, sq1, 1+dtc(...)); // NOT HAPPENING!
-                tb->set_score(sq0, sq1, sc); 
-                tb->set_marker(sq0, sq1, false);
-                n_changes++;
-            }
-            else
-            {
-                uint8_t ret_dtc; size_t ret_child_index;
-                sc = this->minmax_score(tb->index_item(sq0, sq1), tb, tb_oppo, ret_dtc, ret_child_index);
-                if (sc != ExactScore::UNKNOWN)
-                {
-                    tb->set_dtc(sq0, sq1, ret_dtc);
-                    tb->set_score(sq0, sq1, sc);
-                    tb->set_marker(sq0, sq1, false);
-                    n_changes++;
-                }
-            }
-        }
-        return n_changes;
-    }
-
-    template <typename PieceID, typename uint8_t _BoardSize>
-    ExactScore TablebaseHandler_1v1<PieceID, _BoardSize>::minmax_score(const uint64_t& idx_item ,Tablebase_1v1<PieceID, _BoardSize>* tb, Tablebase_1v1<PieceID, _BoardSize>* tb_oppo, uint8_t& ret_dtc, size_t& ret_child)
-    {
-        ExactScore sc = tb->score_at_idx(idx_item);
-        if (sc != ExactScore::UNKNOWN)
-            return sc;
-
-        bool has_all_child_score = true;
-        ExactScore  max_score = ExactScore::UNKNOWN;
-
-        uint8_t     best_dtc = 0;
-        size_t      best_dtc_child_index = 0;
-        ret_dtc     = 0;
-        ret_child   = 0;
-
-        Move<PieceID> mv;
-        std::vector<Move<PieceID>> m_child = tb->_work_board->generate_moves();
-        for (size_t i = 0; i < m_child.size(); i++)
-        {
-            mv = m_child[i];
-            tb->_work_board->apply_move(mv);
-            if (tb->_work_board->cnt_all_piece() == tb->_NPIECE)
-            {
-                uint16_t child_sq0 = tb->_work_board->get_square_ofpiece(tb->_pieces[0]->get_name(), tb->_pieces[0]->get_color());
-                uint16_t child_sq1 = tb->_work_board->get_square_ofpiece(tb->_pieces[1]->get_name(), tb->_pieces[1]->get_color());
-                sc = tb_oppo->score(child_sq0, child_sq1);
-                if (sc == ExactScore::UNKNOWN)
-                {
-                    has_all_child_score = false;
-                }
-                else
-                {
-                    bool is_same; bool is_better;
-                    max_score = best_score(tb->_work_board->get_color(), sc, max_score, is_same, is_better);
-
-                    if (is_better)
-                    {
-                        best_dtc = 1 + tb_oppo->dtc(child_sq0, child_sq1);
-                        best_dtc_child_index = i;
-                    }
-                    else if (is_same)
-                    {
-                        if (((tb->_work_board->get_opposite_color() == PieceColor::W) && (max_score == ExactScore::WIN)) ||
-                            ((tb->_work_board->get_opposite_color() == PieceColor::B) && (max_score == ExactScore::LOSS)))
-                        {
-                            if (best_dtc > 1 + tb_oppo->dtc(child_sq0, child_sq1))  // seek lower dtc
-                            {
-                                best_dtc = 1 + tb_oppo->dtc(child_sq0, child_sq1);
-                                best_dtc_child_index = i;
-                            }
-                        }
-                        else
-                        {
-                            if (best_dtc < 1 + tb_oppo->dtc(child_sq0, child_sq1))  // seek higher dtc
-                            {
-                                best_dtc = 1 + tb_oppo->dtc(child_sq0, child_sq1);
-                                best_dtc_child_index = i;
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                // children
-                if (tb->_work_board->cnt_all_piece() != (tb->_NPIECE - 1))
-                {
-                    has_all_child_score = false;
-                    assert(false);
-                    continue;
-                }
-
-                if (find_score_children_tb(*tb->_work_board, tb->_work_board->get_color(), sc))
-                {
-                    if (sc != ExactScore::UNKNOWN)
-                    {
-                        has_all_child_score = true;
-                    }
-                    else
-                    {
-                        has_all_child_score = false;
-                        assert(false);
-                        continue;
-                    }
-                }
-                else
-                {
-                    has_all_child_score = false;
-                    assert(false);
-                    continue;
-                }
-
-                //sc = tb_child->score(child_sq0);
-                if (sc == ExactScore::UNKNOWN)
-                {
-                    has_all_child_score = false;
-                    assert(false);
-                    continue;
-                }
-                bool is_same; bool is_better;
-                max_score = best_score(tb->_work_board->get_color(), sc, max_score, is_same, is_better);
-
-                // NOT in same TB
-                //if (is_better)
-                //{
-                //    best_dtc = 1 + tb_oppo->dtc(child_sq0, child_sq1);
-                //    best_dtc_child_index = i;
-                //}
-                //else if (is_same)
-                //{
-                //    if (best_dtc < 1 + tb_oppo->dtc(child_sq0, child_sq1))
-                //    {
-                //        best_dtc = 1 + tb_oppo->dtc(child_sq0, child_sq1);
-                //        best_dtc_child_index = i;
-                //    }
-                //}
-            }
-            tb->_work_board->undo_move();
-        }
-
-        ret_dtc = best_dtc;
-        ret_child = best_dtc_child_index;
-
-        if (has_all_child_score)
-        {
-            if (max_score == ExactScore::LOSS)
-            {
-                int debug = 1;
-            }
-            return max_score;
-        }
-        if ((tb->_work_board->get_color() == PieceColor::W) && (max_score == ExactScore::WIN))  return ExactScore::WIN;
-        if ((tb->_work_board->get_color() == PieceColor::B) && (max_score == ExactScore::LOSS)) return ExactScore::LOSS;
-        return ExactScore::UNKNOWN;
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>

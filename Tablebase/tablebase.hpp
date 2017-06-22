@@ -36,34 +36,29 @@ namespace chess
         using _Move = Move<PieceID>;
         using _Tablebase = Tablebase<PieceID, _BoardSize, NPIECE>;
 
-        friend class TablebaseHandler_1v1<PieceID, _BoardSize>;
-        friend class TablebaseHandler_2v1<PieceID, _BoardSize>;
-        friend class TablebaseBaseHandler<PieceID, _BoardSize>;
+        friend class TablebaseBaseHandler_2<PieceID, _BoardSize>;
+        friend class TablebaseBaseHandler_3<PieceID, _BoardSize>;
 
     public:
-        Tablebase(std::vector<PieceID>& v, PieceColor c) : _color(c), _NPIECE(NPIECE), _bits(0), _work_board(nullptr)
+        Tablebase(std::vector<PieceID>& v, PieceColor c) : _color(c), _NPIECE(NPIECE), _is_build(false), _bits(0)
         {
             for (auto& vv : v)
             {
                 _piecesID.push_back(vv);
                 _pieces.push_back(_Piece::get(vv));
             }
-            _work_board = new _Board();
-            _is_build = false;
             _dtc.fill(0);
             for (uint64_t i = 0; i < this->_size_tb; i++) set_score_at_idx(i* this->_size_item, ExactScore::UNKNOWN);
             clear_marker();
         }
         virtual ~Tablebase()
         {
-            delete _work_board;
         }
 
         virtual bool load() = 0;
         virtual bool save() const = 0;
         virtual bool build(char verbose) = 0;
         virtual bool isPiecesMatch(const _Board& pos) = 0;
-        //uint16_t getSquareOfPiece(uint8_t index_piece) = 0;
 
         std::string name() const
         {
@@ -261,9 +256,6 @@ namespace chess
 
         std::bitset<TB_size(_BoardSize, NPIECE) * TB_size_item()>   _bits;  // 2 bit score + 1 bit marker
         std::array<uint8_t, TB_size(_BoardSize, NPIECE)>            _dtc;   // distance to convertion
-
-        _Board*                         _work_board;
-
 
         ExactScore score_at_idx(const uint64_t& idx_item)  const
         {
