@@ -20,7 +20,7 @@ namespace chess
         using _Move = Move<PieceID>;
 
     public:
-        TablebaseBaseHandler_3(std::vector<PieceID>& v) : TablebaseBaseHandlerCore(v)
+        TablebaseBaseHandler_3(std::vector<PieceID>& v, TB_TYPE_3 t) : TablebaseBaseHandlerCore(v), _type(t)
         {
         }
         virtual ~TablebaseBaseHandler_3()
@@ -28,6 +28,10 @@ namespace chess
         }
 
     protected:
+        TB_TYPE_3 _type;
+
+        TB_TYPE_3 tb_type() const { return _type; }
+
         bool     build_base(Tablebase<PieceID, _BoardSize, 3>* tb, Tablebase<PieceID, _BoardSize, 3>* tb_oppo, char verbose = 0);
         uint64_t set_mate_score(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 3>* tb);
         uint64_t set_marker(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 3>* tb, Tablebase<PieceID, _BoardSize, 3>* tb_oppo);

@@ -47,7 +47,7 @@ namespace chess
         return false;
     }
 
-    //TablebaseHandler_2v0
+    // TablebaseHandler_2v0
     template <typename PieceID, typename uint8_t _BoardSize>
     class TablebaseHandler_2v0 : public TablebaseBaseHandler_2<PieceID, _BoardSize>
     {
@@ -57,63 +57,43 @@ namespace chess
         friend class TablebaseHandler_2v1<PieceID, _BoardSize>;
 
     public:
-        TablebaseHandler_2v0(std::vector<PieceID>& v) : TablebaseBaseHandler_2<PieceID, _BoardSize>(v)
+        TablebaseHandler_2v0(std::vector<PieceID>& v) : TablebaseBaseHandler_2<PieceID, _BoardSize>(v, TB_TYPE_2::tb_2v0)
         {
-            _tb_W = new Tablebase_2v0<PieceID, _BoardSize>(v, PieceColor::W);
-            _tb_B = new Tablebase_2v0<PieceID, _BoardSize>(v, PieceColor::B);
         }
         ~TablebaseHandler_2v0()
         {
-            delete _tb_W;
-            delete _tb_B;
         }
 
-        bool build(char verbose = 0) override;
-        bool is_build() const override { return _tb_W->is_build() && _tb_B->is_build(); }
-        bool load() override;
-        bool save() const override;
-        bool find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const override 
+        bool find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const override
         {
-            return nullptr; 
+            uint16_t ret_child_sq0;
+            Tablebase_1v0<PieceID, _BoardSize>* tb_1v0 = locate_children_1v0(pos, color, ret_child_sq0);
+            if (tb_1v0 != nullptr)
+            {
+                ret_sc = tb_1v0->score(ret_child_sq0);
+                return true;
+            }
+            return false;
         }
-
-        Tablebase_2v0<PieceID, _BoardSize>* tb_W() { return _tb_W; }
-        Tablebase_2v0<PieceID, _BoardSize>* tb_B() { return _tb_B; }
-
-    protected:
-        void print() const;
-
-        Tablebase_2v0<PieceID, _BoardSize>* _tb_W;
-        Tablebase_2v0<PieceID, _BoardSize>* _tb_B;
+        Tablebase_1v0<PieceID, _BoardSize>* locate_children_1v0(const _Board& pos, PieceColor c, uint16_t& ret_child_sq0) const;
     };
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    bool TablebaseHandler_2v0<PieceID, _BoardSize>::save()  const
+    Tablebase_1v0<PieceID, _BoardSize>* TablebaseHandler_2v0<PieceID, _BoardSize>::locate_children_1v0(const _Board& pos, PieceColor color, uint16_t& ret_child_sq0) const
     {
-        if (!_tb_W->save()) return false;
-        if (!_tb_B->save()) return false;
-        return true;
-    }
-    template <typename PieceID, typename uint8_t _BoardSize>
-    bool TablebaseHandler_2v0<PieceID, _BoardSize>::load()
-    {
-        if (!_tb_W->load()) return false;
-        if (!_tb_B->load()) return false;
-        return true;
-    }
-
-    template <typename PieceID, typename uint8_t _BoardSize>
-    bool TablebaseHandler_2v0<PieceID, _BoardSize>::build(char verbose)
-    {
-        return build_base(_tb_W, _tb_B, verbose);
+        if ((color == PieceColor::W) && (tbh_0_1v0()->tb_W()->isPiecesMatch(pos)))
+        {
+            ret_child_sq0 = pos.get_square_ofpiece(_Piece::get(_p_1v0[0])->get_name(), PieceColor::W);
+            return (Tablebase_1v0<PieceID, _BoardSize>*)tbh_0_1v0()->tb_W();
+        }
+        if ((color == PieceColor::B) && (tbh_0_1v0()->tb_B()->isPiecesMatch(pos)))
+        {
+            ret_child_sq0 = pos.get_square_ofpiece(_Piece::get(_p_1v0[0])->get_name(), PieceColor::W);
+            return (Tablebase_1v0<PieceID, _BoardSize>*)tbh_0_1v0()->tb_B();
+        }
+        return nullptr;
     }
 
-    template <typename PieceID, typename uint8_t _BoardSize>
-    void TablebaseHandler_2v0<PieceID, _BoardSize>::print() const
-    {
-        _tb_W->print();
-        _tb_B->print();
-    }
 };
 #endif
 

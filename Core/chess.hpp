@@ -53,9 +53,15 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandler_2;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandler_3;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandlerCore;
+    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_1v0;
+    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_0v1;
+    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_2v0;
+    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_0v2;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_1v1;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_2v1;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseManager;
+
+    //template <typename PieceID, typename uint8_t _BoardSize> class Tablebase_2v0;
 
 }
 
@@ -63,8 +69,8 @@ namespace chess
 #include "core/move.hpp"
 #include "core/piece.hpp"
 #include "core/board.hpp"
-#include "core/unittest.hpp"
-#include "core/testboard.hpp"
+#include "unittest/unittest.hpp"
+#include "unittest/testboard.hpp"
 #include "player/playerbase.hpp"
 #include "player/player.hpp"
 #include "player/playerfactory.hpp"
@@ -92,6 +98,7 @@ namespace chess
 #include "Tablebase/tablebase_0v1.hpp"
 #include "Tablebase/tablebase_1v1.hpp"
 #include "Tablebase/tablebase_2v0.hpp"
+#include "Tablebase/tablebase_0v2.hpp"
 #include "Tablebase/tablebase_2v1.hpp"
 
 #endif

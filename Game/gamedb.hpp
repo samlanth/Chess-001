@@ -89,7 +89,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     bool GameDB<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::open_create()
     {
-        std::string f = PersistManager::instance()->get_stream_name("gamedb", _db_keyname);
+        std::string f = PersistManager<PieceID, _BoardSize>::instance()->get_stream_name("gamedb", _db_keyname);
         std::ifstream   is;
         is.open(f.c_str(), std::fstream::in);
         if (is.good())
@@ -155,7 +155,7 @@ namespace chess
     bool GameDB<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::store_game(const _GameDB_Record& rec, size_t& ret_index)
     {
         if (_status != 0) return false;
-        std::string f = PersistManager::instance()->get_stream_name("gamedb", _db_keyname);
+        std::string f = PersistManager<PieceID, _BoardSize>::instance()->get_stream_name("gamedb", _db_keyname);
         std::ofstream   os;
         os.open(f.c_str(), std::ofstream::out | std::ofstream::trunc); 
         if (os.good())
@@ -185,7 +185,7 @@ namespace chess
     bool GameDB<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::store_game_rec(const _GameDB_Record& rec)
     {
         if (_status != 0) return false;
-        std::string f = PersistManager::instance()->get_stream_name("gamedbrec", _db_keyname);
+        std::string f = PersistManager<PieceID, _BoardSize>::instance()->get_stream_name("gamedbrec", _db_keyname);
         std::ofstream os;
         os.open(f.c_str(), std::ofstream::out | std::ofstream::app);
         if (os.good())

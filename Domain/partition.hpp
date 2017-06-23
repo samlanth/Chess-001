@@ -66,7 +66,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     bool Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::save() const
     {
-        std::string f = PersistManager::instance()->get_stream_name("partition", _name);
+        std::string f = PersistManager<PieceID, _BoardSize>::instance()->get_stream_name("partition", _name);
         std::ofstream   is;
         is.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
         if (is.good())
@@ -92,7 +92,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     bool Partition<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::load()
     {
-        std::string f = PersistManager::instance()->get_stream_name("partition", _name);
+        std::string f = PersistManager<PieceID, _BoardSize>::instance()->get_stream_name("partition", _name);
         std::ifstream   is;
         is.open(f.c_str(), std::fstream::in);
         if (is.good())

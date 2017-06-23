@@ -28,8 +28,6 @@
     <ClInclude Include="..\Core\chess.hpp" />
     <ClInclude Include="..\Core\move.hpp" />
     <ClInclude Include="..\Core\piece.hpp" />
-    <ClInclude Include="..\Core\testboard.hpp" />
-    <ClInclude Include="..\Core\unittest.hpp" />
     <ClInclude Include="..\Core\util.hpp" />
     <ClInclude Include="..\Domain\domain.hpp" />
     <ClInclude Include="..\Domain\partition.hpp" />
@@ -67,6 +65,8 @@
     <ClInclude Include="..\Tablebase\tablebase_1v1.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_2v0.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_2v1.hpp" />
+    <ClInclude Include="..\UnitTest\testboard.hpp" />
+    <ClInclude Include="..\UnitTest\unittest.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3A1269FE-3B8D-44BF-9899-3D95F9F6488D}</ProjectGuid>

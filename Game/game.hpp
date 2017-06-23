@@ -176,7 +176,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     inline bool BaseGame<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::save_ss() const
     {
-        std::string f = PersistManager::instance()->get_stream_name("gamedisplay", std::to_string(_saved_index));
+        std::string f = PersistManager<PieceID, _BoardSize>::instance()->get_stream_name("gamedisplay", std::to_string(_saved_index));
         std::ofstream os;
         os.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
         if (os.good())

@@ -373,7 +373,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
     bool Tablebase<PieceID, _BoardSize, NPIECE>::save_tb() const
     {
-        std::string f = PersistManager::instance()->get_stream_name("tablebase", name());
+        std::string f = PersistManager<PieceID, _BoardSize>::instance()->get_stream_name("tablebase", name());
         std::ofstream os;
         os.open(f.c_str(), std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
         if (os.good())
@@ -393,7 +393,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
     bool Tablebase<PieceID, _BoardSize, NPIECE>::save_tb_dtc() const
     {
-        std::string f = PersistManager::instance()->get_stream_name("tablebase", name()+".dtc");
+        std::string f = PersistManager<PieceID, _BoardSize>::instance()->get_stream_name("tablebase", name()+".dtc");
         std::ofstream os;
         os.open(f.c_str(), std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
         if (os.good())
@@ -439,7 +439,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
     bool Tablebase<PieceID, _BoardSize, NPIECE>::read_tb()
     {
-        std::string f = PersistManager::instance()->get_stream_name("tablebase", name());
+        std::string f = PersistManager<PieceID, _BoardSize>::instance()->get_stream_name("tablebase", name());
         std::ifstream is;
         is.open(f.c_str(), std::ofstream::in | std::ofstream::binary);
         if (is.good())
@@ -462,7 +462,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
     bool Tablebase<PieceID, _BoardSize, NPIECE>::read_tb_dtc()
     {
-        std::string f = PersistManager::instance()->get_stream_name("tablebase", name()+".dtc");
+        std::string f = PersistManager<PieceID, _BoardSize>::instance()->get_stream_name("tablebase", name()+".dtc");
         std::ifstream is;
         is.open(f.c_str(), std::ofstream::in | std::ofstream::binary);
         if (is.good())

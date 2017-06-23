@@ -20,20 +20,150 @@ namespace chess
         using _Move = Move<PieceID>;
 
     public:
-        TablebaseBaseHandler_2(std::vector<PieceID>& v) : TablebaseBaseHandlerCore(v)
+        TablebaseBaseHandler_2(std::vector<PieceID>& v, TB_TYPE_2 t) : TablebaseBaseHandlerCore(v), _type(t)
         {
-        }
-        virtual ~TablebaseBaseHandler_2()
-        {
+            _tbh_0_1v0 = nullptr;
+            _tbh_1_0v1 = nullptr;
+
+            if (t == TB_TYPE_2::tb_1v1)
+            {
+                _tb_W = new Tablebase_1v1<PieceID, _BoardSize>(v, PieceColor::W);
+                _tb_B = new Tablebase_1v1<PieceID, _BoardSize>(v, PieceColor::B);
+
+                _p_1v0.push_back(v[0]);
+                _p_0v1.push_back(v[1]);
+                _tbh_0_1v0 = new TablebaseHandler_1v0<PieceID, _BoardSize>(_p_1v0);
+                _tbh_1_0v1 = new TablebaseHandler_0v1<PieceID, _BoardSize>(_p_0v1);
+            }
+            else if (t == TB_TYPE_2::tb_2v0)
+            {
+                _tb_W = new Tablebase_2v0<PieceID, _BoardSize>(v, PieceColor::W);
+                _tb_B = new Tablebase_2v0<PieceID, _BoardSize>(v, PieceColor::B);
+
+                _p_1v0.push_back(v[0]);
+                _tbh_0_1v0 = new TablebaseHandler_1v0<PieceID, _BoardSize>(_p_1v0);
+            }
+            else if (t == TB_TYPE_2::tb_0v2)
+            {
+                 _tb_W = new Tablebase_0v2<PieceID, _BoardSize>(v, PieceColor::W);
+                 _tb_B = new Tablebase_0v2<PieceID, _BoardSize>(v, PieceColor::B);
+
+                 _p_0v1.push_back(v[1]);
+                 _tbh_1_0v1 = new TablebaseHandler_0v1<PieceID, _BoardSize>(_p_0v1);
+            }
         }
 
+        virtual ~TablebaseBaseHandler_2()
+        {
+            if (_tbh_0_1v0 != nullptr) delete _tbh_0_1v0;
+            if (_tbh_1_0v1 != nullptr) delete _tbh_1_0v1;
+            delete _tb_W;
+            delete _tb_B;
+        }
+
+        bool build(char verbose = 0) override;
+        bool is_build() const override 
+        { 
+            if (_type == TB_TYPE_2::tb_2v0) return _tb_W->is_build() && _tb_B->is_build() && _tbh_0_1v0->is_build();
+            if (_type == TB_TYPE_2::tb_0v2) return _tb_W->is_build() && _tb_B->is_build() && _tbh_1_0v1->is_build();
+            return _tb_W->is_build() && _tb_B->is_build() && _tbh_0_1v0->is_build() && _tbh_1_0v1->is_build();
+        }
+        bool load() override;
+        bool save() const override;
+        void print() const;
+
+        TB_TYPE_2 tb_type() const { return _type; }
+        Tablebase<PieceID, _BoardSize, 2>* tb_W() const { return _tb_W; }
+        Tablebase<PieceID, _BoardSize, 2>* tb_B() const { return _tb_B; }
+        TablebaseBaseHandler_1<PieceID, _BoardSize>*  tbh_0_1v0() const { return _tbh_0_1v0; }
+        TablebaseBaseHandler_1<PieceID, _BoardSize>*  tbh_1_0v1() const { return _tbh_1_0v1; }
+
     protected:
+        TB_TYPE_2 _type;
+        std::vector<PieceID> _p_1v0;
+        std::vector<PieceID> _p_0v1;
+
+        // 1v1, 2v0, 0v2
+        Tablebase<PieceID, _BoardSize, 2>* _tb_W;
+        Tablebase<PieceID, _BoardSize, 2>* _tb_B;
+
+        // children TB
+        TablebaseBaseHandler_1<PieceID, _BoardSize>* _tbh_0_1v0;
+        TablebaseBaseHandler_1<PieceID, _BoardSize>* _tbh_1_0v1;
+
         bool     build_base(Tablebase<PieceID, _BoardSize, 2>* tb, Tablebase<PieceID, _BoardSize, 2>* tb_oppo, char verbose = 0);
         uint64_t set_mate_score(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 2>* tb);
         uint64_t set_marker(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 2>* tb, Tablebase<PieceID, _BoardSize, 2>* tb_oppo);
         uint64_t process_marker(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 2>* tb, Tablebase<PieceID, _BoardSize, 2>* tb_oppo);
     };
 
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool TablebaseBaseHandler_2<PieceID, _BoardSize>::save()  const
+    {
+        if (!_tb_W->save()) return false;
+        if (!_tb_B->save()) return false;
+        if (_type == TB_TYPE_2::tb_1v1)
+        {
+            if (!_tbh_0_1v0->save()) return false;
+            if (!_tbh_1_0v1->save()) return false;
+        }
+        if (_type == TB_TYPE_2::tb_2v0)
+        {
+            if (!_tbh_0_1v0->save()) return false;
+        }
+        if (_type == TB_TYPE_2::tb_0v2)
+        {
+            if (!_tbh_1_0v1->save()) return false;
+        }
+        return true;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool TablebaseBaseHandler_2<PieceID, _BoardSize>::load()
+    {
+        if (_type == TB_TYPE_2::tb_1v1)
+        {
+            if (!_tbh_0_1v0->load()) return false;
+            if (!_tbh_1_0v1->load()) return false;
+        }
+        if (_type == TB_TYPE_2::tb_2v0)
+        {
+            if (!_tbh_0_1v0->load()) return false;
+        }
+        if (_type == TB_TYPE_2::tb_0v2)
+        {
+            if (!_tbh_1_0v1->load()) return false;
+        }
+        if (!_tb_W->load()) return false;
+        if (!_tb_B->load()) return false;
+        return true;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool TablebaseBaseHandler_2<PieceID, _BoardSize>::build(char verbose)
+    {
+        if (_type == TB_TYPE_2::tb_1v1)
+        {
+            if (!_tbh_0_1v0->build(verbose)) return false;
+            if (!_tbh_1_0v1->build(verbose)) return false;
+        }
+        if (_type == TB_TYPE_2::tb_2v0)
+        {
+            if (!_tbh_0_1v0->build(verbose)) return false;
+        }
+        if (_type == TB_TYPE_2::tb_0v2)
+        {
+            if (!_tbh_1_0v1->build(verbose)) return false;
+        }
+        return build_base(_tb_W, _tb_B, verbose);
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    void TablebaseBaseHandler_2<PieceID, _BoardSize>::print() const
+    {
+        _tb_W->print();
+        _tb_B->print();
+    }
 
     template <typename PieceID, typename uint8_t _BoardSize>
     uint64_t TablebaseBaseHandler_2<PieceID, _BoardSize>::set_mate_score(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 2>* tb)

@@ -20,20 +20,76 @@ namespace chess
         using _Move = Move<PieceID>;
 
     public:
-        TablebaseBaseHandler_1(std::vector<PieceID>& v) : TablebaseBaseHandlerCore(v)
+        TablebaseBaseHandler_1(std::vector<PieceID>& v, TB_TYPE_1 t) : TablebaseBaseHandlerCore(v), _type(t)
         {
+            if (t == TB_TYPE_1::tb_0v1)
+            {
+                _tb_W = new Tablebase_0v1<PieceID, _BoardSize>(v, PieceColor::W);
+                _tb_B = new Tablebase_0v1<PieceID, _BoardSize>(v, PieceColor::B);
+            }
+            else
+            {
+                _tb_W = new Tablebase_1v0<PieceID, _BoardSize>(v, PieceColor::W);
+                _tb_B = new Tablebase_1v0<PieceID, _BoardSize>(v, PieceColor::B);
+            }
         }
         virtual ~TablebaseBaseHandler_1()
         {
+            delete _tb_W;
+            delete _tb_B;
         }
 
+        TB_TYPE_1 tb_type() const { return _type; }
+        Tablebase<PieceID, _BoardSize, 1>* tb_W() const { return _tb_W; }
+        Tablebase<PieceID, _BoardSize, 1>* tb_B() const { return _tb_B; }
+
+        bool build(char verbose = 0) override;
+        bool is_build() const override { return _tb_W->is_build() && _tb_B->is_build(); }
+        bool load() override;
+        bool save() const override;
+        void print() const;
+
     protected:
+        TB_TYPE_1 _type;
+        Tablebase<PieceID, _BoardSize, 1>* _tb_W;
+        Tablebase<PieceID, _BoardSize, 1>* _tb_B;
+
         bool     build_base(Tablebase<PieceID, _BoardSize, 1>* tb, Tablebase<PieceID, _BoardSize, 1>* tb_oppo, char verbose = 0);
         uint64_t set_mate_score(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 1>* tb);
 
-        bool     find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const override { return false; }
+        bool     find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const override
+        { 
+            return false; 
+        }
     };
 
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool TablebaseBaseHandler_1<PieceID, _BoardSize>::save()  const
+    {
+        if (!_tb_W->save()) return false;
+        if (!_tb_B->save()) return false;
+        return true;
+    }
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool TablebaseBaseHandler_1<PieceID, _BoardSize>::load()
+    {
+        if (!_tb_W->load()) return false;
+        if (!_tb_B->load()) return false;
+        return true;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool TablebaseBaseHandler_1<PieceID, _BoardSize>::build(char verbose)
+    {
+        return build_base(_tb_W, _tb_B, verbose);
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    void TablebaseBaseHandler_1<PieceID, _BoardSize>::print() const
+    {
+        _tb_W->print();
+        _tb_B->print();
+    }
 
     template <typename PieceID, typename uint8_t _BoardSize>
     uint64_t TablebaseBaseHandler_1<PieceID, _BoardSize>::set_mate_score(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 1>* tb)
@@ -78,7 +134,6 @@ namespace chess
         }
         return n_changes;
     }
-
 
     template <typename PieceID, typename uint8_t _BoardSize>
     bool TablebaseBaseHandler_1<PieceID, _BoardSize>::build_base(Tablebase<PieceID, _BoardSize, 1>* _tb_W, Tablebase<PieceID, _BoardSize, 1>* _tb_B, char verbose)

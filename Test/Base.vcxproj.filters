@@ -32,6 +32,9 @@
     <Filter Include="Tablebase">
       <UniqueIdentifier>{694f2286-a2ab-4282-8b45-cd13fca13647}</UniqueIdentifier>
     </Filter>
+    <Filter Include="UnitTest">
+      <UniqueIdentifier>{44f220d9-ca84-4819-af8d-2c2d4242fc88}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -46,12 +49,6 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="..\Core\piece.hpp">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Core\testboard.hpp">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Core\unittest.hpp">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="..\GA\Chromosome.hpp">
@@ -173,6 +170,12 @@
     </ClInclude>
     <ClInclude Include="..\Tablebase\tablebasehandler_1.hpp">
       <Filter>Tablebase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\UnitTest\testboard.hpp">
+      <Filter>UnitTest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\UnitTest\unittest.hpp">
+      <Filter>UnitTest</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

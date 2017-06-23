@@ -17,7 +17,7 @@
 int main(int argc, char* argv[])
 {
     // Test PersisteManager
-    chess::PersistManager::instance();
+    chess::PersistManager<uint8_t, 6>::instance();
 
     // Test Tablebase_1v0
     //std::vector<uint8_t> uu;

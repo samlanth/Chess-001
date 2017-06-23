@@ -43,7 +43,7 @@ namespace chess
             _link_to_mirror(nullptr),
             _persist_key("")
         { 
-            _persist_key = PersistManager::instance()->create_persist_key();
+            _persist_key = PersistManager<PieceID, _BoardSize>::instance()->create_persist_key();
             if (create_children)
             {
                 this->_positive_child = new ConditionValuationNode(this, true, false);
@@ -270,7 +270,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     bool ConditionValuationNode<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::save_root() const
     {
-        std::string f = PersistManager::instance()->get_stream_name("ConditionValuationNode", _persist_key);
+        std::string f = PersistManager<PieceID, _BoardSize>::instance()->get_stream_name("ConditionValuationNode", _persist_key);
         std::ofstream   is;
         is.open(f.c_str(), std::fstream::out | std::fstream::trunc);
         if (save(is))
@@ -316,7 +316,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT>
     bool ConditionValuationNode<PieceID, _BoardSize, TYPE_PARAM, PARAM_NBIT>::load_root()
     {
-        std::string f = PersistManager::instance()->get_stream_name("ConditionValuationNode", _persist_key);
+        std::string f = PersistManager<PieceID, _BoardSize>::instance()->get_stream_name("ConditionValuationNode", _persist_key);
         std::ifstream   is;
         is.open(f.c_str(), std::fstream::in);
         if (load(is))

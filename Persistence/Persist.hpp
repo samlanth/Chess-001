@@ -13,8 +13,11 @@
 
 namespace chess
 {
+    template <typename PieceID, typename uint8_t _BoardSize>
     class PersistManager
     {
+        using _Piece = Piece<PieceID, _BoardSize>;
+
     private:
         PersistManager()
         {
@@ -37,7 +40,8 @@ namespace chess
 
         void set_root_folder(const std::string& s) { _root_folder = s; }
         std::string get_root_folder() const { return _root_folder; }
-        void create_directory(std::string s) const 
+
+        static void create_directory(std::string s)
         {
             CreateDirectory(s.c_str(), NULL);
         }
@@ -46,8 +50,22 @@ namespace chess
         {
             if (!_instance.operator bool())
             {
+                PieceID id = 0;
+                std::string skey = "CFG_" + std::to_string((int)_BoardSize) + std::string(typeid(id).name()) + "\\";
+                skey.erase(std::remove(skey.begin(), skey.end(), ' '), skey.end());
+
+                if (!(dirExists(PersistManager::_default_root_folder)))
+                {
+                    create_directory(PersistManager::_default_root_folder);
+                }
+                std::string sroot = PersistManager::_default_root_folder + skey;
+                if (!(dirExists(sroot)))
+                {
+                    create_directory(sroot);
+                }
+
                 _instance = std::unique_ptr<PersistManager>(new PersistManager);
-                _instance.get()->_root_folder = PersistManager::_default_root_folder;
+                _instance.get()->_root_folder = sroot;
             }
             return _instance.get();
         }
@@ -59,7 +77,7 @@ namespace chess
             {
                 create_directory(folder);
             }
-            std::string filename = folder + instance_key + ".txt";
+            std::string filename = folder + instance_key + _FILE_EXTENSION;
             return filename;
         } 
 
@@ -75,7 +93,7 @@ namespace chess
             {
                 create_directory(folder);
             }
-            std::string filename = folder + instance_key + ".txt";
+            std::string filename = folder + instance_key + _FILE_EXTENSION;
             return filename;
         }
 
@@ -90,7 +108,7 @@ namespace chess
 
         bool save() const
         {
-            std::string f = _root_folder + "persistmanager" + ".txt";
+            std::string f = _root_folder + _PERSISTMANAGER_FILENAME + _FILE_EXTENSION;
             std::ofstream   is;
             is.open(f.c_str(), std::fstream::out | std::fstream::trunc);
             if (is.good())
@@ -107,7 +125,7 @@ namespace chess
 
         bool load()
         {
-            std::string f = _root_folder + "persistmanager" + ".txt";
+            std::string f = _root_folder + _PERSISTMANAGER_FILENAME + _FILE_EXTENSION;
             std::ifstream   is;
             is.open(f.c_str(), std::fstream::in);
             if (is.good())
@@ -122,7 +140,7 @@ namespace chess
             return false;
         }
 
-        bool dirExists(const std::string& dirName_in) const
+        static bool dirExists(const std::string& dirName_in) 
         {
             DWORD ftyp = GetFileAttributesA(dirName_in.c_str());
             if (ftyp == INVALID_FILE_ATTRIBUTES) return false;
@@ -131,6 +149,9 @@ namespace chess
         }
 
     private:
+        const std::string   _PERSISTMANAGER_FILENAME = "persistmanager";
+        const std::string   _FILE_EXTENSION = ".dat";
+
         static std::string                          _root_folder;
         std::map<std::string, std::string>          _files;
         static std::unique_ptr<PersistManager>      _instance;
@@ -138,9 +159,16 @@ namespace chess
         static uint64_t                             _persist_key_counter;
     };
 
-    std::unique_ptr<PersistManager> PersistManager::_instance = nullptr;
-    std::string PersistManager::_root_folder = "C:\\tmp\\";
-    std::string PersistManager::_default_root_folder = "C:\\tmp\\";
-    uint64_t PersistManager::_persist_key_counter = 0;
+    template <typename PieceID, typename uint8_t _BoardSize>
+    std::unique_ptr<PersistManager<PieceID, _BoardSize>> PersistManager<PieceID, _BoardSize>::_instance = nullptr;
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    std::string PersistManager<PieceID, _BoardSize>::_root_folder = "C:\\tmp\\";
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    std::string PersistManager<PieceID, _BoardSize>::_default_root_folder = "C:\\tmp\\";
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    uint64_t PersistManager<PieceID, _BoardSize>::_persist_key_counter = 0;
 }
 #endif

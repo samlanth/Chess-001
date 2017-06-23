@@ -33,7 +33,7 @@ namespace chess
         virtual bool save() const = 0;
         virtual bool build(char verbose) = 0;
         virtual bool is_build() const = 0;
-        virtual bool find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const = 0;
+        virtual bool find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const  = 0;
 
         static ExactScore TablebaseBaseHandlerCore<PieceID, _BoardSize>::minmax_dtc(
             PieceColor color_parent,
@@ -45,6 +45,7 @@ namespace chess
         _Board*              _work_board;
     };
     
+
     template <typename PieceID, typename uint8_t _BoardSize>
     ExactScore TablebaseBaseHandlerCore<PieceID, _BoardSize>::minmax_dtc(
         PieceColor                  color_parent,

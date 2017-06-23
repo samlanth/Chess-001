@@ -14,6 +14,9 @@ namespace chess
     enum class PieceMoveStyle   { none, Sliding, Jumping, SlidingDiagonalCapturePromo };
     enum class ExactScore       { LOSS, DRAW, WIN, UNKNOWN }; // white win is WIN, black win is LOSS
     enum class FeatureType      { condition = 0, valuation = 1 };
+    enum class TB_TYPE_1        { tb_0v1, tb_1v0 };
+    enum class TB_TYPE_2        { tb_1v1, tb_2v0, tb_0v2 };
+    enum class TB_TYPE_3        { tb_2v1, tb_1v2, tb_3v0, tb_0v3 };
 
     static std::string  toNULLSTR(const std::string& s) { return (s.size() == 0) ? "NullSTR" : s; }
     static void         fromNULLSTR(std::string& s)     { if (s == "NullSTR") s = ""; }

@@ -123,7 +123,7 @@ namespace chess
     protected:
         bool save_root() const
         {
-            std::string f = PersistManager::instance()->get_stream_name("domain", persist_key());
+            std::string f = PersistManager<PieceID, _BoardSize>::instance()->get_stream_name("domain", persist_key());
             std::ofstream   is;
             is.open(f.c_str(), std::ofstream::out | std::ofstream::trunc);
             if (save_detail(is))
@@ -157,7 +157,7 @@ namespace chess
 
         bool load_root() const
         {
-            std::string f = PersistManager::instance()->get_stream_name("domain", persist_key());
+            std::string f = PersistManager<PieceID, _BoardSize>::instance()->get_stream_name("domain", persist_key());
             std::ifstream   is;
             is.open(f.c_str(), std::fstream::in);
             if (load_detail(is))
