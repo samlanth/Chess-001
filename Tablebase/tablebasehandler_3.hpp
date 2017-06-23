@@ -163,7 +163,7 @@ namespace chess
                 }
                 else if (exist_child_score)
                 {
-                    // mark parent
+                    // mark parent for later re-visit
                     if (tb->marker(sq0, sq1, sq2) == false)
                     {
                         tb->set_marker(sq0, sq1, sq2, true);
@@ -269,11 +269,11 @@ namespace chess
 
         n = set_mate_score(PieceColor::W, _tb_W);
         if (verbose) { std::cout << "W (0/1 move) mate positions:" << n << std::endl; }
-        if (verbose) _tb_W->print_dtc(10);
+        if (verbose) _tb_W->print_dtc(2);
 
         n = set_mate_score(PieceColor::B, _tb_B);
         if (verbose) { std::cout << "B (0/1 move) mate positions:" << n << std::endl; }
-        if (verbose) _tb_W->print_dtc(10);
+        if (verbose) _tb_B->print_dtc(2);
 
         do
         {
@@ -287,11 +287,9 @@ namespace chess
 
             n = process_marker(PieceColor::B, _tb_B, _tb_W);
             if (verbose) { std::cout << "B process_marker positions:" << n << std::endl; }
-            if (verbose) _tb_W->print_dtc(10);
 
             m = process_marker(PieceColor::W, _tb_W, _tb_B);
             if (verbose) { std::cout << "W process_marker positions:" << m << std::endl; }
-            if (verbose) _tb_W->print_dtc(10);
 
 
             m = set_marker(PieceColor::B, _tb_B, _tb_W);
@@ -299,16 +297,15 @@ namespace chess
 
             n = process_marker(PieceColor::B, _tb_B, _tb_W);
             if (verbose) { std::cout << "B process_marker positions:" << n << std::endl; }
-            if (verbose) _tb_W->print_dtc(10);
 
             m = process_marker(PieceColor::W, _tb_W, _tb_B);
             if (verbose) { std::cout << "W process_marker positions:" << m << std::endl; }
-            if (verbose) _tb_W->print_dtc(10);
 
             if ((n + m) == 0) break;
         } while (n + m > 0);
 
         if (verbose) _tb_W->print_dtc(20);
+        if (verbose) _tb_B->print_dtc(20);
 
         _tb_W->set_build(true);
         _tb_B->set_build(true);

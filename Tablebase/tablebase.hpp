@@ -34,8 +34,8 @@ namespace chess
         using _Piece = Piece<PieceID, _BoardSize>;
         using _Board = Board<PieceID, _BoardSize>;
         using _Move = Move<PieceID>;
-        using _Tablebase = Tablebase<PieceID, _BoardSize, NPIECE>;
 
+        friend class TablebaseBaseHandler_1<PieceID, _BoardSize>;
         friend class TablebaseBaseHandler_2<PieceID, _BoardSize>;
         friend class TablebaseBaseHandler_3<PieceID, _BoardSize>;
 
@@ -154,7 +154,6 @@ namespace chess
         {
             return ((_dim2*sq0) + (_dim1*sq1) + sq2) * 1;
         }
-
 
         bool bit(const uint64_t& idx_item, const uint8_t& idx_bit)  const
         {
@@ -354,9 +353,9 @@ namespace chess
             for (uint64_t i = 0; i < this->_size_tb; i++)
             {
                 sc = this->score_at_idx(i * this->_size_item);
-                if (sc == ExactScore::UNKNOWN)                      // ILLEGAL position exist in the TB _bits.....
+                if (sc == ExactScore::UNKNOWN)                          // ILLEGAL position exist in the TB _bits.....
                 {
-                    set_score_at_idx(i * _size_item, ExactScore::DRAW);
+                    set_score_at_idx(i * _size_item, ExactScore::DRAW); // dtc....
                 }
             }
         }
@@ -595,6 +594,70 @@ namespace chess
         }
         return v;
     }
+
+    // prototype...
+    template <typename PieceID, typename uint8_t _BoardSize>
+    class PieceSet
+    {
+    public:
+       
+        PieceSet(const std::vector<std::pair<PieceID, uint8_t>>& w_set, const std::vector<std::pair<PieceID, uint8_t>>& b_set)
+            : _is_valid(true), _wset(w_set), _bset(b_set)
+        {
+            if (validate())
+                make_children();
+        }
+        bool is_valid() { return _is_valid; }
+
+        size_t children_size(PieceColor c) { return 0; }
+        std::string name(PieceColor c, size_t children_index) { return "": }
+
+        uint16_t count_one_piece(PieceColor c, PieceID id) { return 0; }
+        uint16_t count_all_piece(PieceColor c) { return 0; }
+        std::vector<std::pair<PieceID, uint8_t>> children(PieceColor c, size_t children_index) { std::vector<std::pair<PieceID, uint8_t>> v;  return v; }
+
+    protected:
+        bool _is_valid;
+        std::vector<std::pair<PieceID, uint8_t>> _wset; // white pieces and count
+        std::vector<std::pair<PieceID, uint8_t>> _bset;
+        std::vector<std::vector<std::pair<PieceID, uint8_t>>> _wchildren;    // all combination with 1 piece less
+        std::vector<std::vector<std::pair<PieceID, uint8_t>>> _bchildren;
+
+        bool validate() { return _is_valid; } // sorting...
+        void make_children() 
+        {
+            std::vector<std::pair<PieceID, uint8_t>> workset;
+            std::pair<PieceID, uint8_t>              piece_count;
+
+            _wchildren.clear();
+            for (size_t i = 0; i < _wset.size(); i++)
+            {
+                // remove 1 ith piece
+                workset = _wset;
+                piece_count = workset[i];
+                if (piece_count.second > 0)
+                {
+                    piece_count.second--;
+                    workset[i] = piece_count;
+                    _wchildren.push_back(workset);
+                }
+            }
+
+            _bchildren.clear();
+            for (size_t i = 0; i < _bset.size(); i++)
+            {
+                // remove 1 ith piece
+                workset = _bset;
+                piece_count = workset[i];
+                if (piece_count.second > 0)
+                {
+                    piece_count.second--;
+                    workset[i] = piece_count;
+                    _bchildren.push_back(workset);
+                }
+            }
+        }
+    };
 
 };
 #endif

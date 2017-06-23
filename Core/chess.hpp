@@ -49,6 +49,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize> struct GameDB_Record;
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class BasePlayer;
 
+    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandler_1;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandler_2;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandler_3;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandlerCore;
@@ -82,6 +83,7 @@ namespace chess
 #include "ChessGA/ChessCoEvolveGA.hpp"
 #include "Tablebase/tablebase.hpp"
 #include "Tablebase/tablebasehandler.hpp"
+#include "Tablebase/tablebasehandler_1.hpp"
 #include "Tablebase/tablebasehandler_2.hpp"
 #include "Tablebase/tablebasehandler_3.hpp"
 #include "Tablebase/tablebaseutil.hpp"

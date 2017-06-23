@@ -171,5 +171,8 @@
     <ClInclude Include="..\Tablebase\tablebasehandler_2.hpp">
       <Filter>Tablebase</Filter>
     </ClInclude>
+    <ClInclude Include="..\Tablebase\tablebasehandler_1.hpp">
+      <Filter>Tablebase</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

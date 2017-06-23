@@ -35,11 +35,20 @@ int main(int argc, char* argv[])
     w.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::Q, chess::PieceColor::W));
     w.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
     chess::TablebaseHandler_2v1<uint8_t, 6> tbh_KQvK(w);
-    //tbh_KQvK.build(1); 
-    //std::cout << "checksum: " << (int)tbh_KQvK.tb_W()->checksum_dtc() << std::endl;
-    //tbh_KQvK.save();
+    tbh_KQvK.build(1); 
+    std::cout << "checksum: " << (int)tbh_KQvK.tb_W()->checksum_dtc() << std::endl;
+    tbh_KQvK.save();
     tbh_KQvK.load();
     std::cout << "checksum: " << (int)tbh_KQvK.tb_W()->checksum_dtc() << std::endl;
+
+    std::vector<std::pair<uint8_t, uint8_t>> w_set;
+    std::vector<std::pair<uint8_t, uint8_t>> b_set;
+    w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W), 1 }));
+    w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::Q, chess::PieceColor::W), 2 }));
+    w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::R, chess::PieceColor::W), 2 }));
+    b_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B), 1 }));
+    b_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::P, chess::PieceColor::B), 2 }));
+    chess::PieceSet<uint8_t, 6>(w_set, b_set);
 
  
     // expand_position()

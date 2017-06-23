@@ -39,6 +39,9 @@ namespace chess
         Tablebase<PieceID, _BoardSize, 2>* find_2(const std::string& name) const;
         Tablebase<PieceID, _BoardSize, 3>* find_3(const std::string& name) const;
 
+        // prototype
+        Tablebase<PieceID, _BoardSize, 1>* make_1(PieceColor c, const std::vector<std::pair<PieceID, uint8_t>>& p) const;
+
     public:
         static std::string name_pieces(const std::vector<PieceID>& v, PieceColor color_to_play)
         {
@@ -164,6 +167,42 @@ namespace chess
         return  _instance.get();
     }
 
+
+    // prototype
+    template <typename PieceID, typename uint8_t _BoardSize>
+    Tablebase<PieceID, _BoardSize, 1>*  TablebaseManager<PieceID, _BoardSize>::make_1(PieceColor c, const std::vector<std::pair<PieceID, uint8_t>>& p) const
+    {
+        if (_instance == nullptr) return nullptr;
+
+        {
+            // 1v0
+            if (c == PieceColor::W)
+            {
+                std::vector<PieceID> _p_1v0;
+                for (size_t j = 0; j < p.size(); j++)
+                {
+                    if (p[j].second == 1)
+                    {
+                        _p_1v0.push_back(p[j].first);
+                        return new Tablebase_1v0<PieceID, _BoardSize>* (_p_1v0, PieceColor::W);
+                    }
+                }
+            }
+            else
+            {
+                std::vector<PieceID> _p_0v1;
+                for (size_t j = 0; j < p.size(); j++)
+                {
+                    if (p[j].second == 1)
+                    {
+                        _p_0v1.push_back(p[j].first);
+                        return new Tablebase_1v0<PieceID, _BoardSize>* (_p_0v1, PieceColor::B);
+                    }
+                }
+            }
+        }
+        return nullptr;
+    }
 };
 
 #endif

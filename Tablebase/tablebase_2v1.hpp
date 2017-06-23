@@ -55,6 +55,7 @@ namespace chess
         return false;
     }
 
+    // TablebaseHandler_2v1
     template <typename PieceID, typename uint8_t _BoardSize>
     class TablebaseHandler_2v1 : public TablebaseBaseHandler_3<PieceID, _BoardSize>
     {
@@ -72,8 +73,7 @@ namespace chess
             _p1_1v1.push_back(v[1]);    _p1_1v1.push_back(v[2]);
 
             // children TB
-            _tb_2v0_w   = new Tablebase_2v0<PieceID, _BoardSize>(_p_2v0, PieceColor::W);
-            _tb_2v0_b   = new Tablebase_2v0<PieceID, _BoardSize>(_p_2v0, PieceColor::B);
+            _tbh_0_2v0  = new TablebaseHandler_2v0<PieceID, _BoardSize>(_p_2v0);
             _tbh_0_1v1  = new TablebaseHandler_1v1<PieceID, _BoardSize>(_p0_1v1);
             _tbh_1_1v1  = new TablebaseHandler_1v1<PieceID, _BoardSize>(_p1_1v1);
         }
@@ -83,8 +83,7 @@ namespace chess
             delete _tb_W;
             delete _tb_B;
 
-            delete  _tb_2v0_w;
-            delete  _tb_2v0_b;
+            delete _tbh_0_2v0;
             delete _tbh_0_1v1;
             delete _tbh_1_1v1;;
         }
@@ -114,8 +113,7 @@ namespace chess
         std::vector<PieceID> _p1_1v1;
 
         // children TB
-        Tablebase_2v0<PieceID, _BoardSize>*         _tb_2v0_w;
-        Tablebase_2v0<PieceID, _BoardSize>*         _tb_2v0_b;
+        TablebaseHandler_2v0<PieceID, _BoardSize>* _tbh_0_2v0;
         TablebaseHandler_1v1<PieceID, _BoardSize>* _tbh_0_1v1;
         TablebaseHandler_1v1<PieceID, _BoardSize>* _tbh_1_1v1;
     };
@@ -125,8 +123,7 @@ namespace chess
     {
         if (!_tb_W->save()) return false;
         if (!_tb_B->save()) return false;
-        if (!_tb_2v0_w->save()) return false;
-        if (!_tb_2v0_b->save()) return false;
+        if (!_tbh_0_2v0->save()) return false;
         if (!_tbh_0_1v1->save()) return false;
         if (!_tbh_1_1v1->save()) return false;
         return true;
@@ -134,8 +131,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     bool TablebaseHandler_2v1<PieceID, _BoardSize>::load()
     {
-        if (!_tb_2v0_w->load()) return false;
-        if (!_tb_2v0_b->load()) return false;
+        if (!_tbh_0_2v0->load()) return false;
         if (!_tbh_0_1v1->load()) return false;
         if (!_tbh_1_1v1->load()) return false;
         if (!_tb_W->load()) return false;
@@ -146,13 +142,11 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     bool TablebaseHandler_2v1<PieceID, _BoardSize>::build(char verbose)
     {
-        _tb_2v0_w->build(verbose);
-        _tb_2v0_b->build(verbose);
+        _tbh_0_2v0->build(verbose);
         _tbh_0_1v1->build(verbose);
         _tbh_1_1v1->build(verbose);
 
-        assert(_tb_2v0_w->is_build() == true);
-        assert(_tb_2v0_b->is_build() == true);
+        assert(_tbh_0_2v0->is_build() == true);
         assert(_tbh_0_1v1->is_build() == true);
         assert(_tbh_1_1v1->is_build() == true);
 
@@ -219,17 +213,17 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     Tablebase_2v0<PieceID, _BoardSize>* TablebaseHandler_2v1<PieceID, _BoardSize>::locate_children_2v0(const _Board& pos, PieceColor color, uint16_t& ret_child_sq0, uint16_t& ret_child_sq1) const
     {
-        if ((color == PieceColor::W) && (_tb_2v0_w->isPiecesMatch(pos)))
+        if ((color == PieceColor::W) && (_tbh_0_2v0->_tb_W->isPiecesMatch(pos)))
         {
             ret_child_sq0 = pos.get_square_ofpiece(_Piece::get(_p_2v0[0])->get_name(), PieceColor::W);
             ret_child_sq1 = pos.get_square_ofpiece(_Piece::get(_p_2v0[1])->get_name(), PieceColor::W);
-            return _tb_2v0_w;
+            return _tbh_0_2v0->_tb_W;
         }
-        if ((color == PieceColor::B) && (_tb_2v0_b->isPiecesMatch(pos)))
+        if ((color == PieceColor::B) && (_tbh_0_2v0->_tb_B->isPiecesMatch(pos)))
         {
             ret_child_sq0 = pos.get_square_ofpiece(_Piece::get(_p_2v0[0])->get_name(), PieceColor::W);
             ret_child_sq1 = pos.get_square_ofpiece(_Piece::get(_p_2v0[1])->get_name(), PieceColor::W);
-            return _tb_2v0_b;
+            return _tbh_0_2v0->_tb_B;
         }
         return nullptr;
     }

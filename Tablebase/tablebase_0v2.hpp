@@ -3,7 +3,7 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// Tablebase_2v0
+// Tablebase_0v2
 //
 //
 #ifndef _AL_CHESS_TABLEBASE_TABLEBASE_0v2_HPP
@@ -31,7 +31,7 @@ namespace chess
         }
 
         bool save() const override { return save_tb(); }
-        bool build(char verbose = 0) override;
+        bool build(char verbose = 0) override { return false; }
         bool isPiecesMatch(const _Board& pos) override;
     };
 
@@ -47,39 +47,68 @@ namespace chess
         return false;
     }
 
+    //TablebaseHandler_0v2
     template <typename PieceID, typename uint8_t _BoardSize>
-    bool Tablebase_0v2<PieceID, _BoardSize>::build(char verbose)
+    class TablebaseHandler_0v2 : public TablebaseBaseHandler_2<PieceID, _BoardSize>
     {
-        ExactScore sc;
-        std::vector<_Move> m;
+        using _Piece = Piece<PieceID, _BoardSize>;
+        using _Board = Board<PieceID, _BoardSize>;
 
-        for (uint16_t sq0 = 0; sq0 < _dim1; sq0++)
-        for (uint16_t sq1 = 0; sq1 < _dim1; sq1++)
+        //friend class TablebaseHandler_1v2<PieceID, _BoardSize>;
+
+    public:
+        TablebaseHandler_0v2(std::vector<PieceID>& v) : TablebaseBaseHandler_2<PieceID, _BoardSize>(v)
         {
-            if (sq0 == sq1) continue;
-
-            _work_board->clear();
-            _work_board->set_color(_color);
-            _work_board->set_pieceid_at(_piecesID[0], sq0);
-            _work_board->set_pieceid_at(_piecesID[1], sq1);
-            m = _work_board->generate_moves();
-            sc = _work_board->final_score(m);
-            if (sc != ExactScore::UNKNOWN)
-            {
-                set_score(sq0, sq1, sc);
-            }
-            else
-            {
-                assert(false);
-            }
+            _tb_W = new Tablebase_2v0<PieceID, _BoardSize>(v, PieceColor::W);
+            _tb_B = new Tablebase_2v0<PieceID, _BoardSize>(v, PieceColor::B);
         }
-        _is_build = true;
-         set_unknown_to_draw();
-         TablebaseManager<PieceID, _BoardSize>::instance()->add(name(), *this);
+        ~TablebaseHandler_0v2()
+        {
+            delete _tb_W;
+            delete _tb_B;
+        }
 
-        if (verbose) print();
-        assert(check_unknown() == false);
+        bool build(char verbose = 0) override;
+        bool is_build() const override { return _tb_W->is_build() && _tb_B->is_build(); }
+        bool load() override;
+        bool save() const override;
+
+        Tablebase_0v2<PieceID, _BoardSize>* tb_W() { return _tb_W; }
+        Tablebase_0v2<PieceID, _BoardSize>* tb_B() { return _tb_B; }
+
+    protected:
+        void print() const;
+
+        Tablebase_0v2<PieceID, _BoardSize>* _tb_W;
+        Tablebase_0v2<PieceID, _BoardSize>* _tb_B;
+    };
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool TablebaseHandler_0v2<PieceID, _BoardSize>::save()  const
+    {
+        if (!_tb_W->save()) return false;
+        if (!_tb_B->save()) return false;
         return true;
+    }
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool TablebaseHandler_0v2<PieceID, _BoardSize>::load()
+    {
+        if (!_tb_W->load()) return false;
+        if (!_tb_B->load()) return false;
+        return true;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool TablebaseHandler_0v2<PieceID, _BoardSize>::build(char verbose)
+    {
+        return build_base(_tb_W, _tb_B, verbose);
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    void TablebaseHandler_0v2<PieceID, _BoardSize>::print() const
+    {
+        _tb_W->print();
+        _tb_B->print();
     }
 };
 #endif
