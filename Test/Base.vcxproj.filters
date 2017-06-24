@@ -138,19 +138,7 @@
     <ClInclude Include="..\Tablebase\tablebase_1v1.hpp">
       <Filter>Tablebase</Filter>
     </ClInclude>
-    <ClInclude Include="..\Tablebase\tablebase_1v0.hpp">
-      <Filter>Tablebase</Filter>
-    </ClInclude>
     <ClInclude Include="..\Tablebase\tablebase_2v1.hpp">
-      <Filter>Tablebase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Tablebase\tablebase_2v0.hpp">
-      <Filter>Tablebase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Tablebase\tablebase_0v1.hpp">
-      <Filter>Tablebase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Tablebase\tablebase_0v2.hpp">
       <Filter>Tablebase</Filter>
     </ClInclude>
     <ClInclude Include="..\Tablebase\tablebasehandler.hpp">
@@ -176,6 +164,18 @@
     </ClInclude>
     <ClInclude Include="..\UnitTest\unittest.hpp">
       <Filter>UnitTest</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Tablebase\tablebase_Xv0.hpp">
+      <Filter>Tablebase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Tablebase\tablebase_0vX.hpp">
+      <Filter>Tablebase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Tablebase\pieceset.hpp">
+      <Filter>Tablebase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Tablebase\symmetryTB.hpp">
+      <Filter>Tablebase</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

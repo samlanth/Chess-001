@@ -52,6 +52,8 @@
     <ClInclude Include="..\Player\player.hpp" />
     <ClInclude Include="..\Player\playerbase.hpp" />
     <ClInclude Include="..\Player\playerfactory.hpp" />
+    <ClInclude Include="..\Tablebase\pieceset.hpp" />
+    <ClInclude Include="..\Tablebase\symmetryTB.hpp" />
     <ClInclude Include="..\Tablebase\tablebase.hpp" />
     <ClInclude Include="..\Tablebase\tablebasehandler.hpp" />
     <ClInclude Include="..\Tablebase\tablebasehandler_1.hpp" />
@@ -59,11 +61,9 @@
     <ClInclude Include="..\Tablebase\tablebasehandler_3.hpp" />
     <ClInclude Include="..\Tablebase\tablebasemanager.hpp" />
     <ClInclude Include="..\Tablebase\tablebaseutil.hpp" />
-    <ClInclude Include="..\Tablebase\tablebase_0v1.hpp" />
-    <ClInclude Include="..\Tablebase\tablebase_0v2.hpp" />
-    <ClInclude Include="..\Tablebase\tablebase_1v0.hpp" />
+    <ClInclude Include="..\Tablebase\tablebase_0vX.hpp" />
+    <ClInclude Include="..\Tablebase\tablebase_Xv0.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_1v1.hpp" />
-    <ClInclude Include="..\Tablebase\tablebase_2v0.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_2v1.hpp" />
     <ClInclude Include="..\UnitTest\testboard.hpp" />
     <ClInclude Include="..\UnitTest\unittest.hpp" />

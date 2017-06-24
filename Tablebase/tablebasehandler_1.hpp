@@ -20,17 +20,17 @@ namespace chess
         using _Move = Move<PieceID>;
 
     public:
-        TablebaseBaseHandler_1(std::vector<PieceID>& v, TB_TYPE_1 t) : TablebaseBaseHandlerCore(v), _type(t)
+        TablebaseBaseHandler_1(std::vector<PieceID>& v, TB_TYPE t) : TablebaseBaseHandlerCore(v, 1), _type(t)
         {
-            if (t == TB_TYPE_1::tb_0v1)
+            if (t == TB_TYPE::tb_0vX)
             {
-                _tb_W = new Tablebase_0v1<PieceID, _BoardSize>(v, PieceColor::W);
-                _tb_B = new Tablebase_0v1<PieceID, _BoardSize>(v, PieceColor::B);
+                _tb_W = new Tablebase_0vX<PieceID, _BoardSize>(v, PieceColor::W);
+                _tb_B = new Tablebase_0vX<PieceID, _BoardSize>(v, PieceColor::B);
             }
             else
             {
-                _tb_W = new Tablebase_1v0<PieceID, _BoardSize>(v, PieceColor::W);
-                _tb_B = new Tablebase_1v0<PieceID, _BoardSize>(v, PieceColor::B);
+                _tb_W = new Tablebase_Xv0<PieceID, _BoardSize>(v, PieceColor::W);
+                _tb_B = new Tablebase_Xv0<PieceID, _BoardSize>(v, PieceColor::B);
             }
         }
         virtual ~TablebaseBaseHandler_1()
@@ -39,7 +39,7 @@ namespace chess
             delete _tb_B;
         }
 
-        TB_TYPE_1 tb_type() const { return _type; }
+        TB_TYPE tb_type() const { return _type; }
         Tablebase<PieceID, _BoardSize, 1>* tb_W() const { return _tb_W; }
         Tablebase<PieceID, _BoardSize, 1>* tb_B() const { return _tb_B; }
 
@@ -50,15 +50,16 @@ namespace chess
         void print() const;
 
     protected:
-        TB_TYPE_1 _type;
+        TB_TYPE _type;
         Tablebase<PieceID, _BoardSize, 1>* _tb_W;
         Tablebase<PieceID, _BoardSize, 1>* _tb_B;
 
         bool     build_base(Tablebase<PieceID, _BoardSize, 1>* tb, Tablebase<PieceID, _BoardSize, 1>* tb_oppo, char verbose = 0);
         uint64_t set_mate_score(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 1>* tb);
 
-        bool     find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const override
+        bool find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const override
         { 
+            // Not called - no children
             return false; 
         }
     };
@@ -70,6 +71,7 @@ namespace chess
         if (!_tb_B->save()) return false;
         return true;
     }
+
     template <typename PieceID, typename uint8_t _BoardSize>
     bool TablebaseBaseHandler_1<PieceID, _BoardSize>::load()
     {

@@ -20,6 +20,7 @@
 #include <conio.h>
 #include <bitset>
 #include <cmath>
+#include <array>
 
 namespace chess
 {
@@ -53,8 +54,8 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandler_2;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandler_3;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandlerCore;
-    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_1v0;
-    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_0v1;
+    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_Xv0;
+    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_0vX;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_2v0;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_0v2;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_1v1;
@@ -88,17 +89,17 @@ namespace chess
 #include "ChessGA/ChessGenAlgo.hpp"
 #include "ChessGA/ChessCoEvolveGA.hpp"
 #include "Tablebase/tablebase.hpp"
+#include "Tablebase/symmetryTB.hpp"
+#include "Tablebase/pieceset.hpp"
 #include "Tablebase/tablebasehandler.hpp"
 #include "Tablebase/tablebasehandler_1.hpp"
 #include "Tablebase/tablebasehandler_2.hpp"
 #include "Tablebase/tablebasehandler_3.hpp"
 #include "Tablebase/tablebaseutil.hpp"
 #include "Tablebase/tablebasemanager.hpp"
-#include "Tablebase/tablebase_1v0.hpp"
-#include "Tablebase/tablebase_0v1.hpp"
+#include "Tablebase/Tablebase_Xv0.hpp"
+#include "Tablebase/Tablebase_0vX.hpp"
 #include "Tablebase/tablebase_1v1.hpp"
-#include "Tablebase/tablebase_2v0.hpp"
-#include "Tablebase/tablebase_0v2.hpp"
 #include "Tablebase/tablebase_2v1.hpp"
 
 #endif

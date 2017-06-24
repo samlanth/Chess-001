@@ -20,7 +20,7 @@ namespace chess
         using _Move = Move<PieceID>;
 
     public:
-        TablebaseBaseHandler_3(std::vector<PieceID>& v, TB_TYPE_3 t) : TablebaseBaseHandlerCore(v), _type(t)
+        TablebaseBaseHandler_3(std::vector<PieceID>& v, TB_TYPE t) : TablebaseBaseHandlerCore(v, 3), _type(t)
         {
         }
         virtual ~TablebaseBaseHandler_3()
@@ -28,10 +28,9 @@ namespace chess
         }
 
     protected:
-        TB_TYPE_3 _type;
+        TB_TYPE _type;
 
-        TB_TYPE_3 tb_type() const { return _type; }
-
+        TB_TYPE tb_type() const { return _type; }
         bool     build_base(Tablebase<PieceID, _BoardSize, 3>* tb, Tablebase<PieceID, _BoardSize, 3>* tb_oppo, char verbose = 0);
         uint64_t set_mate_score(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 3>* tb);
         uint64_t set_marker(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 3>* tb, Tablebase<PieceID, _BoardSize, 3>* tb_oppo);
@@ -44,49 +43,44 @@ namespace chess
         size_t ret_idx;
         uint64_t n_changes = 0;
         ExactScore sc;
+        uint16_t sq0, sq1, sq2;
         std::vector<Move<PieceID>> m;
 
-        for (uint16_t sq0 = 0; sq0 < tb->_dim1; sq0++)
+        for (uint64_t i = 0; i < tb->_size_tb; i++)
         {
-            for (uint16_t sq1 = 0; sq1 < tb->_dim1; sq1++)
-            {
-                for (uint16_t sq2 = 0; sq2 < tb->_dim1; sq2++)
-                {
-                    if ((sq0 != sq1) && (sq0 != sq2) && (sq1 != sq2))
-                    {
-                        _work_board->clear();
-                        _work_board->set_color(color_to_play);
-                        _work_board->set_pieceid_at(tb->_piecesID[0], sq0);
-                        _work_board->set_pieceid_at(tb->_piecesID[1], sq1);
-                        _work_board->set_pieceid_at(tb->_piecesID[2], sq2);
+            tb->square_at_index(i, sq0, sq1, sq2);  // reordered for repeating pieces
+            if ((sq0 == sq1) || (sq0 == sq2) || (sq1 == sq2)) continue;
 
-                        m = _work_board->generate_moves();
-                        sc = _work_board->final_score(m);
-                        if (sc != ExactScore::UNKNOWN)
-                        {
-                            tb->set_dtc(sq0, sq1, sq2, 0);
-                            tb->set_score(sq0, sq1, sq2, sc);
-                            tb->set_marker(sq0, sq1, sq2, false);
-                            n_changes++;
-                        }
-                        else if (_work_board->can_capture_opposite_king(m, ret_idx))
-                        {
-                            if (_work_board->get_color() == PieceColor::W)
-                            {
-                                tb->set_dtc(sq0, sq1, sq2, 1);
-                                tb->set_score(sq0, sq1, sq2, ExactScore::WIN);
-                                tb->set_marker(sq0, sq1, sq2, false);
-                                n_changes++;
-                            }
-                            else
-                            {
-                                tb->set_dtc(sq0, sq1, sq2, 1);
-                                tb->set_score(sq0, sq1, sq2, ExactScore::LOSS);
-                                tb->set_marker(sq0, sq1, sq2, false);
-                                n_changes++;
-                            }
-                        }
-                    }
+            _work_board->clear();
+            _work_board->set_color(color_to_play);
+            _work_board->set_pieceid_at(tb->_piecesID[0], sq0);
+            _work_board->set_pieceid_at(tb->_piecesID[1], sq1);
+            _work_board->set_pieceid_at(tb->_piecesID[2], sq2);
+
+            m = _work_board->generate_moves();
+            sc = _work_board->final_score(m);
+            if (sc != ExactScore::UNKNOWN)
+            {
+                tb->set_dtc(sq0, sq1, sq2, 0);
+                tb->set_score(sq0, sq1, sq2, sc);
+                tb->set_marker(sq0, sq1, sq2, false);
+                n_changes++;
+            }
+            else if (_work_board->can_capture_opposite_king(m, ret_idx))
+            {
+                if (_work_board->get_color() == PieceColor::W)
+                {
+                    tb->set_dtc(sq0, sq1, sq2, 1);
+                    tb->set_score(sq0, sq1, sq2, ExactScore::WIN);
+                    tb->set_marker(sq0, sq1, sq2, false);
+                    n_changes++;
+                }
+                else
+                {
+                    tb->set_dtc(sq0, sq1, sq2, 1);
+                    tb->set_score(sq0, sq1, sq2, ExactScore::LOSS);
+                    tb->set_marker(sq0, sq1, sq2, false);
+                    n_changes++;
                 }
             }
         }
@@ -131,8 +125,10 @@ namespace chess
                 if (_work_board->cnt_all_piece() == tb->_NPIECE)
                 {
                     child_sq0 = _work_board->get_square_ofpiece(tb->_pieces[0]->get_name(), tb->_pieces[0]->get_color());
-                    child_sq1 = _work_board->get_square_ofpiece(tb->_pieces[1]->get_name(), tb->_pieces[1]->get_color());
+                    child_sq1 = _work_board->get_square_ofpiece(tb->_pieces[1]->get_name(), tb->_pieces[1]->get_color(), true);
                     child_sq2 = _work_board->get_square_ofpiece(tb->_pieces[2]->get_name(), tb->_pieces[2]->get_color());
+                    tb->order_sq_3(child_sq0, child_sq1, child_sq2);
+                    assert(!((child_sq0 == child_sq1) || (child_sq0 == child_sq2) || (child_sq1 == child_sq2)));
                     child_sc[j] = tb_oppo->score(child_sq0, child_sq1, child_sq2);
                     child_dtc[j] = tb_oppo->dtc(child_sq0, child_sq1, child_sq2);
                 }
@@ -232,8 +228,10 @@ namespace chess
                     if (_work_board->cnt_all_piece() == tb->_NPIECE)
                     {
                         child_sq0 = _work_board->get_square_ofpiece(tb->_pieces[0]->get_name(), tb->_pieces[0]->get_color());
-                        child_sq1 = _work_board->get_square_ofpiece(tb->_pieces[1]->get_name(), tb->_pieces[1]->get_color());
+                        child_sq1 = _work_board->get_square_ofpiece(tb->_pieces[1]->get_name(), tb->_pieces[1]->get_color(), true);
                         child_sq2 = _work_board->get_square_ofpiece(tb->_pieces[2]->get_name(), tb->_pieces[2]->get_color());
+                        tb->order_sq_3(child_sq0, child_sq1, child_sq2);
+                        assert(!((child_sq0 == child_sq1) || (child_sq0 == child_sq2) || (child_sq1 == child_sq2)));
                         child_sc[j] = tb_oppo->score(child_sq0, child_sq1, child_sq2);
                         child_dtc[j] = tb_oppo->dtc(child_sq0, child_sq1, child_sq2);
                     }

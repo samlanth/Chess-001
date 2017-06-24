@@ -20,7 +20,7 @@ namespace chess
         using _Move = Move<PieceID>;
 
     public:
-        TablebaseBaseHandlerCore(std::vector<PieceID>& v) : _piecesID(v)
+        TablebaseBaseHandlerCore(std::vector<PieceID>& v, uint8_t aNPIECE) : _NPIECE(aNPIECE), _piecesID(v)
         {
             _work_board = new _Board();
         }
@@ -28,6 +28,7 @@ namespace chess
         {
             delete _work_board;
         }
+        uint8_t NPIECE()        { return _NPIECE; }
 
         virtual bool load() = 0;
         virtual bool save() const = 0;
@@ -41,17 +42,18 @@ namespace chess
             uint8_t& ret_dtc, size_t& ret_idx);
 
     protected:
-        std::vector<PieceID> _piecesID;
-        _Board*              _work_board;
+        uint8_t                 _NPIECE;
+        std::vector<PieceID>    _piecesID;
+        _Board*                 _work_board;
     };
     
 
     template <typename PieceID, typename uint8_t _BoardSize>
     ExactScore TablebaseBaseHandlerCore<PieceID, _BoardSize>::minmax_dtc(
-        PieceColor                  color_parent,
-        const std::vector<ExactScore>&    child_sc,
-        const std::vector<uint8_t>&       child_dtc,
-        uint8_t&                    ret_dtc, size_t& ret_idx)
+        PieceColor color_parent,
+        const std::vector<ExactScore>& child_sc,
+        const std::vector<uint8_t>& child_dtc,
+        uint8_t& ret_dtc, size_t& ret_idx)
     {
         if (child_sc.size() == 0)
         {

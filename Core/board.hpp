@@ -58,6 +58,7 @@ namespace chess
         void set_classic_pos();
         bool has_piece(PieceName n, PieceColor c) const;
         size_t cnt_piece(PieceName n, PieceColor c) const;
+        size_t cnt_piece(PieceID)  const;
         std::vector<PieceID> get_piecesID() const;
         std::vector<uint16_t> get_square_of_pieces() const;
         uint8_t on_edge(PieceName n, PieceColor c) const;
@@ -83,7 +84,7 @@ namespace chess
         bool check_50_moves_draw()   const       { return _check_50_moves_draw;}
 
         _Move last_history_move() const { return _history_moves.back(); }
-        uint16_t get_square_ofpiece(PieceName n, PieceColor c) const;
+        uint16_t get_square_ofpiece(PieceName n, PieceColor c, bool check_2nd_instance = false) const;
 
         void clear()
         {
@@ -229,8 +230,9 @@ namespace chess
 
     // get_square_ofpiece
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline uint16_t Board<PieceID, _BoardSize>::get_square_ofpiece(PieceName n, PieceColor c) const
+    inline uint16_t Board<PieceID, _BoardSize>::get_square_ofpiece(PieceName n, PieceColor c, bool check_2nd_instance) const
     {
+        uint16_t cnt = 0;  uint16_t xy_1; uint16_t xy_2;
         PieceID id = _Piece::get_id(n, c);
         for (uint8_t x = 0; x < _BoardSize; x++)
         {
@@ -238,10 +240,17 @@ namespace chess
             {
                 if (_cells.at(index_at(x, y)) == id)
                 {
-                    return (y*_BoardSize) + x;
+                    if (cnt == 0) xy_1 = (y*_BoardSize) + x;
+                    if (!check_2nd_instance) return xy_1;
+
+                    if (cnt != 0) xy_2 = (y*_BoardSize) + x;
+                    cnt++; 
                 }
             }
         }
+        if (cnt > 1) return xy_2;
+        if (cnt == 1) return xy_1;
+
         assert(false);
         return _BoardSize*_BoardSize; // invalid.......
     }
@@ -318,6 +327,17 @@ namespace chess
     {
         size_t cnt = 0;
         PieceID id = _Piece::get_id(n, c);
+        for (const auto &v : _cells)
+        {
+            if (v == id) cnt++;
+        }
+        return cnt;
+    }
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline size_t Board<PieceID, _BoardSize>::cnt_piece(PieceID id) const
+    {
+        size_t cnt = 0;
+        //PieceID id = _Piece::get_id(n, c);
         for (const auto &v : _cells)
         {
             if (v == id) cnt++;

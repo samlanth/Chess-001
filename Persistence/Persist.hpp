@@ -9,7 +9,7 @@
 #ifndef _AL_CHESS_PERSISTENCE_PERSIST_HPP
 #define _AL_CHESS_PERSISTENCE_PERSIST_HPP
 
-#include <windows.h>    // outch! - CreateDirectory - still no std::filesystem
+#include <windows.h>    // CreateDirectory - still no std::filesystem
 
 namespace chess
 {
