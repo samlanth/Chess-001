@@ -53,19 +53,20 @@ namespace chess
 
         bool can_capture_opposite_king(const std::vector<_Move>& m, size_t& ret_index) const;
         bool is_in_check() const;
-        size_t count_capture_opposite_king(const std::vector<_Move>& m) const;
-        size_t count_capture_king() const;
+        uint16_t count_capture_opposite_king(const std::vector<_Move>& m) const;
+        uint16_t count_capture_king() const;
         void set_classic_pos();
         bool has_piece(PieceName n, PieceColor c) const;
-        size_t cnt_piece(PieceName n, PieceColor c) const;
-        size_t cnt_piece(PieceID)  const;
+        uint16_t cnt_piece(PieceName n, PieceColor c) const;
+        uint16_t cnt_piece(PieceID)  const;
         std::vector<PieceID> get_piecesID() const;
         std::vector<uint16_t> get_square_of_pieces() const;
         uint8_t on_edge(PieceName n, PieceColor c) const;
         uint8_t dist(PieceName n, PieceColor c, PieceName n2, PieceColor c2) const;
-        size_t cnt_all_piece() const;
-        size_t cnt_move(PieceName n, PieceColor c, const std::vector<_Move>& m) const;
-        size_t cnt_move_oppo(PieceName n, PieceColor c, const std::vector<_Move>& m) const;
+        uint16_t cnt_all_piece() const;
+        uint16_t cnt_all_piece(PieceColor c) const;
+        uint16_t cnt_move(PieceName n, PieceColor c, const std::vector<_Move>& m) const;
+        uint16_t cnt_move_oppo(PieceName n, PieceColor c, const std::vector<_Move>& m) const;
         bool is_final(const std::vector<_Move>& m) const;
         ExactScore final_score(const std::vector<_Move>& m) const;
         ExactScore minmax_score(const std::vector<_Move>& m);
@@ -323,9 +324,9 @@ namespace chess
 
     // cnt_piece
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline size_t Board<PieceID, _BoardSize>::cnt_piece(PieceName n, PieceColor c) const
+    inline uint16_t Board<PieceID, _BoardSize>::cnt_piece(PieceName n, PieceColor c) const
     {
-        size_t cnt = 0;
+        uint16_t cnt = 0;
         PieceID id = _Piece::get_id(n, c);
         for (const auto &v : _cells)
         {
@@ -334,9 +335,9 @@ namespace chess
         return cnt;
     }
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline size_t Board<PieceID, _BoardSize>::cnt_piece(PieceID id) const
+    inline uint16_t Board<PieceID, _BoardSize>::cnt_piece(PieceID id) const
     {
-        size_t cnt = 0;
+        uint16_t cnt = 0;
         //PieceID id = _Piece::get_id(n, c);
         for (const auto &v : _cells)
         {
@@ -347,9 +348,9 @@ namespace chess
     
     // cnt_all_piece
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline size_t Board<PieceID, _BoardSize>::cnt_all_piece() const
+    inline uint16_t Board<PieceID, _BoardSize>::cnt_all_piece() const
     {
-        size_t cnt = 0;
+        uint16_t cnt = 0;
         for (const auto &v : _cells)
         {
             if (v != _Piece::empty_id())
@@ -358,11 +359,28 @@ namespace chess
         return cnt;
     }
 
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline uint16_t Board<PieceID, _BoardSize>::cnt_all_piece(PieceColor c) const
+    {
+        uint16_t cnt = 0;
+        const _Piece* a;
+        for (const auto &v : _cells)
+        {
+            if (v != _Piece::empty_id())
+            {
+                a = _Piece::get(v);
+                if (a->get_color() == c)
+                    cnt++;
+            }
+        }
+        return cnt;
+    }
+
     //cnt_move
     template <typename PieceID, typename uint8_t _BoardSize>
-    size_t Board<PieceID, _BoardSize>::cnt_move(PieceName n, PieceColor c, const std::vector<_Move>& m) const
+    uint16_t Board<PieceID, _BoardSize>::cnt_move(PieceName n, PieceColor c, const std::vector<_Move>& m) const
     {
-        size_t cnt = 0;
+        uint16_t cnt = 0;
         PieceID id = _Piece::get_id(n, c);
         for (const auto &v : m)
         {
@@ -373,7 +391,7 @@ namespace chess
     }
     // cnt_move_oppo
     template <typename PieceID, typename uint8_t _BoardSize>
-    size_t Board<PieceID, _BoardSize>::cnt_move_oppo(PieceName n, PieceColor c, const std::vector<_Move>& m) const
+    uint16_t Board<PieceID, _BoardSize>::cnt_move_oppo(PieceName n, PieceColor c, const std::vector<_Move>& m) const
     {
         Board<PieceID, _BoardSize> b = *this;
         b.set_opposite_color();
@@ -401,9 +419,9 @@ namespace chess
 
     // count_capture_opposite_king()
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline size_t Board<PieceID, _BoardSize>::count_capture_opposite_king(const std::vector<_Move>& m) const
+    inline uint16_t Board<PieceID, _BoardSize>::count_capture_opposite_king(const std::vector<_Move>& m) const
     {
-        size_t n = 0;
+        uint16_t n = 0;
         PieceID K_id = _Piece::get_id(PieceName::K, get_opposite_color());
         for (const auto &mv : m)
         {
@@ -414,7 +432,7 @@ namespace chess
 
     // count_capture_king()
     template <typename PieceID, typename uint8_t _BoardSize>
-    size_t Board<PieceID, _BoardSize>::count_capture_king() const
+    uint16_t Board<PieceID, _BoardSize>::count_capture_king() const
     {
         Board<PieceID, _BoardSize> b = *this;
         b.set_opposite_color();

@@ -13,24 +13,17 @@ namespace chess
 {
     // TablebaseBaseHandler_3
     template <typename PieceID, typename uint8_t _BoardSize>
-    class TablebaseBaseHandler_3 : public TablebaseBaseHandlerCore<PieceID, _BoardSize>
+    class TablebaseBaseHandler_3 : public TBHandlerCore<PieceID, _BoardSize>
     {
         using _Piece = Piece<PieceID, _BoardSize>;
         using _Board = Board<PieceID, _BoardSize>;
         using _Move = Move<PieceID>;
 
     public:
-        TablebaseBaseHandler_3(std::vector<PieceID>& v, TB_TYPE t) : TablebaseBaseHandlerCore(v, 3), _type(t)
-        {
-        }
-        virtual ~TablebaseBaseHandler_3()
-        {
-        }
+        TablebaseBaseHandler_3(const PieceSet<PieceID, _BoardSize>& ps, TB_TYPE t) : TBHandlerCore(ps, 3, t) {}      
+        virtual ~TablebaseBaseHandler_3() {}
 
     protected:
-        TB_TYPE _type;
-
-        TB_TYPE tb_type() const { return _type; }
         bool     build_base(Tablebase<PieceID, _BoardSize, 3>* tb, Tablebase<PieceID, _BoardSize, 3>* tb_oppo, char verbose = 0);
         uint64_t set_mate_score(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 3>* tb);
         uint64_t set_marker(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 3>* tb, Tablebase<PieceID, _BoardSize, 3>* tb_oppo);
@@ -38,7 +31,7 @@ namespace chess
     };
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    uint64_t TablebaseBaseHandler_3<PieceID, _BoardSize>::set_mate_score(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 3>* tb)
+    inline uint64_t TablebaseBaseHandler_3<PieceID, _BoardSize>::set_mate_score(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 3>* tb)
     {
         size_t ret_idx;
         uint64_t n_changes = 0;
@@ -88,7 +81,7 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    uint64_t TablebaseBaseHandler_3<PieceID, _BoardSize>::set_marker(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 3>* tb, Tablebase<PieceID, _BoardSize,3>* tb_oppo)
+    inline uint64_t TablebaseBaseHandler_3<PieceID, _BoardSize>::set_marker(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 3>* tb, Tablebase<PieceID, _BoardSize,3>* tb_oppo)
     {
         uint64_t n_changes = 0;
         ExactScore sc;
@@ -175,9 +168,8 @@ namespace chess
         return n_changes;
     }
 
-
     template <typename PieceID, typename uint8_t _BoardSize>
-    uint64_t TablebaseBaseHandler_3<PieceID, _BoardSize>::process_marker(PieceColor color_to_play, Tablebase<PieceID, _BoardSize,3>* tb, Tablebase<PieceID, _BoardSize, 3>* tb_oppo)
+    inline uint64_t TablebaseBaseHandler_3<PieceID, _BoardSize>::process_marker(PieceColor color_to_play, Tablebase<PieceID, _BoardSize,3>* tb, Tablebase<PieceID, _BoardSize, 3>* tb_oppo)
     {
         uint64_t n_changes = 0;
         ExactScore sc;
@@ -261,7 +253,7 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    bool TablebaseBaseHandler_3<PieceID, _BoardSize>::build_base(Tablebase<PieceID, _BoardSize, 3>* _tb_W, Tablebase<PieceID, _BoardSize, 3>* _tb_B, char verbose)
+    inline bool TablebaseBaseHandler_3<PieceID, _BoardSize>::build_base(Tablebase<PieceID, _BoardSize, 3>* _tb_W, Tablebase<PieceID, _BoardSize, 3>* _tb_B, char verbose)
     {
         uint64_t n = 0;
         uint64_t m = 0;

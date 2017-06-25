@@ -50,10 +50,12 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize> struct GameDB_Record;
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class BasePlayer;
 
+    template <typename PieceID, typename uint8_t _BoardSize> class PieceSet;
+    template <typename PieceID, typename uint8_t _BoardSize> class TBH;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandler_1;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandler_2;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandler_3;
-    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandlerCore;
+    template <typename PieceID, typename uint8_t _BoardSize> class TBHandlerCore;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_Xv0;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_0vX;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_2v0;
@@ -61,8 +63,6 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_1v1;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_2v1;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseManager;
-
-    //template <typename PieceID, typename uint8_t _BoardSize> class Tablebase_2v0;
 
 }
 

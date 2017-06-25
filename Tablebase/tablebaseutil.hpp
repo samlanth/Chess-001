@@ -20,14 +20,10 @@ namespace chess
         using _Move = Move<PieceID>;
 
     public:
-        TablebaseUtil()
-        {
-        }
-        virtual ~TablebaseUtil()
-        {
-        }
-        bool  expand_position(_Board& pos, char verbose = 0);
+        TablebaseUtil() {}
+        virtual ~TablebaseUtil() {}
 
+        bool  expand_position(_Board& pos, char verbose = 0);   // Follow optimal play
     };
 
     template <typename PieceID, typename uint8_t _BoardSize>
@@ -62,8 +58,7 @@ namespace chess
                 std::vector<PieceID>  v_id = pos.get_piecesID();        // sorted
                 for (auto& id : v_id)
                 {
-                    v_sq.push_back(pos.get_square_ofpiece(  _Piece::get(id)->get_name(), 
-                                                            _Piece::get(id)->get_color()));
+                    v_sq.push_back(pos.get_square_ofpiece(  _Piece::get(id)->get_name(), _Piece::get(id)->get_color()));
                 }
 
                 std::string tb_name = TablebaseManager<PieceID, _BoardSize>::instance()->name_pieces(v_id, pos.get_color());
@@ -104,7 +99,7 @@ namespace chess
             }
 
             uint8_t ret_dtc; size_t ret_idx = 0;
-            sc = TablebaseBaseHandlerCore<PieceID, _BoardSize>::minmax_dtc(parent_color, v_sc, v_dtc, ret_dtc, ret_idx);
+            sc = TBHandlerCore<PieceID, _BoardSize>::minmax_dtc(parent_color, v_sc, v_dtc, ret_dtc, ret_idx);
             if (sc != ExactScore::UNKNOWN)
             {
                 pos.apply_move(m[ret_idx]);
