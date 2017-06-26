@@ -39,6 +39,7 @@ namespace chess
         uint8_t         dtc;
         std::vector<uint8_t>    v_dtc;
         std::vector<ExactScore> v_sc;
+        std::vector<bool>       child_is_promo;
         std::string     tb_name;
         PieceColor      parent_color;
 
@@ -49,7 +50,7 @@ namespace chess
 
             parent_color = pos.get_color();
             v_dtc.clear(); v_sc.clear();
-            for (size_t i = 0; i < m.size(); i++) { v_dtc.push_back(0); v_sc.push_back(ExactScore::UNKNOWN); }
+            for (size_t i = 0; i < m.size(); i++) { v_dtc.push_back(0); v_sc.push_back(ExactScore::UNKNOWN); child_is_promo.push_back(false); }
 
             for (size_t k = 0; k < m.size(); k++)
             {
@@ -61,6 +62,7 @@ namespace chess
                 {
                     v_sq.push_back(pos.get_square_ofpiece(  _Piece::get(id)->get_name(), _Piece::get(id)->get_color()));
                 }
+                child_is_promo[k] = pos.is_last_move_promo();
 
                 std::string tb_name = TablebaseManager<PieceID, _BoardSize>::instance()->name_pieces(v_id, pos.get_color());
 
@@ -100,18 +102,18 @@ namespace chess
             }
 
             uint8_t ret_dtc; size_t ret_idx = 0;
-            sc = TBH<PieceID, _BoardSize>::minmax_dtc(parent_color, v_sc, v_dtc, ret_dtc, ret_idx);
+            sc = TBH<PieceID, _BoardSize>::minmax_dtc(parent_color, v_sc, v_dtc, child_is_promo, ret_dtc, ret_idx);
             if (sc != ExactScore::UNKNOWN)
             {
                 pos.apply_move(m[ret_idx]);
 
                 if (verbose)
                 {
-                    std::cout << pos.to_str() << std::endl << std::endl;
+                    std::cout << pos.to_str() << std::endl;
                     std::cout << "best: " << ret_idx << std::endl;
                     for (size_t i = 0; i < m.size(); i++)
                     {
-                        std::cout << i << " dtc:" << (int)v_dtc[i] << " sc:" << ExactScore_to_string(v_sc[i]) << std::endl;
+                        std::cout << i << " dtc:" << (int)v_dtc[i] << " sc:" << ExactScore_to_string(v_sc[i]) << " " << m[i].to_str() << std::endl;
                     }
                 }
             }

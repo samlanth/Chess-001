@@ -76,19 +76,6 @@ namespace chess
     inline bool TBHandler_3<PieceID, _BoardSize>::load()
     {
         if (is_build()) return true;
-        // Lookup
-        Tablebase<PieceID, _BoardSize, 3>* tw = TablebaseManager<PieceID, _BoardSize>::instance()->find_3(_pieceSet.name(PieceColor::W));
-        Tablebase<PieceID, _BoardSize, 3>* tb = TablebaseManager<PieceID, _BoardSize>::instance()->find_3(_pieceSet.name(PieceColor::B));
-        if ((tw != nullptr) && (tb != nullptr))
-        {
-            if ((tw->_is_build == true) && (tb->_is_build == true))
-            {
-                _tb_W->set_build(true);
-                _tb_B->set_build(true);
-                return true;
-            }
-        }
-
         for (size_t i = 0; i < _tbh_children.size(); i++)
         {
             _tbh_children[i]->load();
@@ -185,6 +172,7 @@ namespace chess
         std::vector<Move<PieceID>> m_child;
         std::vector<ExactScore> child_sc;
         std::vector<uint8_t>    child_dtc;
+        std::vector<bool>       child_is_promo;
         uint16_t child_sq0; uint16_t child_sq1; uint16_t child_sq2;
         bool exist_child_score;
 
@@ -205,8 +193,10 @@ namespace chess
             m_child = _work_board->generate_moves();
             child_sc.clear();
             child_dtc.clear();
+            child_is_promo.clear();
             for (size_t j = 0; j < m_child.size(); j++) child_sc.push_back(ExactScore::UNKNOWN);
             for (size_t j = 0; j < m_child.size(); j++) child_dtc.push_back(0);
+            for (size_t j = 0; j < m_child.size(); j++) child_is_promo.push_back(false);
 
             exist_child_score = false;
             for (size_t j = 0; j < m_child.size(); j++)
@@ -234,6 +224,7 @@ namespace chess
                     {
                         child_sc[j] = sc;
                         child_dtc[j] = 0;
+                        child_is_promo[j] = isPromo;
                     }
                     else
                     {
@@ -249,10 +240,12 @@ namespace chess
             if (sc == ExactScore::UNKNOWN)
             {
                 uint8_t ret_dtc; size_t ret_idx;
-                sc = minmax_dtc(tb->color(), child_sc, child_dtc, ret_dtc, ret_idx);
+                sc = minmax_dtc(tb->color(), child_sc, child_dtc, child_is_promo, ret_dtc, ret_idx);
                 if (sc != ExactScore::UNKNOWN)
                 {
-                    tb->set_dtc(sq0, sq1, sq2, 1 + ret_dtc);
+                    if (!child_is_promo[ret_idx])  tb->set_dtc(sq0, sq1, sq2, 1 + ret_dtc);
+                    else tb->set_dtc(sq0, sq1, sq2, 1);
+
                     tb->set_score(sq0, sq1, sq2, sc);
                     tb->set_marker(sq0, sq1, sq2, false);
                     n_changes++;
@@ -284,6 +277,7 @@ namespace chess
         std::vector<Move<PieceID>> m_child;
         std::vector<ExactScore> child_sc;
         std::vector<uint8_t>    child_dtc;
+        std::vector<bool>       child_is_promo;
 
         bool isPromo;
         for (uint64_t i = 0; i < tb->_size_tb; i++)
@@ -316,8 +310,10 @@ namespace chess
                 m_child = _work_board->generate_moves();
                 child_sc.clear();
                 child_dtc.clear();
+                child_is_promo.clear();
                 for (size_t j = 0; j < m_child.size(); j++) child_sc.push_back(ExactScore::UNKNOWN);
                 for (size_t j = 0; j < m_child.size(); j++) child_dtc.push_back(0);
+                for (size_t j = 0; j < m_child.size(); j++) child_is_promo.push_back(false);
 
                 for (size_t j = 0; j < m_child.size(); j++)
                 {
@@ -339,6 +335,7 @@ namespace chess
                         {
                             child_sc[j] = sc;
                             child_dtc[j] = 0;
+                            child_is_promo[j] = isPromo;
                         }
                         else
                         {
@@ -350,10 +347,12 @@ namespace chess
                 }
 
                 uint8_t ret_dtc; size_t ret_idx;
-                sc = minmax_dtc(tb->color(), child_sc, child_dtc, ret_dtc, ret_idx);
+                sc = minmax_dtc(tb->color(), child_sc, child_dtc, child_is_promo, ret_dtc, ret_idx);
                 if (sc != ExactScore::UNKNOWN)
                 {
-                    tb->set_dtc(sq0, sq1, sq2, 1 + ret_dtc);
+                    if (!child_is_promo[ret_idx])  tb->set_dtc(sq0, sq1, sq2, 1 + ret_dtc);
+                    else tb->set_dtc(sq0, sq1, sq2, 1);
+
                     tb->set_score(sq0, sq1, sq2, sc);
                     tb->set_marker(sq0, sq1, sq2, false);
                     n_changes++;

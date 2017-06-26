@@ -118,6 +118,8 @@ namespace chess
         bool    state_castling[4];  // White castling K or Q side, Black castling KQ state after applying move
         bool    state_ep[16];       // White pawn capture en passant[0..7] Black [8..15]
 
+        std::string to_str() const;
+
         bool get_state_castling(const PieceColor c, const PieceName side) const
         {
             if      ((c == PieceColor::W) && (side == PieceName::K)) return state_castling[0];
@@ -167,6 +169,17 @@ namespace chess
         for (size_t i = 0; i < 4; i++)  { os << (int)m.state_castling[i] << " "; }
         for (size_t i = 0; i < 16; i++) { os << (int)m.state_ep[i]; if (i < 15) os << " "; }
         return os;
+    }
+
+    template <typename PieceID>
+    inline std::string Move<PieceID>::to_str() const
+    {
+        std::string s;
+        s += std::to_string((int)src_x);
+        s += std::to_string((int)src_y);
+        s += std::to_string((int)dst_x);
+        s += std::to_string((int)dst_y);
+        return s;
     }
 
 };

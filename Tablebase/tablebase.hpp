@@ -487,7 +487,8 @@ namespace chess
     {
         if (_is_build) return true;
         _is_build = read_tb();
-        if (_is_build) TablebaseManager<PieceID, _BoardSize>::instance()->add(name(), this);
+        if (_is_build) 
+            TablebaseManager<PieceID, _BoardSize>::instance()->add(name(), this);
         return _is_build;
     }
 

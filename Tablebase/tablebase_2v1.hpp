@@ -68,10 +68,12 @@ namespace chess
             {
                 if (_tb_children_info[i]._tbh != nullptr)
                 {
+                    // TB was not found then a TBH created by manager
                     _tbh_children.push_back(_tb_children_info[i]._tbh);
                 }
                 else
                 {
+                    // TB was found then a TBH was not created by manager
                     if (_tb_children_info[i]._t == TB_TYPE::tb_2v1) // promo
                     {
                         _tbh_children.push_back(new TBHandler_2v1<PieceID, _BoardSize>(_tb_children_info[i]._ps));

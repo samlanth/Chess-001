@@ -16,41 +16,12 @@
 //-----------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
-    // Test PersisteManager
-    chess::PersistManager<uint8_t, 6>::instance();
+    srand((unsigned int)time(NULL));
+    std::cout << std::rand() << "/ " << RAND_MAX << std::endl;
+    std::cout << std::rand() << "/ " << RAND_MAX << std::endl;
+    std::cout << std::rand() << "/ " << RAND_MAX << std::endl;
 
-    // Test Tablebase_Xv0
-    //std::vector<uint8_t> uu;
-    //uu.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
-    //chess::Tablebase_Xv0<uint8_t, 6> tb_0vKb(uu, chess::PieceColor::B);
-    //tb_0vKb.build();
-    //tb_0vKb.print_score(5);
-    //tb_0vKb.save();
-    //tb_0vKb.load();
-    //tb_0vKb.print_score(5);
-
-    // Test TBHandler_2v1
-    //std::vector<uint8_t> w;
-    //w.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
-    //w.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::Q, chess::PieceColor::W));
-    //w.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
-    //chess::TBHandler_2v1<uint8_t, 6> tbh_KQvK(w);
-    ////tbh_KQvK.build(1); 
-    ////std::cout << "checksum: " << (int)tbh_KQvK.tb_W()->checksum_dtc() << std::endl;
-    ////tbh_KQvK.save();
-    //tbh_KQvK.load();
-    //std::cout << "checksum: " << (int)tbh_KQvK.tb_W()->checksum_dtc() << std::endl;
-
-    //{
-    //    std::vector<std::pair<uint8_t, uint8_t>> w_set;
-    //    std::vector<std::pair<uint8_t, uint8_t>> b_set;
-    //    w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W), 1 }));
-    //    w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::Q, chess::PieceColor::W), 1 }));
-    //    w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::P, chess::PieceColor::W), 1 }));
-    //    b_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B), 1 }));
-    //    std::vector<chess::STRUCT_TBH<uint8_t, 6>> vtb2 = chess::TablebaseManager<uint8_t, 6>::instance()->make_all_child_TBH(chess::PieceSet<uint8_t, 6>({ w_set, b_set }));
-    //}
-
+    // Test TB
     {
         chess::TablebaseManager<uint8_t, 6>::instance()->clear();
         std::vector<uint8_t> ws;
@@ -66,7 +37,6 @@ int main(int argc, char* argv[])
         //TBH_KQvK.save();
         TBH_KQvK.load();
 
-        //chess::TablebaseManager<uint8_t, 6>::instance()->clear();
         std::vector<uint8_t> ws1;
         std::vector<uint8_t> bs1;
         ws1.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
@@ -78,52 +48,51 @@ int main(int argc, char* argv[])
         chess::TBHandler_2v1<uint8_t, 6> TBH_KPvK(ps1);
         TBH_KPvK.build(1);
         TBH_KPvK.save();
+        TBH_KPvK.load();
+
+        // expand_position()
+        for (int i = 0; i < 1; i++)
+        {
+            chess::Board<uint8_t, 6> b;
+            chess::Board<uint8_t, 6> bcopy;
+            chess::Board<uint8_t, 6> bt = b.get_random_position_KPK(true);//b.get_random_position_KQK(true);
+            bcopy = b = bt; // save initial pos
+            chess::TablebaseUtil<uint8_t, 6> tbu;
+
+            std::cout << "===================================" << std::endl;
+            std::cout << b.to_str() << std::endl;
+            tbu.expand_position(bt, 0);
+
+            std::vector<chess::Move<uint8_t>>  m = b.generate_moves();
+            std::list<chess::Move<uint8_t>>  mh = bt.get_history_moves();
+            int n = 0;
+            while (!b.is_final(m))
+            {
+                if (mh.size() == 0) break;
+                b.apply_move(mh.front()); mh.pop_front();
+                std::cout << b.to_str() << std::endl << std::endl;
+                m = b.generate_moves();
+                n++;
+                if (n > 20) break;
+            }
+
+            //// replay
+            //bt = bcopy;
+            //tbu.expand_position(bt, 1);
+            //std::cout << b.to_str() << std::endl << std::endl;
+            //m = b.generate_moves();
+            //mh = bt.get_history_moves();
+            //while (!b.is_final(m))
+            //{
+            //    if (mh.size() == 0) break;
+            //    b.apply_move(mh.front()); mh.pop_front();
+            //    std::cout << b.to_str() << std::endl << std::endl;
+            //    m = b.generate_moves();
+            //}
+        }
     }
 
-    //{
-    //    chess::SymmetryTablebase<uint8_t, 6, 3> sym(*tbh_KQvK.tb_W());
-    //    chess::ExactScore sc = sym.score(0, 12 , 15);
-    //}
-
-    //// Test PieceSet KQQRRvKPP
-    //std::vector<std::pair<uint8_t, uint8_t>> w_set;
-    //std::vector<std::pair<uint8_t, uint8_t>> b_set;
-    //w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W), 1 }));
-    //w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::Q, chess::PieceColor::W), 1 }));
-    //b_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B), 1 }));
-    //chess::PieceSet<uint8_t, 6> set(w_set, b_set);
-    ////for (size_t i = 0; i < set.children_size(chess::PieceColor::W); i++)
-    ////{
-    ////    std::cout << set.name_child(chess::PieceColor::W, chess::PieceColor::W, i) << std::endl;
-    ////}
-    //std::vector<chess::PieceSet<uint8_t, 6>> vz = set.get_all_child();
-    //for (size_t i = 0; i < vz.size(); i++)
-    //{
-    //    std::cout << vz[i].name(chess::PieceColor::W) << std::endl;
-    //}
-
-    //chess::TablebaseManager<uint8_t, 6>::instance()->clear();
-    //std::vector<chess::TBHandlerCore<uint8_t, 6>*> vtb = chess::TablebaseManager<uint8_t, 6>::instance()->make_child_3(w_set, b_set);
-    //std::vector<chess::TBH<uint8_t, 6>*> vtb2 = chess::TablebaseManager<uint8_t, 6>::instance()->make_all_child_TBH(chess::PieceSet<uint8_t, 6>({ w_set, b_set }));
-
-    // expand_position()
-    srand((unsigned int)time(NULL));
-    chess::Board<uint8_t, 6> b;
-    chess::Board<uint8_t, 6> bt = b.get_random_position_KPK(true);//b.get_random_position_KQK(true);
-    b = bt; // save initial pos
-    chess::TablebaseUtil<uint8_t, 6> tbu;
-    tbu.expand_position(bt, 0);
-    std::vector<chess::Move<uint8_t>>  m = b.generate_moves();
-    std::list<chess::Move<uint8_t>>  mh = bt.get_history_moves();
-    std::cout << b.to_str() << std::endl << std::endl;
-    while (!b.is_final(m))
-    {
-        if (mh.size() == 0) break;
-        b.apply_move(mh.front()); mh.pop_front();
-        std::cout << b.to_str() << std::endl << std::endl;
-        m = b.generate_moves();
-    }
-
+    // Test GA
     // Prepare players for GA
     {
         // 6x6 board

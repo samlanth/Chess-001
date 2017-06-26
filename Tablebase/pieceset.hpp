@@ -58,6 +58,7 @@ namespace chess
 
         bool validate();
         void make_children();
+        static void add_to_v(PieceID id, std::vector<std::pair<PieceID, uint8_t>>& v);
     };
 
     // ct
@@ -374,7 +375,7 @@ namespace chess
         bool child_ok;
         PieceColor color_change;
         // capture - removing piece from c
-        // promo - changing piece from c_oppo 
+        // promo   - changing piece from c_oppo 
         color_change = c;
         if (isPromo) color_change = c_oppo;
         for (size_t j = 0; j < children_size(color_change); j++)
@@ -466,12 +467,39 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
+    void PieceSet<PieceID, _BoardSize>::add_to_v(PieceID id, std::vector<std::pair<PieceID, uint8_t>>& v)
+    {
+        uint8_t n = 0;
+        bool found = false;
+        for (size_t i = 0; i < v.size(); i++)
+        {
+            if (v[i].first == id)
+            { 
+                n++;
+                found = true;
+            }
+        }
+        if (found == false) v.push_back(std::pair<PieceID, uint8_t>({ id, 1 }));
+        else
+        {
+            for (size_t i = 0; i < v.size(); i++)
+            {
+                if (v[i].first == id)
+                {
+                    v[i].second = n+1;
+                    break;
+                }
+            }
+        }
+    }
+    
+    template <typename PieceID, typename uint8_t _BoardSize>
     std::vector<std::pair<PieceID, uint8_t>> PieceSet<PieceID, _BoardSize>::to_set(const std::vector<PieceID>& v)
     {
         std::vector<std::pair<PieceID, uint8_t>> r;
         for (size_t i = 0; i < v.size(); i++)
         {
-            r.push_back(std::pair<PieceID, uint8_t>({v[i], 1})); // todo...
+            add_to_v(v[i], r);
         }
         return r;
     }

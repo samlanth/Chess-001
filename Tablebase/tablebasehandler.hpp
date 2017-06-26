@@ -33,13 +33,13 @@ namespace chess
         virtual bool is_build() const = 0;
         virtual bool find_score_children_tb(const _Board& pos, PieceColor color, bool isPromo, ExactScore& ret_sc) const = 0;
 
-        std::string name(PieceColor color_toplay)   const;  // name tB W or B
+        std::string name(PieceColor color_toplay)   const;  // name tB W or B to play
         uint8_t get_NPIECE()                        const { return _NPIECE; }
         TB_TYPE tb_type()                           const { return _type; }
         PieceSet<PieceID, _BoardSize>& pieceSet()   const { return _pieceSet;}
 
         static ExactScore minmax_dtc(
-            PieceColor color_parent, const std::vector<ExactScore>& child_sc, const std::vector<uint8_t>& child_dtc,
+            PieceColor color_parent, const std::vector<ExactScore>& child_sc, const std::vector<uint8_t>& child_dtc, std::vector<bool>& child_is_promo,
             uint8_t& ret_dtc, size_t& ret_idx);
 
     protected:
@@ -78,8 +78,9 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline ExactScore TBH<PieceID, _BoardSize>::minmax_dtc(
         PieceColor color_parent,
-        const std::vector<ExactScore>& child_sc,
-        const std::vector<uint8_t>& child_dtc,
+        const std::vector<ExactScore>&  child_sc,
+        const std::vector<uint8_t>&     child_dtc,
+        std::vector<bool>&              child_is_promo,
         uint8_t& ret_dtc, size_t& ret_idx)
     {
         if (child_sc.size() == 0)
@@ -91,6 +92,18 @@ namespace chess
 
         if (color_parent == PieceColor::W)
         {
+            for (size_t i = 0; i < child_sc.size(); i++)
+            {
+                if (child_sc[i] == ExactScore::WIN)
+                {
+                    if (child_is_promo[i]) // 1 move promo and win
+                    {
+                        ret_dtc = child_dtc[i];
+                        ret_idx = i;
+                        return ExactScore::WIN;
+                    }
+                }
+            }
             for (size_t i = 0; i < child_sc.size(); i++)
             {
                 if (child_sc[i] == ExactScore::WIN)
@@ -112,6 +125,7 @@ namespace chess
             {
                 if (child_sc[i] == ExactScore::UNKNOWN)
                 {
+                    ret_idx = i;
                     ret_dtc = child_dtc[i];
                     return ExactScore::UNKNOWN;
                 }
@@ -120,6 +134,7 @@ namespace chess
             {
                 if (child_sc[i] == ExactScore::DRAW)
                 {
+                    ret_idx = i;
                     ret_dtc = child_dtc[i];
                     return ExactScore::DRAW;
                 }
@@ -148,6 +163,19 @@ namespace chess
             {
                 if (child_sc[i] == ExactScore::LOSS)
                 {
+                    if (child_is_promo[i]) // 1 move promo and loss
+                    {
+                        ret_dtc = child_dtc[i];
+                        ret_idx = i;
+                        return ExactScore::LOSS;
+                    }
+                }
+            }
+
+            for (size_t i = 0; i < child_sc.size(); i++)
+            {
+                if (child_sc[i] == ExactScore::LOSS)
+                {
                     // seek lower dtc
                     uint8_t min_dtc = child_dtc[i];
                     size_t  min_idx = i;
@@ -161,18 +189,22 @@ namespace chess
                     return ExactScore::LOSS;
                 }
             }
+
             for (size_t i = 0; i < child_sc.size(); i++)
             {
                 if (child_sc[i] == ExactScore::UNKNOWN)
                 {
+                    ret_idx = i;
                     ret_dtc = child_dtc[i];
                     return ExactScore::UNKNOWN;
                 }
             }
+
             for (size_t i = 0; i < child_sc.size(); i++)
             {
                 if (child_sc[i] == ExactScore::DRAW)
                 {
+                    ret_idx = i;
                     ret_dtc = child_dtc[i];
                     return ExactScore::DRAW;
                 }
@@ -195,6 +227,7 @@ namespace chess
                 }
             }
         }
+        ret_idx = 0;
         ret_dtc = 0;
         return ExactScore::UNKNOWN;
     }

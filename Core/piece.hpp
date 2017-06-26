@@ -51,6 +51,7 @@ namespace chess
         static const _Piece* get(PieceID id);
         static void init();
         static const std::string to_str(PieceID id, bool with_space = true);
+        static const std::string to_str2(PieceID id);
         static const uint8_t Piece<PieceID, _BoardSize>::to_uint8(PieceID id);
         static size_t pieces_size() { return pieces.size(); }
 
@@ -155,6 +156,47 @@ namespace chess
         }
         if (with_space) return "-- ";
         return "--";
+    }
+
+    // to_str2()
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline const std::string Piece<PieceID, _BoardSize>::to_str2(PieceID id)
+    {
+        if (!Piece::is_init) init();
+
+        std::string s;
+        for (const auto &p : pieces)
+        {
+            if (_Piece::get_id(p->name, p->color) == id)
+            {
+                if (p->color == PieceColor::W)
+                {
+                    if (p->name == PieceName::R) s += "R";
+                    else if (p->name == PieceName::N) s += "N";
+                    else if (p->name == PieceName::B) s += "B";
+                    else if (p->name == PieceName::Q) s += "Q";
+                    else if (p->name == PieceName::K) s += "K";
+                    else if (p->name == PieceName::P) s += "P";
+                    else s += "?";
+                }
+                else if (p->color == PieceColor::B)
+                {
+                    if (p->name == PieceName::R) s += "r";
+                    else if (p->name == PieceName::N) s += "n";
+                    else if (p->name == PieceName::B) s += "b";
+                    else if (p->name == PieceName::Q) s += "q";
+                    else if (p->name == PieceName::K) s += "k";
+                    else if (p->name == PieceName::P) s += "p";
+                    else s += "?";
+                }
+                else
+                {
+                    s += "-";
+                }
+                return s;
+            }
+        }
+        return "-";
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>

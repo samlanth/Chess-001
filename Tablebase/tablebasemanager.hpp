@@ -51,12 +51,12 @@ namespace chess
             // assume sorted
             std::string str_pieces;
             if (color_to_play == PieceColor::W) str_pieces = "W_"; else str_pieces = "B_";
-            for (auto& vv : v) str_pieces += Piece<PieceID, _BoardSize>::to_str(vv, false);
+            for (auto& vv : v) str_pieces += Piece<PieceID, _BoardSize>::to_str2(vv);
             return str_pieces;
         }
 
     private:
-        // Would be owner... unique_ptr/weak_ptr
+        // Would be owner of TB... unique_ptr/weak_ptr
         mutable std::map<std::string, Tablebase<PieceID, _BoardSize, 1>*>  _tbs1;
         mutable std::map<std::string, Tablebase<PieceID, _BoardSize, 2>*>  _tbs2;
         mutable std::map<std::string, Tablebase<PieceID, _BoardSize, 3>*>  _tbs3;
