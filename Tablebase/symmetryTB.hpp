@@ -62,23 +62,26 @@ namespace chess
         }
     };
 
+    // TBH_Symmetry
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
     class TBH_Symmetry : public TBH<PieceID, _BoardSize>
     {
+        using _Board = Board<PieceID, _BoardSize>;
+
     public:
         TBH_Symmetry(const TBH<PieceID, _BoardSize>* refTBH, TB_TYPE t , PieceSet<PieceID, _BoardSize> ps)
-            : TBH<PieceID, _BoardSize>(t, ps, NPIECE), _symTBH(refTBH)
-        {
-        }
-        ~TBH_Symmetry() 
-        {
+            : TBH<PieceID, _BoardSize>(t, ps, NPIECE), _symTBH(refTBH) {}
+        ~TBH_Symmetry() {}
 
-        }
         bool is_symmetry_TBH() const override { return true; }
-        bool load() override { return true; }
-        bool save() const override { return true; }
-        bool build(char verbose) override { return false; }
-        bool is_build() const override { return true; }
+
+        bool load() override                { return true; }
+        bool save() const override          { return _symTBH->save(); }
+        bool build(char verbose) override   { return true; }
+        bool is_build() const override      { return _symTBH->is_build(); }
+
+        //...
+        bool find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const override { return false; }
 
         TBH<PieceID, _BoardSize>* symTBH() const { return _symTBH; }
 

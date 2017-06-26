@@ -16,17 +16,27 @@ namespace chess
     constexpr uint8_t   TB_size_item()                  { return 3; }    // score = 2 bits + marker = 1 bit
     constexpr uint64_t  TB_size_dim(int boardsize)      { return boardsize*boardsize; }
 
-    enum class TB_TYPE  {   tb_0vX, tb_Xv0,
+    enum class TB_TYPE  {   none,
+                            tb_0vX, tb_Xv0,
                             tb_1v1,
-                            tb_2v1,                         // tb_1v2 (not generated) is symmetry of tb_2v1
-                            tb_3v1, tb_2v2,
-                            tb_4v1, tb_3v2,
-                            tb_5v1, tb_4v2, tb_3v3,
-                            tb_6v1, tb_5v2, tb_4v3,
+                            tb_2v1, tb_2v1_sym,
+                            tb_3v1, tb_2v2, tb_3v1_sym,
+                            tb_4v1, tb_3v2, tb_4v1_sym, tb_3v2_sym,
+                            tb_5v1, tb_4v2, tb_3v3, tb_5v1_sym, tb_4v2_sym,
+                            tb_6v1, tb_5v2, tb_4v3, tb_6v1_sym, tb_5v2_sym, tb_4v3_sym,
                             tb_7v1, tb_6v2, tb_5v3, tb_4v4,
                             tb_8v1, tb_7v2, tb_6v3, tb_5v4,
                             tb_9v1, tb_8v2, tb_7v3, tb_6v4, tb_5v5
                         };
+
+    static std::string TB_TYPE_to_string(TB_TYPE t)
+    {
+        if (t == TB_TYPE::tb_0vX) return "tb_0vX";
+        else if (t == TB_TYPE::tb_Xv0) return "tb_Xv0";
+        else if (t == TB_TYPE::tb_1v1) return "tb_1v1";
+        else if (t == TB_TYPE::tb_2v1) return "tb_2v1";
+        else return "tb UNKNOWN";
+    }
 
     // TablebaseBase
     template <typename PieceID, typename uint8_t _BoardSize>
@@ -47,9 +57,9 @@ namespace chess
         using _Board = Board<PieceID, _BoardSize>;
         using _Move = Move<PieceID>;
 
-        friend class TablebaseBaseHandler_1<PieceID, _BoardSize>;
-        friend class TablebaseBaseHandler_2<PieceID, _BoardSize>;
-        friend class TablebaseBaseHandler_3<PieceID, _BoardSize>;
+        friend class TBHandler_1<PieceID, _BoardSize>;
+        friend class TBHandler_2<PieceID, _BoardSize>;
+        friend class TBHandler_3<PieceID, _BoardSize>;
 
     protected:
         const uint8_t                   _size_item = TB_size_item();
@@ -120,11 +130,9 @@ namespace chess
 
         std::string name() const    // Unique name to persist in file stream
         {
-            std::string str_pieces;
-            if (_color == PieceColor::W) str_pieces = "W_"; else str_pieces = "B_";
-            for (auto& v : _piecesID) str_pieces += _Piece::to_str(v, false);
-            return str_pieces;
+            return TablebaseManager<PieceID, _BoardSize>::instance()->name_pieces(_piecesID, _color);
         }
+
     protected:
         PieceID pieceID(uint8_t idx) { return _piecesID[idx]; }
 

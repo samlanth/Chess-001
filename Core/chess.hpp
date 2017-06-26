@@ -52,17 +52,16 @@ namespace chess
 
     template <typename PieceID, typename uint8_t _BoardSize> class PieceSet;
     template <typename PieceID, typename uint8_t _BoardSize> class TBH;
-    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandler_1;
-    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandler_2;
-    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseBaseHandler_3;
-    template <typename PieceID, typename uint8_t _BoardSize> class TBHandlerCore;
-    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_Xv0;
-    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_0vX;
-    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_2v0;
-    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_0v2;
-    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_1v1;
-    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseHandler_2v1;
+    template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_1;
+    template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_2;
+    template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_3;
+    //template <typename PieceID, typename uint8_t _BoardSize> class TBHandlerCore;
+    template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_Xv0;
+    template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_0vX;
+    template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_1v1;
+    template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_2v1;
     template <typename PieceID, typename uint8_t _BoardSize> class TablebaseManager;
+    template <typename PieceID, typename uint8_t _BoardSize> struct STRUCT_TBH;
 
 }
 
@@ -92,9 +91,9 @@ namespace chess
 #include "Tablebase/symmetryTB.hpp"
 #include "Tablebase/pieceset.hpp"
 #include "Tablebase/tablebasehandler.hpp"
-#include "Tablebase/tablebasehandler_1.hpp"
-#include "Tablebase/tablebasehandler_2.hpp"
-#include "Tablebase/tablebasehandler_3.hpp"
+#include "Tablebase/tablebaseHandler_1.hpp"
+#include "Tablebase/tablebaseHandler_2.hpp"
+#include "Tablebase/tablebaseHandler_3.hpp"
 #include "Tablebase/tablebaseutil.hpp"
 #include "Tablebase/tablebasemanager.hpp"
 #include "Tablebase/Tablebase_Xv0.hpp"

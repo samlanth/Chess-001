@@ -41,6 +41,7 @@ namespace chess
         else if (c == ExactScore::WIN)  return "WIN";
         else return "UNKNOWN";
     }
+
     static int FeatureType_to_int(FeatureType c)
     {
         if (c == FeatureType::valuation) return 1;

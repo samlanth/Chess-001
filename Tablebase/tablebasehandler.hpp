@@ -6,8 +6,8 @@
 // TBHandlerCore
 //
 //
-#ifndef _AL_CHESS_TABLEBASE_TABLEBASEHANDLER_HPP
-#define _AL_CHESS_TABLEBASE_TABLEBASEHANDLER_HPP
+#ifndef _AL_CHESS_TABLEBASE_TBHandler_HPP
+#define _AL_CHESS_TABLEBASE_TBHandler_HPP
 
 namespace chess
 {
@@ -15,26 +15,55 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     class TBH
     {
-    public:
-        TBH(TB_TYPE t, PieceSet<PieceID, _BoardSize> ps, uint8_t np) : _type(t), _NPIECE(np), _pieceSet({ ps.wset(), ps.bset() }) { }
-        virtual ~TBH() {}
+            using _Piece = Piece<PieceID, _BoardSize>;
+            using _Board = Board<PieceID, _BoardSize>;
+            using _Move = Move<PieceID>;
 
-        virtual bool is_symmetry_TBH() const = 0;
+    public:
+        TBH(TB_TYPE t, PieceSet<PieceID, _BoardSize> ps, uint8_t np) : _type(t), _NPIECE(np), _pieceSet({ ps.wset(), ps.bset() }), _work_board(new _Board()) 
+        {
+            _piecesID = PieceSet<PieceID, _BoardSize>::ps_to_pieces(ps);
+        }
+        virtual ~TBH() { delete _work_board; }
+
+        virtual bool is_symmetry_TBH() const { return false; }
         virtual bool load() = 0;
         virtual bool save() const = 0;
         virtual bool build(char verbose) = 0;
         virtual bool is_build() const = 0;
+        virtual bool find_score_children_tb(const _Board& pos, PieceColor color, bool isPromo, ExactScore& ret_sc) const = 0;
 
-        std::string name(PieceColor color_toplay)   const;
-
+        std::string name(PieceColor color_toplay)   const;  // name tB W or B
         uint8_t get_NPIECE()                        const { return _NPIECE; }
         TB_TYPE tb_type()                           const { return _type; }
         PieceSet<PieceID, _BoardSize>& pieceSet()   const { return _pieceSet;}
+
+        static ExactScore minmax_dtc(
+            PieceColor color_parent, const std::vector<ExactScore>& child_sc, const std::vector<uint8_t>& child_dtc,
+            uint8_t& ret_dtc, size_t& ret_idx);
 
     protected:
         TB_TYPE                         _type;
         uint8_t                         _NPIECE;
         PieceSet<PieceID, _BoardSize>   _pieceSet;
+        std::vector<PieceID>            _piecesID;
+        _Board*                         _work_board;
+    };
+
+    // STRUCT_TBH
+    template <typename PieceID, typename uint8_t _BoardSize>
+    struct STRUCT_TBH
+    {
+        STRUCT_TBH(PieceSet<PieceID, _BoardSize> p) : _ps(p.wset(), p.bset()) , _owner(false) {}
+        ~STRUCT_TBH() {}
+
+        TB_TYPE                         _t;
+        PieceSet<PieceID, _BoardSize>   _ps;
+        TBH<PieceID, _BoardSize>*       _tbh;
+        uint16_t                        _nw;
+        uint16_t                        _nb;
+        bool                            _owner = false;
+        size_t                          _child_index;
     };
 
     template <typename PieceID, typename uint8_t _BoardSize>
@@ -44,41 +73,10 @@ namespace chess
         return _pieceSet.name(PieceColor::B);
     }
 
-    // TBHandlerCore
-    template <typename PieceID, typename uint8_t _BoardSize>
-    class TBHandlerCore : public TBH<PieceID, _BoardSize>
-    {
-        using _Piece = Piece<PieceID, _BoardSize>;
-        using _Board = Board<PieceID, _BoardSize>;
-        using _Move = Move<PieceID>;
-
-    public:
-        TBHandlerCore(const PieceSet<PieceID, _BoardSize>& ps, uint8_t aNPIECE, TB_TYPE t) : TBH(t, ps, aNPIECE), _work_board(new _Board())
-        {
-            _piecesID = PieceSet<PieceID, _BoardSize>::ps_to_pieces(ps);
-        }
-
-        virtual ~TBHandlerCore()
-        {
-            delete _work_board;
-        }
-
-        bool is_symmetry_TBH()  const override { return false; }
-        virtual bool find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const  = 0;
-
-        static ExactScore TBHandlerCore<PieceID, _BoardSize>::minmax_dtc(
-            PieceColor color_parent, const std::vector<ExactScore>& child_sc, const std::vector<uint8_t>& child_dtc, 
-            uint8_t& ret_dtc, size_t& ret_idx);
-
-    protected:
-        std::vector<PieceID>            _piecesID;
-        _Board*                         _work_board;
-    };
-    
 
     // minmax_dtc
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline ExactScore TBHandlerCore<PieceID, _BoardSize>::minmax_dtc(
+    inline ExactScore TBH<PieceID, _BoardSize>::minmax_dtc(
         PieceColor color_parent,
         const std::vector<ExactScore>& child_sc,
         const std::vector<uint8_t>& child_dtc,

@@ -27,11 +27,11 @@ namespace chess
     };
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    class TablebaseHandler_Xv0 : public TablebaseBaseHandler_1<PieceID, _BoardSize>
+    class TBHandler_Xv0 : public TBHandler_1<PieceID, _BoardSize>
     {
     public:
-        TablebaseHandler_Xv0(const PieceSet<PieceID, _BoardSize>& ps) : TablebaseBaseHandler_1<PieceID, _BoardSize>(ps, TB_TYPE::tb_Xv0) {}
-        ~TablebaseHandler_Xv0() {}
+        TBHandler_Xv0(const PieceSet<PieceID, _BoardSize>& ps) : TBHandler_1<PieceID, _BoardSize>(ps, TB_TYPE::tb_Xv0) {}
+        ~TBHandler_Xv0() {}
     };
 };
 #endif

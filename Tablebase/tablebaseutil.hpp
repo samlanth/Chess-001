@@ -26,6 +26,7 @@ namespace chess
         bool  expand_position(_Board& pos, char verbose = 0);   // Follow optimal play
     };
 
+    // expand_position
     template <typename PieceID, typename uint8_t _BoardSize>
     bool TablebaseUtil<PieceID, _BoardSize>::expand_position(_Board& pos, char verbose)
     {
@@ -99,7 +100,7 @@ namespace chess
             }
 
             uint8_t ret_dtc; size_t ret_idx = 0;
-            sc = TBHandlerCore<PieceID, _BoardSize>::minmax_dtc(parent_color, v_sc, v_dtc, ret_dtc, ret_idx);
+            sc = TBH<PieceID, _BoardSize>::minmax_dtc(parent_color, v_sc, v_dtc, ret_dtc, ret_idx);
             if (sc != ExactScore::UNKNOWN)
             {
                 pos.apply_move(m[ret_idx]);

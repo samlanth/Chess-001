@@ -30,7 +30,7 @@ namespace chess
         std::vector<std::pair<PieceID, uint8_t>>& bset_ref()  { return _bset; }
 
         std::string name(PieceColor color_toplay) const;
-        uint16_t find_rank_index(size_t rank, PieceID& ret_id, uint16_t& ret_count)  const;
+        uint16_t find_rank_index(size_t rank, PieceID& ret_id, uint16_t& ret_count, uint16_t& ret_instance)  const;
         uint16_t count_one_piece(PieceColor c, PieceID id)  const;
         uint16_t count_all_piece(PieceColor c) const;
 
@@ -38,10 +38,10 @@ namespace chess
         std::string name_child(PieceColor color_toplay, PieceColor color_child, size_t children_index) const;
         std::vector<std::pair<PieceID, uint8_t>> children(PieceColor c, size_t children_index) const;
 
-        // After a capture, return the child index matching the new position
-        bool find_child_index(PieceColor c, const _Board& pos, size_t& ret_child_index) const;
+        // After a capture/promo, return the child index matching the new position
+        bool find_child_index(PieceColor c, const _Board& pos, bool isPromo, size_t& ret_child_index) const;
 
-        // All combination of 1 piece less either white or black
+        // All combination of 1 piece less either white or black + promo
         std::vector<PieceSet> get_all_child() const;
 
         std::vector<std::pair<PieceID, uint8_t>> merge() const;
@@ -90,29 +90,13 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline std::string  PieceSet<PieceID, _BoardSize>::name(PieceColor color_toplay)  const
     {
-        std::string str_pieces;
-        if (color_toplay == PieceColor::W) str_pieces = "W_"; else str_pieces = "B_";
-        for (size_t i = 0; i < _wset.size(); i++)
-        {
-            if (_wset[i].second > 0)
-            {
-                for (size_t j = 0; j < _wset[i].second; j++)
-                    str_pieces += _Piece::to_str(_wset[i].first, false);
-            }
-        }
-        for (size_t i = 0; i < _bset.size(); i++)
-        {
-            if (_bset[i].second > 0)
-            {
-                for (size_t j = 0; j < _bset[i].second; j++)
-                    str_pieces += _Piece::to_str(_bset[i].first, false);
-            }
-        }
-        return str_pieces;
+        std::vector<PieceID> v = PieceSet<PieceID, _BoardSize>::ps_to_pieces(*this);
+        return TablebaseManager<PieceID, _BoardSize>::instance()->name_pieces(v, color_toplay);
     }
 
+    // find_rank_index
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline uint16_t PieceSet<PieceID, _BoardSize>::find_rank_index(size_t rank, PieceID& ret_id, uint16_t& ret_count)  const
+    inline uint16_t PieceSet<PieceID, _BoardSize>::find_rank_index(size_t rank, PieceID& ret_pieceid, uint16_t& ret_count, uint16_t& ret_instance)  const
     {
         uint16_t n = 0; ret_count = 0;
         {
@@ -123,7 +107,8 @@ namespace chess
                     if (n == rank)
                     {
                         ret_count   = _wset[i].second;
-                        ret_id      = _wset[i].first;
+                        ret_pieceid = _wset[i].first;
+                        ret_instance = j;
                         return i;
                     }
                     n++;
@@ -138,7 +123,8 @@ namespace chess
                     if (n == rank)
                     {
                         ret_count   = _bset[i].second;
-                        ret_id      = _bset[i].first;
+                        ret_pieceid = _bset[i].first;
+                        ret_instance = j;
                         return i;
                     }
                     n++;
@@ -202,51 +188,179 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline bool PieceSet<PieceID, _BoardSize>::validate() 
-    { 
+    inline bool PieceSet<PieceID, _BoardSize>::validate()
+    {
         // todo check sorting...
-        return _is_valid; 
+        return _is_valid;
     }
 
+    // make_children
     template <typename PieceID, typename uint8_t _BoardSize>
     inline void PieceSet<PieceID, _BoardSize>::make_children()
     {
+        bool DO_PROMO = true;
         std::vector<std::pair<PieceID, uint8_t>> workset;
-        std::pair<PieceID, uint8_t>              piece_count;
+        std::pair<PieceID, uint8_t>              pair_piece_count;
+        std::pair<PieceID, uint8_t>              pr;
+
+        bool w_promo = false;
+        bool b_promo = false;
+        size_t w_promo_idx;
+        size_t b_promo_idx;
 
         _wchildren.clear();
         for (size_t i = 0; i < _wset.size(); i++)
         {
-            // remove 1 ith piece
             workset = _wset;
-            piece_count = workset[i];
-            if (piece_count.second > 0)
+            pair_piece_count = workset[i];
+            if (pair_piece_count.second > 0)
             {
-                piece_count.second--;
-                workset[i] = piece_count;
+                // Capture remove 1 ith piece
+                pair_piece_count.second--;
+                workset[i] = pair_piece_count;
                 _wchildren.push_back(workset);
+
+                if (DO_PROMO)
+                {
+                    // Promo 
+                    pr = workset.at(i);
+                    if ((!w_promo) && (pr.first == _Piece::get_id(PieceName::P, PieceColor::W)))
+                    {
+                        // only Q for now...
+                        pair_piece_count.first = _Piece::get_id(PieceName::Q, PieceColor::W);
+                        pair_piece_count.second = 1;
+
+                        workset = _wset;
+                        workset[i].second--;
+                        workset.push_back(pair_piece_count);
+                        _wchildren.push_back(workset);
+                        w_promo = true;
+                        w_promo_idx = _wchildren.size() - 1;
+                    }
+
+                    // Promo - merge the Q entries in the vector
+                    if (w_promo)
+                    {
+                        uint16_t n = 0;
+                        for (size_t i = 0; i < _wchildren[w_promo_idx].size(); i++)
+                        {
+                            if (_wchildren[w_promo_idx][i].first == _Piece::get_id(PieceName::Q, PieceColor::W))
+                                n++;
+                        }
+                        if (n > 1)
+                        {
+                            size_t i1 = -1; size_t i2 = -1;
+                            for (size_t i = 0; i < _wchildren[w_promo_idx].size(); i++)
+                            {
+                                if (_wchildren[w_promo_idx][i].first == _Piece::get_id(PieceName::Q, PieceColor::W))
+                                {
+                                    if (i1 == -1) i1 = i;
+                                    else i2 = i;
+                                }
+                            }
+                            // merge
+                            if (i2 != -1)
+                            {
+                                while (_wchildren[w_promo_idx][i2].second > 0)
+                                {
+                                    _wchildren[w_promo_idx][i1].second++;
+                                    _wchildren[w_promo_idx][i2].second--;
+                                }
+                            }
+                        }
+                        // remove empty Q piece and P possibly
+                        for (size_t i = 0; i < _wchildren[w_promo_idx].size(); i++)
+                        {
+                            if (_wchildren[w_promo_idx][i].second == 0)
+                            {
+                                auto& v = _wchildren[w_promo_idx].begin() + i;
+                                _wchildren[w_promo_idx].erase(v);
+                                i = 0;
+                            }
+                        }
+                    }
+                }
             }
         }
 
         _bchildren.clear();
         for (size_t i = 0; i < _bset.size(); i++)
         {
-            // remove 1 ith piece
             workset = _bset;
-            piece_count = workset[i];
-            if (piece_count.second > 0)
+            pair_piece_count = workset[i];
+            if (pair_piece_count.second > 0)
             {
-                piece_count.second--;
-                workset[i] = piece_count;
+                // Capture remove 1 ith piece
+                pair_piece_count.second--;
+                workset[i] = pair_piece_count;
                 _bchildren.push_back(workset);
+            }
+
+            if (DO_PROMO)
+            {
+                // Promo 
+                pr = workset.at(i);
+                if ((!b_promo) && (pr.first == _Piece::get_id(PieceName::P, PieceColor::B)))
+                {
+                    // only Q for now...
+                    pair_piece_count.first = _Piece::get_id(PieceName::Q, PieceColor::B);
+                    pair_piece_count.second = 1;
+
+                    workset = _wset;
+                    workset[i].second--;
+                    workset.push_back(pair_piece_count);
+                    _bchildren.push_back(workset);
+                    b_promo = true;
+                    b_promo_idx = _bchildren.size() - 1;
+                }
+
+                if (b_promo)
+                {
+                    uint16_t n = 0;
+                    for (size_t i = 0; i < _bchildren[b_promo_idx].size(); i++)
+                    {
+                        if (_bchildren[b_promo_idx][i].first == _Piece::get_id(PieceName::Q, PieceColor::B))
+                            n++;
+                    }
+                    if (n > 1)
+                    {
+                        size_t i1 = -1; size_t i2 = -1;
+                        for (size_t i = 0; i < _bchildren[b_promo_idx].size(); i++)
+                        {
+                            if (_bchildren[b_promo_idx][i].first == _Piece::get_id(PieceName::Q, PieceColor::B))
+                            {
+                                if (i1 == -1) i1 = i;
+                                else i2 = i;
+                            }
+                        }
+                        // merge
+                        if (i2 != -1)
+                        {
+                            while (_bchildren[b_promo_idx][i2].second > 0)
+                            {
+                                _bchildren[b_promo_idx][i1].second++;
+                                _bchildren[b_promo_idx][i2].second--;
+                            }
+                        }
+                    }
+                    // remove empty Q piece and P possibly
+                    for (size_t i = 0; i < _bchildren[b_promo_idx].size(); i++)
+                    {
+                        if (_bchildren[b_promo_idx][i].second == 0)
+                        {
+                            auto& v = _bchildren[b_promo_idx].begin() + i;
+                            _bchildren[b_promo_idx].erase(v);
+                            i = 0;
+                        }
+                    }
+                }
             }
         }
     }
 
     // find_child_index
-    // May improve speed by checking captured piece in board history...
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline bool PieceSet<PieceID, _BoardSize>::find_child_index(PieceColor c, const _Board& pos, size_t& ret_child_index) const
+    inline bool PieceSet<PieceID, _BoardSize>::find_child_index(PieceColor c, const _Board& pos, bool isPromo, size_t& ret_child_index) const
     {
         uint16_t cnt_piece_c;
         uint16_t cnt_piece_c_oppo;
@@ -258,11 +372,16 @@ namespace chess
         cnt_piece_board_c_oppo = pos.cnt_all_piece(c_oppo);
 
         bool child_ok;
-        for (size_t j = 0; j < children_size(c); j++)
+        PieceColor color_change;
+        // capture - removing piece from c
+        // promo - changing piece from c_oppo 
+        color_change = c;
+        if (isPromo) color_change = c_oppo;
+        for (size_t j = 0; j < children_size(color_change); j++)
         {
             child_ok = true;
-            PieceSet child_set( (c == PieceColor::W) ? children(PieceColor::W, j) : _wset,
-                                (c == PieceColor::W) ? _bset : children(PieceColor::B, j));
+            PieceSet child_set( (color_change == PieceColor::W) ? children(PieceColor::W, j) : _wset,
+                                (color_change == PieceColor::W) ? _bset : children(PieceColor::B, j));
 
             cnt_piece_c = child_set.count_all_piece(c);
             cnt_piece_c_oppo = child_set.count_all_piece(c_oppo);
@@ -290,7 +409,7 @@ namespace chess
         return false;
     }
 
-    // All combination of 1 piece less, either white or black
+    // All combination of 1 piece capture/promo, either white or black
     template <typename PieceID, typename uint8_t _BoardSize>
     inline std::vector<PieceSet<PieceID, _BoardSize>>  PieceSet<PieceID, _BoardSize>::get_all_child() const
     {
@@ -352,7 +471,7 @@ namespace chess
         std::vector<std::pair<PieceID, uint8_t>> r;
         for (size_t i = 0; i < v.size(); i++)
         {
-            r.push_back(std::pair<PieceID, uint8_t>({v[i], 1})); // ...
+            r.push_back(std::pair<PieceID, uint8_t>({v[i], 1})); // todo...
         }
         return r;
     }

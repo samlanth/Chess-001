@@ -70,6 +70,7 @@ namespace chess
         bool is_final(const std::vector<_Move>& m) const;
         ExactScore final_score(const std::vector<_Move>& m) const;
         ExactScore minmax_score(const std::vector<_Move>& m);
+        bool is_last_move_promo() const;
 
         const std::vector<_Move>    generate_moves(bool is_recursive_call = false);
         const std::list<_Move>      get_history_moves() const { return _history_moves; }
@@ -86,6 +87,7 @@ namespace chess
 
         _Move last_history_move() const { return _history_moves.back(); }
         uint16_t get_square_ofpiece(PieceName n, PieceColor c, bool check_2nd_instance = false) const;
+        uint16_t get_square_ofpiece_instance(PieceName n, PieceColor c, uint16_t instance) const;
 
         void clear()
         {
@@ -95,6 +97,7 @@ namespace chess
         }
 
         Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KQK(bool no_check = false) const;
+        Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KPK(bool no_check = false) const;
 
     private:
         PieceColor              _color_toplay;
@@ -233,36 +236,59 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline uint16_t Board<PieceID, _BoardSize>::get_square_ofpiece(PieceName n, PieceColor c, bool check_2nd_instance) const
     {
-        uint16_t cnt = 0;  uint16_t xy_1; uint16_t xy_2;
+        uint16_t cnt = 0;  uint16_t xy_1; uint16_t xy_next;
         PieceID id = _Piece::get_id(n, c);
-        for (uint8_t x = 0; x < _BoardSize; x++)
+        // Lowest first
+        for (uint8_t y = 0; y < _BoardSize; y++)
         {
-            for (uint8_t y = 0; y < _BoardSize; y++)
+            for (uint8_t x = 0; x < _BoardSize; x++)
             {
                 if (_cells.at(index_at(x, y)) == id)
                 {
                     if (cnt == 0) xy_1 = (y*_BoardSize) + x;
                     if (!check_2nd_instance) return xy_1;
 
-                    if (cnt != 0) xy_2 = (y*_BoardSize) + x;
+                    if (cnt != 0) xy_next = (y*_BoardSize) + x;
                     cnt++; 
                 }
             }
         }
-        if (cnt > 1) return xy_2;
+        if (cnt  > 1) return xy_next;
         if (cnt == 1) return xy_1;
 
+        //assert(false);
+        return -1; // invalid
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline uint16_t Board<PieceID, _BoardSize>::get_square_ofpiece_instance(PieceName n, PieceColor c, uint16_t instance) const
+    {
+        uint16_t cnt = 0;
+        PieceID id = _Piece::get_id(n, c);
+        // Lowest first
+        for (uint8_t y = 0; y < _BoardSize; y++)
+        {
+            for (uint8_t x = 0; x < _BoardSize; x++)
+            {
+                if (_cells.at(index_at(x, y)) == id)
+                {
+                    if (cnt == instance) return (y*_BoardSize) + x;
+                    cnt++;
+                }
+            }
+        }
         assert(false);
-        return _BoardSize*_BoardSize; // invalid.......
+        return -1; // invalid
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
     inline std::vector<uint16_t> Board<PieceID, _BoardSize>::get_square_of_pieces() const
     {
         std::vector<uint16_t> v;
-        for (uint8_t x = 0; x < _BoardSize; x++)
+        // Lowest first
+        for (uint8_t y = 0; y < _BoardSize; y++)
         {
-            for (uint8_t y = 0; y < _BoardSize; y++)
+            for (uint8_t x = 0; x < _BoardSize; x++)
             {
                 if (_cells.at(index_at(x, y)) != _Piece::empty_id())
                 {
@@ -544,7 +570,8 @@ namespace chess
         {
             _cells.at(index_at(m.src_x + m.mu.x * 1, m.src_y - m.mu.y * 1)) = _Piece::empty_id();
         }
-        else if (m.mu.context_extra == "Q") _cells.at(index_at(m.dst_x, m.dst_y)) = _Piece::get_id(PieceName::Q, _color_toplay);
+        else if (m.mu.context_extra == "Q") 
+            _cells.at(index_at(m.dst_x, m.dst_y)) = _Piece::get_id(PieceName::Q, _color_toplay);
         else if (m.mu.context_extra == "R") _cells.at(index_at(m.dst_x, m.dst_y)) = _Piece::get_id(PieceName::R, _color_toplay);
         else if (m.mu.context_extra == "B") _cells.at(index_at(m.dst_x, m.dst_y)) = _Piece::get_id(PieceName::B, _color_toplay);
         else if (m.mu.context_extra == "N") _cells.at(index_at(m.dst_x, m.dst_y)) = _Piece::get_id(PieceName::N, _color_toplay);
@@ -669,9 +696,9 @@ namespace chess
                                         if (mu.flag == MoveUnit::FLAG::conditional)
                                         {
                                             if ( ((mu.flag_spec == "y1") && (j == 1)) ||
-                                                 ((mu.flag_spec == "y6") && (j == 6)) )
+                                                 ((mu.flag_spec == "y6") && (j == _BoardSize-2)) )
                                             {
-                                                if (_BoardSize >= 8)
+                                                //if (_BoardSize >= 8)
                                                 {
                                                     uint8_t prev_x = (mu.x > 1) ? 1 : mu.x;
                                                     uint8_t prev_y = (mu.y > 1) ? 1 : mu.y;
@@ -710,14 +737,14 @@ namespace chess
                                             if (std::abs(mu.x) != std::abs(mu.y)) // not diago
                                             {
                                                 // promo
-                                                if ( ((p_src->color == PieceColor::W) && (j == 6)) || ((p_src->color == PieceColor::B) && (j == 1)))
+                                                if ( ((p_src->color == PieceColor::W) && (j == _BoardSize-2)) || ((p_src->color == PieceColor::B) && (j == 1)))
                                                 {
-                                                    if (_BoardSize >= 8)
+                                                    //if (_BoardSize >= 8)
                                                     {
                                                         _Move mvQ = mv; mvQ.mu.context_extra = "Q"; m.push_back(mvQ);
-                                                        _Move mvR = mv; mvR.mu.context_extra = "R"; m.push_back(mvR);
-                                                        _Move mvN = mv; mvN.mu.context_extra = "N"; m.push_back(mvN);
-                                                        _Move mvB = mv; mvB.mu.context_extra = "B"; m.push_back(mvB);
+                                                        //_Move mvR = mv; mvR.mu.context_extra = "R"; m.push_back(mvR);
+                                                        //_Move mvN = mv; mvN.mu.context_extra = "N"; m.push_back(mvN);
+                                                        //_Move mvB = mv; mvB.mu.context_extra = "B"; m.push_back(mvB);
                                                     }
                                                 }
                                                 else
@@ -753,14 +780,14 @@ namespace chess
                                             else
                                             {
                                                 // promo
-                                                if ( ((p_src->color == PieceColor::W) && (j == 6)) || ((p_src->color == PieceColor::B) && (j == 1)))
+                                                if ( ((p_src->color == PieceColor::W) && (j == _BoardSize-2)) || ((p_src->color == PieceColor::B) && (j == 1)))
                                                 {
-                                                    if (_BoardSize >= 8)
+                                                    //if (_BoardSize >= 8)
                                                     {
                                                         _Move mvQ = mv; mvQ.mu.context_extra = "Q"; m.push_back(mvQ);
-                                                        _Move mvR = mv; mvR.mu.context_extra = "R"; m.push_back(mvR);
-                                                        _Move mvN = mv; mvN.mu.context_extra = "N"; m.push_back(mvN);
-                                                        _Move mvB = mv; mvB.mu.context_extra = "B"; m.push_back(mvB);
+                                                        //_Move mvR = mv; mvR.mu.context_extra = "R"; m.push_back(mvR);
+                                                        //_Move mvN = mv; mvN.mu.context_extra = "N"; m.push_back(mvN);
+                                                        //_Move mvB = mv; mvB.mu.context_extra = "B"; m.push_back(mvB);
                                                     }
                                                 }
                                                 else
@@ -958,6 +985,50 @@ namespace chess
             }
         }
         return b;
+    }
+    template <typename PieceID, typename uint8_t _BoardSize>
+    Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KPK(bool no_check) const
+    {
+        uint8_t wP = 0;
+        uint8_t wK = 0;
+        uint8_t bK = 0;
+        while ((wK == bK) || (wK == wP) || (bK == wP))
+        {
+            wP = (std::rand() % (_BoardSize*_BoardSize));
+            wK = (std::rand() % (_BoardSize*_BoardSize));
+            bK = (std::rand() % (_BoardSize*_BoardSize));
+        }
+        Board<PieceID, _BoardSize>  b;
+        b.set_pieceid_at(_Piece::get_id(PieceName::P, PieceColor::W), wP % _BoardSize, ((uint8_t)(wP / _BoardSize)));
+        b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::W), wK % _BoardSize, ((uint8_t)(wK / _BoardSize)));
+        b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::B), bK % _BoardSize, ((uint8_t)(bK / _BoardSize)));
+        b.set_color(PieceColor::W);
+
+        if (no_check)
+        {
+            if (b.is_in_check())
+            {
+                return get_random_position_KPK(no_check);
+            }
+            else
+            {
+                std::vector<_Move> m = b.generate_moves();
+                size_t mv;
+                if (b.can_capture_opposite_king(m, mv))
+                    return get_random_position_KPK(no_check);
+            }
+        }
+        return b;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool Board<PieceID, _BoardSize>::is_last_move_promo() const
+    {
+        if (_history_moves.size() == 0) return false;
+        _Move mv = last_history_move();
+        if (mv.mu.context_extra == "Q") 
+            return true;
+        return false;
     }
 };
 #endif

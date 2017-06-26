@@ -29,69 +29,87 @@ int main(int argc, char* argv[])
     //tb_0vKb.load();
     //tb_0vKb.print_score(5);
 
-    // Test TablebaseHandler_2v1
+    // Test TBHandler_2v1
     //std::vector<uint8_t> w;
     //w.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
     //w.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::Q, chess::PieceColor::W));
     //w.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
-    //chess::TablebaseHandler_2v1<uint8_t, 6> tbh_KQvK(w);
+    //chess::TBHandler_2v1<uint8_t, 6> tbh_KQvK(w);
     ////tbh_KQvK.build(1); 
     ////std::cout << "checksum: " << (int)tbh_KQvK.tb_W()->checksum_dtc() << std::endl;
     ////tbh_KQvK.save();
     //tbh_KQvK.load();
     //std::cout << "checksum: " << (int)tbh_KQvK.tb_W()->checksum_dtc() << std::endl;
 
-    {
-        std::vector<std::pair<uint8_t, uint8_t>> w_set;
-        std::vector<std::pair<uint8_t, uint8_t>> b_set;
-        w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W), 1 }));
-        w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::Q, chess::PieceColor::W), 1 }));
-        w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::P, chess::PieceColor::W), 1 }));
-        b_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B), 1 }));
-        std::vector<chess::TBH<uint8_t, 6>*> vtb2 = chess::TablebaseManager<uint8_t, 6>::instance()->make_all_child_TBH(chess::PieceSet<uint8_t, 6>({ w_set, b_set }));
-    }
+    //{
+    //    std::vector<std::pair<uint8_t, uint8_t>> w_set;
+    //    std::vector<std::pair<uint8_t, uint8_t>> b_set;
+    //    w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W), 1 }));
+    //    w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::Q, chess::PieceColor::W), 1 }));
+    //    w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::P, chess::PieceColor::W), 1 }));
+    //    b_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B), 1 }));
+    //    std::vector<chess::STRUCT_TBH<uint8_t, 6>> vtb2 = chess::TablebaseManager<uint8_t, 6>::instance()->make_all_child_TBH(chess::PieceSet<uint8_t, 6>({ w_set, b_set }));
+    //}
 
-    std::vector<uint8_t> ws;
-    std::vector<uint8_t> bs;
-    ws.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
-    ws.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::Q, chess::PieceColor::W));
-    bs.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
-    std::vector<std::pair<uint8_t, uint8_t>> sw = chess::PieceSet<uint8_t, 6>::to_set(ws);
-    std::vector<std::pair<uint8_t, uint8_t>> sb = chess::PieceSet<uint8_t, 6>::to_set(bs);
-    chess::PieceSet<uint8_t, 6> ps(sw, sb);
-    chess::TablebaseHandler_2v1<uint8_t, 6> TBH_KQvK(ps);
-    TBH_KQvK.build(1);
-    TBH_KQvK.save();
+    {
+        chess::TablebaseManager<uint8_t, 6>::instance()->clear();
+        std::vector<uint8_t> ws;
+        std::vector<uint8_t> bs;
+        ws.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
+        ws.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::Q, chess::PieceColor::W));
+        bs.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
+        std::vector<std::pair<uint8_t, uint8_t>> sw = chess::PieceSet<uint8_t, 6>::to_set(ws);
+        std::vector<std::pair<uint8_t, uint8_t>> sb = chess::PieceSet<uint8_t, 6>::to_set(bs);
+        chess::PieceSet<uint8_t, 6> ps(sw, sb);
+        chess::TBHandler_2v1<uint8_t, 6> TBH_KQvK(ps);
+        //TBH_KQvK.build(1);
+        //TBH_KQvK.save();
+        TBH_KQvK.load();
+
+        //chess::TablebaseManager<uint8_t, 6>::instance()->clear();
+        std::vector<uint8_t> ws1;
+        std::vector<uint8_t> bs1;
+        ws1.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
+        ws1.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::P, chess::PieceColor::W));
+        bs1.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
+        std::vector<std::pair<uint8_t, uint8_t>> sw1 = chess::PieceSet<uint8_t, 6>::to_set(ws1);
+        std::vector<std::pair<uint8_t, uint8_t>> sb1 = chess::PieceSet<uint8_t, 6>::to_set(bs1);
+        chess::PieceSet<uint8_t, 6> ps1(sw1, sb1);
+        chess::TBHandler_2v1<uint8_t, 6> TBH_KPvK(ps1);
+        TBH_KPvK.build(1);
+        TBH_KPvK.save();
+    }
 
     //{
     //    chess::SymmetryTablebase<uint8_t, 6, 3> sym(*tbh_KQvK.tb_W());
     //    chess::ExactScore sc = sym.score(0, 12 , 15);
     //}
 
-    // Test PieceSet KQQRRvKPP
-    std::vector<std::pair<uint8_t, uint8_t>> w_set;
-    std::vector<std::pair<uint8_t, uint8_t>> b_set;
-    w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W), 1 }));
-    w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::Q, chess::PieceColor::W), 1 }));
-    b_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B), 1 }));
-    chess::PieceSet<uint8_t, 6> set(w_set, b_set);
-    //for (size_t i = 0; i < set.children_size(chess::PieceColor::W); i++)
+    //// Test PieceSet KQQRRvKPP
+    //std::vector<std::pair<uint8_t, uint8_t>> w_set;
+    //std::vector<std::pair<uint8_t, uint8_t>> b_set;
+    //w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W), 1 }));
+    //w_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::Q, chess::PieceColor::W), 1 }));
+    //b_set.push_back(std::pair<uint8_t, uint8_t>({ chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B), 1 }));
+    //chess::PieceSet<uint8_t, 6> set(w_set, b_set);
+    ////for (size_t i = 0; i < set.children_size(chess::PieceColor::W); i++)
+    ////{
+    ////    std::cout << set.name_child(chess::PieceColor::W, chess::PieceColor::W, i) << std::endl;
+    ////}
+    //std::vector<chess::PieceSet<uint8_t, 6>> vz = set.get_all_child();
+    //for (size_t i = 0; i < vz.size(); i++)
     //{
-    //    std::cout << set.name_child(chess::PieceColor::W, chess::PieceColor::W, i) << std::endl;
+    //    std::cout << vz[i].name(chess::PieceColor::W) << std::endl;
     //}
-    std::vector<chess::PieceSet<uint8_t, 6>> vz = set.get_all_child();
-    for (size_t i = 0; i < vz.size(); i++)
-    {
-        std::cout << vz[i].name(chess::PieceColor::W) << std::endl;
-    }
 
+    //chess::TablebaseManager<uint8_t, 6>::instance()->clear();
     //std::vector<chess::TBHandlerCore<uint8_t, 6>*> vtb = chess::TablebaseManager<uint8_t, 6>::instance()->make_child_3(w_set, b_set);
-    std::vector<chess::TBH<uint8_t, 6>*> vtb2 = chess::TablebaseManager<uint8_t, 6>::instance()->make_all_child_TBH(chess::PieceSet<uint8_t, 6>({ w_set, b_set }));
+    //std::vector<chess::TBH<uint8_t, 6>*> vtb2 = chess::TablebaseManager<uint8_t, 6>::instance()->make_all_child_TBH(chess::PieceSet<uint8_t, 6>({ w_set, b_set }));
 
     // expand_position()
     srand((unsigned int)time(NULL));
     chess::Board<uint8_t, 6> b;
-    chess::Board<uint8_t, 6> bt = b.get_random_position_KQK(true);
+    chess::Board<uint8_t, 6> bt = b.get_random_position_KPK(true);//b.get_random_position_KQK(true);
     b = bt; // save initial pos
     chess::TablebaseUtil<uint8_t, 6> tbu;
     tbu.expand_position(bt, 0);
