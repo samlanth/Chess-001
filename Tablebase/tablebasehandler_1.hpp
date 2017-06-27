@@ -20,7 +20,7 @@ namespace chess
         using _Move = Move<PieceID>;
 
     public:
-        TBHandler_1(const PieceSet<PieceID, _BoardSize>& ps, TB_TYPE t) : TBH(t, ps, 1)
+        TBHandler_1(const PieceSet<PieceID, _BoardSize>& ps, TB_TYPE t, TBH_OPTION option) : TBH(t, ps, 1, option)
         {
             Tablebase<PieceID, _BoardSize, 1>* tb_w = TablebaseManager<PieceID, _BoardSize>::instance()->find_1(ps.name(PieceColor::W));
             Tablebase<PieceID, _BoardSize, 1>* tb_b = TablebaseManager<PieceID, _BoardSize>::instance()->find_1(ps.name(PieceColor::B));
@@ -42,7 +42,7 @@ namespace chess
                 } 
                 else { _tb_B = tb_b; }
             }
-            else
+            else if (t == TB_TYPE::tb_Xv0)
             {
                 if (tb_w == nullptr)
                 {
@@ -58,6 +58,10 @@ namespace chess
                 } 
                 else { _tb_B = tb_b; }
             }
+            else
+            {
+                assert(false);
+            }
         }
 
         virtual ~TBHandler_1() {}
@@ -72,8 +76,8 @@ namespace chess
         void print() const;
 
     protected:;
-        Tablebase<PieceID, _BoardSize, 1>* _tb_W;
-        Tablebase<PieceID, _BoardSize, 1>* _tb_B;
+        Tablebase<PieceID, _BoardSize, 1>* _tb_W;   // not owner
+        Tablebase<PieceID, _BoardSize, 1>* _tb_B;   // not owner
 
         bool     build_base(Tablebase<PieceID, _BoardSize, 1>* tb, Tablebase<PieceID, _BoardSize, 1>* tb_oppo, char verbose = 0);
         uint64_t set_mate_score(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 1>* tb);
@@ -106,6 +110,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline bool TBHandler_1<PieceID, _BoardSize>::build(char verbose)
     {
+        // No childs to pre build
         return build_base(_tb_W, _tb_B, verbose);
     }
 
@@ -164,6 +169,25 @@ namespace chess
     inline bool TBHandler_1<PieceID, _BoardSize>::build_base(Tablebase<PieceID, _BoardSize, 1>* _tb_W, Tablebase<PieceID, _BoardSize, 1>* _tb_B, char verbose)
     {
         if (is_build()) return true;
+
+        // Lookup on memory
+        Tablebase<PieceID, _BoardSize, 1>* tw = TablebaseManager<PieceID, _BoardSize>::instance()->find_1(_pieceSet.name(PieceColor::W));
+        Tablebase<PieceID, _BoardSize, 1>* tb = TablebaseManager<PieceID, _BoardSize>::instance()->find_1(_pieceSet.name(PieceColor::B));
+        if ((tw != nullptr) && (tb != nullptr))
+        {
+            if ((tw->_is_build == true) && (tb->_is_build == true))
+            {
+                _tb_W = tw;
+                _tb_B = tb;
+                return true;
+            }
+        }
+
+        // Lookup on disk
+        if (option() == TBH_OPTION::try_load_on_build)
+        {
+            if (this->load()) return true;
+        }
 
         uint64_t n = 0;
         if (verbose) { std::cout << TB_TYPE_to_string(tb_type()) << " " << _pieceSet.name(PieceColor::W) << _pieceSet.name(PieceColor::B) << " scanning mate in (0/1) ply ..." << std::endl; }

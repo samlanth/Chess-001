@@ -29,6 +29,8 @@ namespace chess
                             tb_9v1, tb_8v2, tb_7v3, tb_6v4, tb_5v5
                         };
 
+    enum class TBH_OPTION { none, try_load_on_build, force_rebuild, memory_map_on_build };
+
     static std::string TB_TYPE_to_string(TB_TYPE t)
     {
         if (t == TB_TYPE::tb_0vX) return "tb_0vX";
@@ -81,15 +83,13 @@ namespace chess
         Tablebase(std::vector<PieceID>& v, PieceColor c);
         virtual ~Tablebase() {}
 
-        bool is_symmetry_TB() const override { return false;}
+        virtual bool load() = 0;
+        virtual bool save() const = 0;
 
-        virtual bool load()                 = 0;
-        virtual bool save() const           = 0;
-        virtual bool build(char verbose)    = 0;
-
-        bool        is_build()      { return _is_build; }
-        PieceColor  color() const   { return _color; }
-        uint8_t     getNPIECE()  const { return _NPIECE; }
+        bool        is_symmetry_TB() const override { return false;}
+        bool        is_build()              { return _is_build; }
+        PieceColor  color() const           { return _color; }
+        uint8_t     getNPIECE()  const      { return _NPIECE; }
         std::vector<PieceID> piecesID() const { return _piecesID; }
 
         void        print_score(int n)  const ;

@@ -20,9 +20,7 @@ namespace chess
         ~SymmetryTablebase() {}
 
         bool is_symmetry_TB() const override { return true; }
-
         const Tablebase<PieceID, _BoardSize, NPIECE>* refTB() const { return _refTB; }
-        bool is_build() { return _refTB->is_build(); }
 
         ExactScore score(const uint16_t& sq0)  const 
         {
@@ -52,14 +50,6 @@ namespace chess
 
     protected:
         const Tablebase<PieceID, _BoardSize, NPIECE>* _refTB;
-
-        ExactScore reverse_score(ExactScore sc) const
-        {
-            if (sc == ExactScore::WIN) return ExactScore::LOSS;
-            else if (sc == ExactScore::LOSS) return ExactScore::WIN;
-            else if (sc == ExactScore::DRAW) return ExactScore::DRAW;
-            return sc; // UNKNOWN
-        }
     };
 
     // TBH_Symmetry
@@ -75,9 +65,9 @@ namespace chess
 
         bool is_symmetry_TBH() const override { return true; }
 
-        bool load() override                { return true; }
+        bool load() override                { return _symTBH->load(); }
         bool save() const override          { return _symTBH->save(); }
-        bool build(char verbose) override   { return true; }
+        bool build(char verbose) override   { return _symTBH->build(verbose); }
         bool is_build() const override      { return _symTBH->is_build(); }
 
         //...

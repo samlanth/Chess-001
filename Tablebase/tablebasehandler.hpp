@@ -15,27 +15,26 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     class TBH
     {
-            using _Piece = Piece<PieceID, _BoardSize>;
-            using _Board = Board<PieceID, _BoardSize>;
-            using _Move = Move<PieceID>;
+        using _Board = Board<PieceID, _BoardSize>;
 
     public:
-        TBH(TB_TYPE t, PieceSet<PieceID, _BoardSize> ps, uint8_t np) : _type(t), _NPIECE(np), _pieceSet({ ps.wset(), ps.bset() }), _work_board(new _Board()) 
+        TBH(TB_TYPE t, PieceSet<PieceID, _BoardSize> ps, uint8_t np, TBH_OPTION option) : _type(t), _NPIECE(np), _pieceSet({ ps.wset(), ps.bset() }), _option(option), _work_board(new _Board())
         {
             _piecesID = PieceSet<PieceID, _BoardSize>::ps_to_pieces(ps);
         }
         virtual ~TBH() { delete _work_board; }
-
         virtual bool is_symmetry_TBH() const { return false; }
+
         virtual bool load() = 0;
         virtual bool save() const = 0;
         virtual bool build(char verbose) = 0;
         virtual bool is_build() const = 0;
         virtual bool find_score_children_tb(const _Board& pos, PieceColor color, bool isPromo, ExactScore& ret_sc) const = 0;
 
-        std::string name(PieceColor color_toplay)   const;  // name tB W or B to play
-        uint8_t get_NPIECE()                        const { return _NPIECE; }
-        TB_TYPE tb_type()                           const { return _type; }
+        std::string name(PieceColor color_toplay)   const;  // unique name of tB W or B to play
+        TBH_OPTION  option()                        const { return _option; }
+        uint8_t     get_NPIECE()                    const { return _NPIECE; }
+        TB_TYPE     tb_type()                       const { return _type; }
         PieceSet<PieceID, _BoardSize>& pieceSet()   const { return _pieceSet;}
 
         static ExactScore minmax_dtc(
@@ -46,6 +45,7 @@ namespace chess
         TB_TYPE                         _type;
         uint8_t                         _NPIECE;
         PieceSet<PieceID, _BoardSize>   _pieceSet;
+        TBH_OPTION                      _option;        // 0==default, try_load_on_build, force_rebuild, memory_map_on_build
         std::vector<PieceID>            _piecesID;
         _Board*                         _work_board;
     };
@@ -73,11 +73,10 @@ namespace chess
         return _pieceSet.name(PieceColor::B);
     }
 
-
-    // minmax_dtc
+    // static minmax_dtc
     template <typename PieceID, typename uint8_t _BoardSize>
     inline ExactScore TBH<PieceID, _BoardSize>::minmax_dtc(
-        PieceColor color_parent,
+        PieceColor                      color_parent,
         const std::vector<ExactScore>&  child_sc,
         const std::vector<uint8_t>&     child_dtc,
         std::vector<bool>&              child_is_promo,

@@ -3,7 +3,7 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// Tablebase_Xv0    :   any W piece - 0 black pieces
+// Tablebase_Xv0    :   any W piece versus 0 black pieces
 //
 //
 #ifndef _AL_CHESS_TABLEBASE_TABLEBASE_Xv0_HPP
@@ -23,14 +23,13 @@ namespace chess
 
         bool load() override        { return load_tb(); }
         bool save() const override  { return save_tb(); }
-        bool build(char verbose = 0) override { return false; }
     };
 
     template <typename PieceID, typename uint8_t _BoardSize>
     class TBHandler_Xv0 : public TBHandler_1<PieceID, _BoardSize>
     {
     public:
-        TBHandler_Xv0(const PieceSet<PieceID, _BoardSize>& ps) : TBHandler_1<PieceID, _BoardSize>(ps, TB_TYPE::tb_Xv0) {}
+        TBHandler_Xv0(const PieceSet<PieceID, _BoardSize>& ps, TBH_OPTION option) : TBHandler_1<PieceID, _BoardSize>(ps, TB_TYPE::tb_Xv0, option) {}
         ~TBHandler_Xv0() {}
     };
 };

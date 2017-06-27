@@ -16,32 +16,22 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     class Tablebase_1v1 : public Tablebase<PieceID, _BoardSize, 2>
     {
-        using _Piece = Piece<PieceID, _BoardSize>;
-        using _Board = Board<PieceID, _BoardSize>;
-        using _Move = Move<PieceID>;
-
-        friend class TBHandler_1v1<PieceID, _BoardSize>;
-
     public:
         Tablebase_1v1(std::vector<PieceID>& v, PieceColor c) : Tablebase<PieceID, _BoardSize, 2>(v, c) {}
         ~Tablebase_1v1() {}
 
         bool load() override        { return load_tb(); }
         bool save() const override  { return save_tb(); }
-        bool build(char verbose = 0) override { return false; }
     };
 
     // TBHandler_1v1
     template <typename PieceID, typename uint8_t _BoardSize>
     class TBHandler_1v1 : public TBHandler_2<PieceID, _BoardSize>
     {
-        using _Piece = Piece<PieceID, _BoardSize>;
         using _Board = Board<PieceID, _BoardSize>;
 
-        friend class TBHandler_2v1<PieceID, _BoardSize>;
-
     public:
-        TBHandler_1v1(const PieceSet<PieceID, _BoardSize>& ps) : TBHandler_2<PieceID, _BoardSize>(ps, TB_TYPE::tb_1v1) {}
+        TBHandler_1v1(const PieceSet<PieceID, _BoardSize>& ps, TBH_OPTION option) : TBHandler_2<PieceID, _BoardSize>(ps, TB_TYPE::tb_1v1, option) {}
         ~TBHandler_1v1() {}
 
     protected:
@@ -68,12 +58,13 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline bool TBHandler_1v1<PieceID, _BoardSize>::find_score_children_tb(const _Board& pos, PieceColor color, bool isPromo, ExactScore& ret_sc) const
     {
-        size_t ret_child_index;
-        std::vector<std::pair<PieceID, uint8_t>> empty_set;
-        PieceID ret_id; uint16_t ret_count;
-        uint16_t ret_child_sq0;
-        uint16_t rank_ret_id; uint16_t ret_instance;
-        PieceColor c_oppo = (color == PieceColor::W) ? PieceColor::B : PieceColor::W;
+        PieceID     ret_id; 
+        uint16_t    ret_count;
+        uint16_t    ret_child_sq0;
+        uint16_t    rank_ret_id; 
+        uint16_t    ret_instance;
+        size_t      ret_child_index;
+        PieceColor  c_oppo = (color == PieceColor::W) ? PieceColor::B : PieceColor::W;
 
         if (_pieceSet.find_child_index(color, pos, isPromo, ret_child_index))
         {

@@ -43,7 +43,7 @@ namespace chess
         Tablebase<PieceID, _BoardSize, 3>* find_3(const std::string& name) const;
 
         std::vector<TB_TYPE> get_all_child_TB_TYPE(const PieceSet<PieceID, _BoardSize>& set) const;
-        std::vector<STRUCT_TBH<PieceID, _BoardSize>> make_all_child_TBH(const PieceSet<PieceID, _BoardSize>& set) const;
+        std::vector<STRUCT_TBH<PieceID, _BoardSize>> make_all_child_TBH(const PieceSet<PieceID, _BoardSize>& set, TBH_OPTION option) const;
 
     public:
         static std::string name_pieces(const std::vector<PieceID>& v, PieceColor color_to_play)
@@ -184,7 +184,7 @@ namespace chess
 
     // Create all TB children handler of a TB
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline std::vector<STRUCT_TBH<PieceID, _BoardSize>> TablebaseManager<PieceID, _BoardSize>::make_all_child_TBH(const PieceSet<PieceID, _BoardSize>& set) const
+    inline std::vector<STRUCT_TBH<PieceID, _BoardSize>> TablebaseManager<PieceID, _BoardSize>::make_all_child_TBH(const PieceSet<PieceID, _BoardSize>& set, TBH_OPTION option) const
     {
         std::vector<STRUCT_TBH<PieceID, _BoardSize>> v;
         uint16_t nw; 
@@ -209,7 +209,7 @@ namespace chess
                 // Xv0
                 struct_tbh._t = TB_TYPE::tb_Xv0;
                 Tablebase<PieceID, _BoardSize, 1>* tb = find_1(vz[i].name(PieceColor::W));
-                if (tb == nullptr) struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBHandler_Xv0<PieceID, _BoardSize>(vz[i]);
+                if (tb == nullptr) struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBHandler_Xv0<PieceID, _BoardSize>(vz[i], option);
                 v.push_back(struct_tbh);
             } 
             else if (nw == 0)                   
@@ -217,7 +217,7 @@ namespace chess
                 // 0vX
                 struct_tbh._t = TB_TYPE::tb_0vX;
                 Tablebase<PieceID, _BoardSize, 1>* tb = find_1(vz[i].name(PieceColor::W));
-                if (tb == nullptr) struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBHandler_0vX<PieceID, _BoardSize>(vz[i]);
+                if (tb == nullptr) struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBHandler_0vX<PieceID, _BoardSize>(vz[i], option);
                 v.push_back(struct_tbh);
             }
             else if ((nb == 1) && (nw == 1))   
@@ -225,7 +225,7 @@ namespace chess
                 // 1v1
                 struct_tbh._t = TB_TYPE::tb_1v1;
                 Tablebase<PieceID, _BoardSize, 2>* tb = find_2(vz[i].name(PieceColor::W));
-                if (tb == nullptr) struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBHandler_1v1<PieceID, _BoardSize>(vz[i]);
+                if (tb == nullptr) struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBHandler_1v1<PieceID, _BoardSize>(vz[i], option);
                 v.push_back(struct_tbh);
             } 
             if ((nw == 2) && (nb == 1))
@@ -235,7 +235,7 @@ namespace chess
                 Tablebase<PieceID, _BoardSize, 3>* tb = find_3(vz[i].name(PieceColor::W));
                 if (tb == nullptr)
                 {
-                    struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBHandler_2v1<PieceID, _BoardSize>(vz[i]);
+                    struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBHandler_2v1<PieceID, _BoardSize>(vz[i], option);
                     //v.push_back(new TBH_Symmetry<PieceID, _BoardSize, 3>(tb3, TB_TYPE::tb_2v1, vz[i]));         // sym 2v1 = 1v2 (reverse ps...)
                 }
                 v.push_back(struct_tbh);

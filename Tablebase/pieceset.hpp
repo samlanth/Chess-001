@@ -100,38 +100,37 @@ namespace chess
     inline uint16_t PieceSet<PieceID, _BoardSize>::find_rank_index(size_t rank, PieceID& ret_pieceid, uint16_t& ret_count, uint16_t& ret_instance)  const
     {
         uint16_t n = 0; ret_count = 0;
+
+        for (uint16_t i = 0; i < _wset.size(); i++)
         {
-            for (uint16_t i = 0; i < _wset.size(); i++)
+            for (uint16_t j = 0; j < _wset[i].second; j++)
             {
-                for (uint16_t j = 0; j < _wset[i].second; j++)
+                if (n == rank)
                 {
-                    if (n == rank)
-                    {
-                        ret_count   = _wset[i].second;
-                        ret_pieceid = _wset[i].first;
-                        ret_instance = j;
-                        return i;
-                    }
-                    n++;
+                    ret_count   = _wset[i].second;
+                    ret_pieceid = _wset[i].first;
+                    ret_instance = j;
+                    return i;
                 }
+                n++;
             }
         }
+
+        for (uint16_t i = 0; i < _bset.size(); i++)
         {
-            for (uint16_t i = 0; i < _bset.size(); i++)
+            for (uint16_t j = 0; j < _bset[i].second; j++)
             {
-                for (uint16_t j = 0; j < _bset[i].second; j++)
+                if (n == rank)
                 {
-                    if (n == rank)
-                    {
-                        ret_count   = _bset[i].second;
-                        ret_pieceid = _bset[i].first;
-                        ret_instance = j;
-                        return i;
-                    }
-                    n++;
+                    ret_count   = _bset[i].second;
+                    ret_pieceid = _bset[i].first;
+                    ret_instance = j;
+                    return i;
                 }
+                n++;
             }
         }
+
         return -1; // ret_count is 0
     }
 
@@ -239,7 +238,7 @@ namespace chess
                         w_promo_idx = _wchildren.size() - 1;
                     }
 
-                    // Promo - merge the Q entries in the vector
+                    // merge the Q entries in the vector
                     if (w_promo)
                     {
                         uint16_t n = 0;
@@ -248,6 +247,7 @@ namespace chess
                             if (_wchildren[w_promo_idx][i].first == _Piece::get_id(PieceName::Q, PieceColor::W))
                                 n++;
                         }
+
                         if (n > 1)
                         {
                             size_t i1 = -1; size_t i2 = -1;
@@ -269,6 +269,7 @@ namespace chess
                                 }
                             }
                         }
+
                         // remove empty Q piece and P possibly
                         for (size_t i = 0; i < _wchildren[w_promo_idx].size(); i++)
                         {
@@ -373,11 +374,11 @@ namespace chess
         cnt_piece_board_c_oppo = pos.cnt_all_piece(c_oppo);
 
         bool child_ok;
-        PieceColor color_change;
+        PieceColor color_change = c;
         // capture - removing piece from c
         // promo   - changing piece from c_oppo 
-        color_change = c;
         if (isPromo) color_change = c_oppo;
+
         for (size_t j = 0; j < children_size(color_change); j++)
         {
             child_ok = true;

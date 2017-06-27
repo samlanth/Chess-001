@@ -20,7 +20,7 @@ namespace chess
         using _Move = Move<PieceID>;
 
     public:
-        TBHandler_2(const PieceSet<PieceID, _BoardSize>& ps, TB_TYPE t) : TBH(t, ps, 2)
+        TBHandler_2(const PieceSet<PieceID, _BoardSize>& ps, TB_TYPE t, TBH_OPTION option) : TBH(t, ps, 2, option)
         {
             Tablebase<PieceID, _BoardSize, 2>* tb_w = TablebaseManager<PieceID, _BoardSize>::instance()->find_2(ps.name(PieceColor::W));
             Tablebase<PieceID, _BoardSize, 2>* tb_b = TablebaseManager<PieceID, _BoardSize>::instance()->find_2(ps.name(PieceColor::B));
@@ -44,7 +44,7 @@ namespace chess
                 else { _tb_B = tb_b; }
 
                 // Childs TBH
-                _tb_children_info = TablebaseManager<PieceID, _BoardSize>::instance()->make_all_child_TBH(ps);
+                _tb_children_info = TablebaseManager<PieceID, _BoardSize>::instance()->make_all_child_TBH(ps, option);
                 for (size_t i = 0; i < _tb_children_info.size(); i++)
                 {
                     if (_tb_children_info[i]._tbh != nullptr)
@@ -55,13 +55,13 @@ namespace chess
                     {
                         if (_tb_children_info[i]._t == TB_TYPE::tb_0vX)
                         {
-                            _tbh_children.push_back(new TBHandler_0vX<PieceID, _BoardSize>(_tb_children_info[i]._ps));
+                            _tbh_children.push_back(new TBHandler_0vX<PieceID, _BoardSize>(_tb_children_info[i]._ps, option));
                             _tb_children_info[i]._owner = true;
                             _tb_children_info[i]._child_index = _tbh_children.size() - 1;
                         }
                         else if (_tb_children_info[i]._t == TB_TYPE::tb_Xv0)
                         {
-                            _tbh_children.push_back(new TBHandler_Xv0<PieceID, _BoardSize>(_tb_children_info[i]._ps));
+                            _tbh_children.push_back(new TBHandler_Xv0<PieceID, _BoardSize>(_tb_children_info[i]._ps, option));
                             _tb_children_info[i]._owner = true;
                             _tb_children_info[i]._child_index = _tbh_children.size() - 1;
                         }
@@ -74,7 +74,13 @@ namespace chess
         {
             for (size_t i = 0; i < _tb_children_info.size(); i++)
             {
-                delete _tbh_children[_tb_children_info[i]._child_index];
+                if ((_tb_children_info[i]._owner == true) && (_tb_children_info[i]._tbh != nullptr))
+                {
+                    if (_tb_children_info[i]._child_index < _tbh_children.size())
+                    {
+                        delete _tbh_children[_tb_children_info[i]._child_index];
+                    }
+                }
             }
         }
 
@@ -92,12 +98,12 @@ namespace chess
 
     protected:
         // bases TB: 1v1
-        Tablebase<PieceID, _BoardSize, 2>* _tb_W;
-        Tablebase<PieceID, _BoardSize, 2>* _tb_B;
+        Tablebase<PieceID, _BoardSize, 2>* _tb_W;   // not owner
+        Tablebase<PieceID, _BoardSize, 2>* _tb_B;   // not owner
 
         // children TB handler
-        std::vector<STRUCT_TBH<PieceID, _BoardSize>>                     _tb_children_info;
-        std::vector<TBH<PieceID, _BoardSize>*>      _tbh_children;
+        std::vector<STRUCT_TBH<PieceID, _BoardSize>>    _tb_children_info;
+        std::vector<TBH<PieceID, _BoardSize>*>          _tbh_children;
 
         bool     build_base(Tablebase<PieceID, _BoardSize, 2>* tb, Tablebase<PieceID, _BoardSize, 2>* tb_oppo, char verbose = 0);
         uint64_t set_mate_score(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, 2>* tb);
@@ -257,7 +263,6 @@ namespace chess
                     }
                     else
                     {
-                        int debug = 1;
                         assert(false);
                     }
                 }
@@ -390,6 +395,25 @@ namespace chess
     inline bool TBHandler_2<PieceID, _BoardSize>::build_base(Tablebase<PieceID, _BoardSize, 2>* _tb_W, Tablebase<PieceID, _BoardSize, 2>* _tb_B, char verbose)
     {
         if (is_build()) return true;
+
+        // Lookup in memory
+        Tablebase<PieceID, _BoardSize, 2>* tw = TablebaseManager<PieceID, _BoardSize>::instance()->find_2(_pieceSet.name(PieceColor::W));
+        Tablebase<PieceID, _BoardSize, 2>* tb = TablebaseManager<PieceID, _BoardSize>::instance()->find_2(_pieceSet.name(PieceColor::B));
+        if ((tw != nullptr) && (tb != nullptr))
+        {
+            if ((tw->_is_build == true) && (tb->_is_build == true))
+            {
+                _tb_W = tw;
+                _tb_B = tb;
+                return true;
+            }
+        }
+
+        // Lookup on disk
+        if (option() == TBH_OPTION::try_load_on_build)
+        {
+            if (this->load()) return true;
+        }
 
         uint64_t n = 0;
         uint64_t m = 0;

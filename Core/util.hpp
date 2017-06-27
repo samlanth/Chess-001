@@ -18,6 +18,14 @@ namespace chess
     static std::string  toNULLSTR(const std::string& s) { return (s.size() == 0) ? "NullSTR" : s; }
     static void         fromNULLSTR(std::string& s)     { if (s == "NullSTR") s = ""; }
 
+    ExactScore reverse_score(ExactScore sc)
+    {
+        if (sc == ExactScore::WIN) return ExactScore::LOSS;
+        else if (sc == ExactScore::LOSS) return ExactScore::WIN;
+        else if (sc == ExactScore::DRAW) return ExactScore::DRAW;
+        return sc; // UNKNOWN
+    }
+
     static int ExactScore_to_int(ExactScore c)
     {
         if (c == ExactScore::LOSS) return 1;

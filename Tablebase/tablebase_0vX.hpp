@@ -23,7 +23,6 @@ namespace chess
 
         bool load() override        { return load_tb(); }
         bool save() const override  { return save_tb(); }
-        bool build(char verbose = 0) override { return false; } // Handler would build
     };
 
     // TBHandler_0vX
@@ -31,7 +30,7 @@ namespace chess
     class TBHandler_0vX : public TBHandler_1<PieceID, _BoardSize>
     {
     public:
-        TBHandler_0vX(const PieceSet<PieceID, _BoardSize>& ps) : TBHandler_1<PieceID, _BoardSize>(ps, TB_TYPE::tb_0vX) {}
+        TBHandler_0vX(const PieceSet<PieceID, _BoardSize>& ps, TBH_OPTION option) : TBHandler_1<PieceID, _BoardSize>(ps, TB_TYPE::tb_0vX, option) {}
         ~TBHandler_0vX() {}
     };
 };

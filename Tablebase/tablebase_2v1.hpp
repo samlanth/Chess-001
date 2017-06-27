@@ -16,20 +16,12 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     class Tablebase_2v1 : public Tablebase<PieceID, _BoardSize, 3>
     {
-        using _Piece = Piece<PieceID, _BoardSize>;
-        using _Board = Board<PieceID, _BoardSize>;
-        using _Move = Move<PieceID>;
-
-        friend class TBHandler_2v1<PieceID, _BoardSize>;
-        friend class TBHandler_3<PieceID, _BoardSize>;
-
     public:
         Tablebase_2v1(std::vector<PieceID>& v, PieceColor c) : Tablebase<PieceID, _BoardSize, 3>(v, c) {}
         ~Tablebase_2v1() {}
 
         bool load() override            { return load_tb(); }
         bool save() const override      { return save_tb(); }
-        bool build(char verbose = 0) override { return false; }
     };
 
     // TBHandler_2v1
@@ -40,86 +32,12 @@ namespace chess
         using _Board = Board<PieceID, _BoardSize>;
 
     public:
-        TBHandler_2v1(const PieceSet<PieceID, _BoardSize>& ps) : TBHandler_3<PieceID, _BoardSize>(ps, TB_TYPE::tb_2v1)
-        {
-            Tablebase<PieceID, _BoardSize, 3>* tb_w = TablebaseManager<PieceID, _BoardSize>::instance()->find_3(ps.name(PieceColor::W));
-            Tablebase<PieceID, _BoardSize, 3>* tb_b = TablebaseManager<PieceID, _BoardSize>::instance()->find_3(ps.name(PieceColor::B));
-            std::vector<PieceID> v = PieceSet<PieceID, _BoardSize>::ps_to_pieces(ps);
-
-            // TB bases
-            if (tb_w == nullptr)
-            {
-                _tb_W = new Tablebase_2v1<PieceID, _BoardSize>(v, PieceColor::W);
-                TablebaseManager<PieceID, _BoardSize>::instance()->add(ps.name(PieceColor::W), _tb_W);
-            } 
-            else { _tb_W = tb_w; }
-
-
-            if (tb_b == nullptr)
-            {
-                _tb_B = new Tablebase_2v1<PieceID, _BoardSize>(v, PieceColor::B);
-                TablebaseManager<PieceID, _BoardSize>::instance()->add(ps.name(PieceColor::B), _tb_B);
-            } 
-            else { _tb_B = tb_b; }
-
-            // Child handlers
-            _tb_children_info = TablebaseManager<PieceID, _BoardSize>::instance()->make_all_child_TBH(ps);
-            for (size_t i = 0; i < _tb_children_info.size(); i++)
-            {
-                if (_tb_children_info[i]._tbh != nullptr)
-                {
-                    // TB was not found then a TBH created by manager
-                    _tbh_children.push_back(_tb_children_info[i]._tbh);
-                }
-                else
-                {
-                    // TB was found then a TBH was not created by manager
-                    if (_tb_children_info[i]._t == TB_TYPE::tb_2v1) // promo
-                    {
-                        _tbh_children.push_back(new TBHandler_2v1<PieceID, _BoardSize>(_tb_children_info[i]._ps));
-                        _tb_children_info[i]._owner = true;
-                        _tb_children_info[i]._child_index = _tbh_children.size() - 1;
-                    }
-                    if (_tb_children_info[i]._t == TB_TYPE::tb_1v1)
-                    {
-                        _tbh_children.push_back(new TBHandler_1v1<PieceID, _BoardSize>(_tb_children_info[i]._ps));
-                        _tb_children_info[i]._owner = true;
-                        _tb_children_info[i]._child_index = _tbh_children.size() - 1;
-                    }
-                    else if (_tb_children_info[i]._t == TB_TYPE::tb_Xv0)
-                    {
-                        _tbh_children.push_back(new TBHandler_Xv0<PieceID, _BoardSize>(_tb_children_info[i]._ps));
-                        _tb_children_info[i]._owner = true;
-                        _tb_children_info[i]._child_index = _tbh_children.size() - 1;
-                    }
-                    else if (_tb_children_info[i]._t == TB_TYPE::tb_0vX)
-                    {
-                        _tbh_children.push_back(new TBHandler_0vX<PieceID, _BoardSize>(_tb_children_info[i]._ps));
-                        _tb_children_info[i]._owner = true;
-                        _tb_children_info[i]._child_index = _tbh_children.size() - 1;
-                    }
-                }
-            }
-        }
-
-        ~TBHandler_2v1()
-        {
-            for (size_t i = 0; i < _tb_children_info.size(); i++)
-            {
-                if ((_tb_children_info[i]._owner == true) && (_tb_children_info[i]._tbh != nullptr))
-                {
-                    if (_tb_children_info[i]._child_index < _tbh_children.size())
-                    {
-                        delete _tbh_children[_tb_children_info[i]._child_index];
-                    }
-                }
-            }
-        }
+        TBHandler_2v1(const PieceSet<PieceID, _BoardSize>& ps, TBH_OPTION option) : TBHandler_3<PieceID, _BoardSize>(ps, TB_TYPE::tb_2v1, option ) {}
+        ~TBHandler_2v1() {}
 
     protected:      
-        bool find_tbh_children(PieceSet<PieceID, _BoardSize>  ps, PieceColor color_to_play, size_t& ret_index) const;
         bool find_score_children_tb(const _Board& pos, PieceColor color, bool isPromo, ExactScore& ret_sc) const override;
-
+        bool find_tbh_children(PieceSet<PieceID, _BoardSize>  ps, PieceColor color_to_play, size_t& ret_index) const;
         void print_pos_with_dtc_score(uint8_t value_dtc, ExactScore value_sc) const;
     };
 
@@ -127,11 +45,21 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline bool TBHandler_2v1<PieceID, _BoardSize>::find_tbh_children(PieceSet<PieceID, _BoardSize>  ps, PieceColor color_to_play, size_t& ret_index) const
     {
+        for (size_t i = 0; i < _tb_children_info.size(); i++)
+        {
+            if (_tb_children_info[i]._ps.name(color_to_play) == ps.name(color_to_play))
+            {
+                ret_index = i;
+                return true;
+            }
+        }
+
         for (size_t i = 0; i < _tbh_children.size(); i++)
         {
             // full w+b pieces
             if (_tbh_children[i]->name(color_to_play) == ps.name(color_to_play))
             {
+                assert (_tb_children_info[i]._ps.name(color_to_play) == ps.name(color_to_play)); // TEST
                 ret_index = i;
                 return true;
             }
@@ -181,7 +109,9 @@ namespace chess
                     else if (_tbh_children[ret_idx]->tb_type() == TB_TYPE::tb_0vX)
                         ret_sc = (static_cast<TBHandler_0vX<PieceID, _BoardSize>*>(_tbh_children[ret_idx]))->tb_W()->score(ret_child_sq0);
                     else if (_tbh_children[ret_idx]->tb_type() == TB_TYPE::tb_2v1) // promo
+                    {
                         ret_sc = (static_cast<TBHandler_2v1<PieceID, _BoardSize>*>(_tbh_children[ret_idx]))->tb_W()->score(ret_child_sq0, ret_child_sq1, ret_child_sq2);
+                    }
                     else
                     {
                         return false;
