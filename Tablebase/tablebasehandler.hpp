@@ -45,7 +45,7 @@ namespace chess
         TB_TYPE                         _type;
         uint8_t                         _NPIECE;
         PieceSet<PieceID, _BoardSize>   _pieceSet;
-        TBH_OPTION                      _option;        // 0==default, try_load_on_build, force_rebuild, memory_map_on_build
+        TBH_OPTION                      _option;        // none, try_load_on_build, force_rebuild, memory_map_on_build
         std::vector<PieceID>            _piecesID;
         _Board*                         _work_board;
     };

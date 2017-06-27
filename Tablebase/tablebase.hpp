@@ -49,6 +49,13 @@ namespace chess
         virtual ~TablebaseBase() {}
 
         virtual bool is_symmetry_TB() const = 0;
+
+        // TEST
+        virtual ExactScore  score_v(        const std::vector<uint16_t>& sq) const = 0;
+        virtual void        set_dtc_v(      const std::vector<uint16_t>& sq, uint8_t sc) = 0;
+        virtual void        set_score_v(    const std::vector<uint16_t>& sq, ExactScore sc) = 0;
+        virtual void        set_marker_v(   const std::vector<uint16_t>& sq, bool v) = 0;
+        virtual void        square_at_index_v(uint64_t idx, std::vector<uint16_t>& sq) const = 0;
     };
 
     // Tablebase
@@ -62,6 +69,9 @@ namespace chess
         friend class TBHandler_1<PieceID, _BoardSize>;
         friend class TBHandler_2<PieceID, _BoardSize>;
         friend class TBHandler_3<PieceID, _BoardSize>;
+
+        template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
+        uint64_t friend set_mate_score_v(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb);
 
     protected:
         const uint8_t                   _size_item = TB_size_item();
@@ -95,6 +105,47 @@ namespace chess
         void        print_score(int n)  const ;
         void        print_dtc(int n)    const ;
         uint8_t     checksum_dtc()      const;
+
+        uint64_t    size_tb() {return _size_tb;    }
+
+        // TEST...
+        ExactScore score_v(const std::vector<uint16_t>& sq)  const override
+        {
+            assert(_NPIECE == sq.size());
+            if (sq.size() == 1)      return score_at_idx(index_item(sq[0]));
+            else if (sq.size() == 2) return score_at_idx(index_item(sq[0], sq[1]));
+            else if (sq.size() == 3) return score_at_idx(index_item(sq[0], sq[1], sq[2]));
+            return ExactScore::UNKNOWN;
+        }
+        virtual void set_dtc_v(const std::vector<uint16_t>& sq, uint8_t sc) override 
+        {
+            assert(_NPIECE == sq.size());
+            if (sq.size() == 1)      { set_dtc_at_idx(index_dtc(sq[0]), sc); return;}
+            else if (sq.size() == 2) { set_dtc_at_idx(index_dtc(sq[0], sq[1]), sc); return; }
+            else if (sq.size() == 3) { set_dtc_at_idx(index_dtc(sq[0], sq[1], sq[2]), sc); return; }
+        }
+        virtual void set_score_v(const std::vector<uint16_t>& sq, ExactScore sc) override 
+        {
+            assert(_NPIECE == sq.size());
+            if (sq.size() == 1)      { set_score_at_idx(index_item(sq[0]), sc); return; }
+            else if (sq.size() == 2) { set_score_at_idx(index_item(sq[0], sq[1]), sc); return; }
+            else if (sq.size() == 3) { set_score_at_idx(index_item(sq[0], sq[1], sq[2]), sc); return; }
+        }
+        virtual void set_marker_v(const std::vector<uint16_t>& sq, bool v) override 
+        {
+            assert(_NPIECE == sq.size());
+            if (sq.size() == 1)      { set_bit(index_item(sq[0]), 2, v); return; }
+            else if (sq.size() == 2) { set_bit(index_item(sq[0], sq[1]), 2, v); return; }
+            else if (sq.size() == 3) { set_bit(index_item(sq[0], sq[1], sq[2]), 2, v); return; }
+        }
+        virtual void square_at_index_v(uint64_t idx, std::vector<uint16_t>& sq) const override 
+        {
+            assert(_NPIECE == sq.size());
+            if (sq.size() == 1)      { square_at_index(idx, sq[0]); return; }
+            else if (sq.size() == 2) { square_at_index(idx, sq[0], sq[1]); return; }
+            else if (sq.size() == 3) { square_at_index(idx, sq[0], sq[1], sq[2]); return; }
+        }
+
 
         ExactScore score(const uint16_t& sq0)  const                // Retrieve score of a position
         {
@@ -304,6 +355,8 @@ namespace chess
 
         ExactScore score_at_idx(const uint64_t& idx_item)  const
         {
+            //static_assert(NPIECE == 3, "NPIECE must be 3");
+
             bool bit0 = bit(idx_item, 0);
             bool bit1 = bit(idx_item, 1);
             if (bit0 && bit1)    return ExactScore::WIN;
@@ -657,6 +710,64 @@ namespace chess
         clear_marker();
     }
 
+    //TEST prototype....
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
+    uint64_t set_mate_score_v(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb)
+    {
+        size_t      ret_idx;
+        uint64_t    n_changes = 0;
+        ExactScore  sc;
+        std::vector<uint16_t> sq;
+        if (NPIECE >= 1) sq.push_back(0);
+        if (NPIECE >= 2) sq.push_back(0);
+        if (NPIECE >= 3) sq.push_back(0);
+        std::vector<Move<PieceID>> m;
+
+        Board<PieceID, _BoardSize>* _work_board = new Board<PieceID, _BoardSize>();
+        for (uint64_t i = 0; i < tb->size_tb(); i++)
+        {
+            tb->square_at_index_v(i, sq);
+            assert(sq.size() == NPIECE);
+            if (NPIECE == 1)      if (sq[0] == sq[1]) continue;
+            else if (NPIECE == 2) if ((sq[0] == sq[1]) || (sq[0] == sq[2])) continue;
+            else if (NPIECE == 3) if ((sq[0] == sq[1]) || (sq[0] == sq[2]) || (sq[1] == sq[2])) continue;
+
+            _work_board->clear();
+            _work_board->set_color(color_to_play);
+            if (NPIECE >= 1) _work_board->set_pieceid_at(tb->_piecesID[0], sq[0]);
+            if (NPIECE >= 2) _work_board->set_pieceid_at(tb->_piecesID[1], sq[1]);
+            if (NPIECE >= 3) _work_board->set_pieceid_at(tb->_piecesID[2], sq[2]);
+
+            m = _work_board->generate_moves();
+            sc = _work_board->final_score(m);
+            if (sc != ExactScore::UNKNOWN)
+            {
+                tb->set_dtc_v(sq, 0);
+                tb->set_score_v(sq, sc);
+                tb->set_marker_v(sq, false);
+                n_changes++;
+            }
+            else if (_work_board->can_capture_opposite_king(m, ret_idx))
+            {
+                if (_work_board->get_color() == PieceColor::W)
+                {
+                    tb->set_dtc_v(sq, 1);
+                    tb->set_score_v(sq, ExactScore::WIN);
+                    tb->set_marker_v(sq, false);
+                    n_changes++;
+                }
+                else
+                {
+                    tb->set_dtc_v(sq, 1);
+                    tb->set_score_v(sq, ExactScore::LOSS);
+                    tb->set_marker_v(sq, false);
+                    n_changes++;
+                }
+            }
+        }
+        delete _work_board;
+        return n_changes;
+    };
 
 };
 #endif

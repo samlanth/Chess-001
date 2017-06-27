@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
         std::vector<std::pair<uint8_t, uint8_t>> sb1 = chess::PieceSet<uint8_t, 6>::to_set(bs1);
         chess::PieceSet<uint8_t, 6> ps1(sw1, sb1);
         chess::TBHandler_2v1<uint8_t, 6> TBH_KPvK(ps1, chess::TBH_OPTION::try_load_on_build);
-        TBH_KPvK.build(1);
+        //TBH_KPvK.build(1);
         //TBH_KPvK.save();
         TBH_KPvK.load();
 
