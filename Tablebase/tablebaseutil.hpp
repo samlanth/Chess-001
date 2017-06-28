@@ -102,7 +102,7 @@ namespace chess
             }
 
             uint8_t ret_dtc; size_t ret_idx = 0;
-            sc = TBH<PieceID, _BoardSize>::minmax_dtc(parent_color, v_sc, v_dtc, child_is_promo, ret_dtc, ret_idx);
+            sc = minmax_dtc<PieceID, _BoardSize>(parent_color, v_sc, v_dtc, child_is_promo, ret_dtc, ret_idx);
             if (sc != ExactScore::UNKNOWN)
             {
                 pos.apply_move(m[ret_idx]);

@@ -130,45 +130,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline bool TBHandler_1<PieceID, _BoardSize>::build_base(Tablebase<PieceID, _BoardSize, 1>* _tb_W, Tablebase<PieceID, _BoardSize, 1>* _tb_B, char verbose)
     {
-        if (is_build()) return true;
-
-        // Lookup on memory
-        Tablebase<PieceID, _BoardSize, 1>* tw = TablebaseManager<PieceID, _BoardSize>::instance()->find_1(_pieceSet.name(PieceColor::W));
-        Tablebase<PieceID, _BoardSize, 1>* tb = TablebaseManager<PieceID, _BoardSize>::instance()->find_1(_pieceSet.name(PieceColor::B));
-        if ((tw != nullptr) && (tb != nullptr))
-        {
-            if ((tw->_is_build == true) && (tb->_is_build == true))
-            {
-                _tb_W = tw;
-                _tb_B = tb;
-                return true;
-            }
-        }
-
-        // Lookup on disk
-        if (option() == TBH_OPTION::try_load_on_build)
-        {
-            if (this->load()) return true;
-        }
-
-        uint64_t n = 0;
-        if (verbose) { std::cout << TB_TYPE_to_string(tb_type()) << " " << _pieceSet.name(PieceColor::W) << _pieceSet.name(PieceColor::B) << " scanning mate in (0/1) ply ..." << std::endl; }
-
-        n = set_mate_score(PieceColor::W, _tb_W);
-        if (verbose) { std::cout << "W (0/1 move) mate positions:" << n << std::endl; }
-        if (verbose) _tb_W->print_dtc(2);
-
-        n = set_mate_score(PieceColor::B, _tb_B);
-        if (verbose) { std::cout << "B (0/1 move) mate positions:" << n << std::endl; }
-        if (verbose) _tb_B->print_dtc(2);
-
-        _tb_W->set_build(true);
-        _tb_B->set_build(true);
-        _tb_W->set_unknown_to_draw();
-        _tb_B->set_unknown_to_draw();
-        TablebaseManager<PieceID, _BoardSize>::instance()->add(_tb_W->name(), _tb_W);
-        TablebaseManager<PieceID, _BoardSize>::instance()->add(_tb_B->name(), _tb_B);
-        return true;
+        return build_base_v<PieceID, _BoardSize, 1>(this, &_tb_W, &_tb_B, verbose);
     }
 
 };

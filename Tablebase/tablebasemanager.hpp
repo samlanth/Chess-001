@@ -38,6 +38,7 @@ namespace chess
         bool add(const std::string& name, Tablebase<PieceID, _BoardSize, 2>* tb) const;
         bool add(const std::string& name, Tablebase<PieceID, _BoardSize, 3>* tb) const;
  
+        TablebaseBase<PieceID, _BoardSize>*  find(uint8_t n, const std::string& name) const;
         Tablebase<PieceID, _BoardSize, 1>* find_1(const std::string& name) const;
         Tablebase<PieceID, _BoardSize, 2>* find_2(const std::string& name) const;
         Tablebase<PieceID, _BoardSize, 3>* find_3(const std::string& name) const;
@@ -126,6 +127,40 @@ namespace chess
         return false;
     }
 
+    // find
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline TablebaseBase<PieceID, _BoardSize>*  TablebaseManager<PieceID, _BoardSize>::find(uint8_t n, const std::string& name) const
+    {
+        if (_instance == nullptr) return nullptr;
+        {
+            if (n == 1)
+            {
+                auto iter = _tbs1.find(name);
+                if (iter != _tbs1.end())
+                {
+                    return (TablebaseBase<PieceID, _BoardSize>*)_tbs1[name];
+                }
+            }
+            else if (n == 2)
+            {
+                auto iter = _tbs2.find(name);
+                if (iter != _tbs2.end())
+                {
+                    return (TablebaseBase<PieceID, _BoardSize>*)_tbs2[name];
+                }
+            }
+            else if (n == 3)
+            {
+                auto iter = _tbs3.find(name);
+                if (iter != _tbs3.end())
+                {
+                    return (TablebaseBase<PieceID, _BoardSize>*)_tbs3[name];
+                }
+            }
+        }
+        return nullptr;
+    }
+
     // find_1
     template <typename PieceID, typename uint8_t _BoardSize>
     inline Tablebase<PieceID, _BoardSize, 1>*  TablebaseManager<PieceID, _BoardSize>::find_1(const std::string& name) const
@@ -202,8 +237,8 @@ namespace chess
             struct_tbh._nb = nb;
             struct_tbh._tbh = nullptr;
 
-            // If a TB already exist, an handler is/was handling it  ( do a clear() first ) or check build status
-            // Launch a handler as necessary, the handler will add the TB to the repository immediately (is_build is false initially)
+            // If a TB already exist, an handler is/was handling (building, loading, etc) it (do a clear() first) or check build status
+            // Launch a handler as necessary, the handler will create and add the TB to the repository immediately (is_build is false initially)
             if (nb == 0)                        
             { 
                 // Xv0

@@ -177,5 +177,8 @@
     <ClInclude Include="..\Tablebase\symmetryTB.hpp">
       <Filter>Tablebase</Filter>
     </ClInclude>
+    <ClInclude Include="..\Tablebase\tb_algo.hpp">
+      <Filter>Tablebase</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

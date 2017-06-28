@@ -30,8 +30,8 @@ int main(int argc, char* argv[])
         std::vector<std::pair<uint8_t, uint8_t>> sb = chess::PieceSet<uint8_t, 6>::to_set(bs);
         chess::PieceSet<uint8_t, 6> ps(sw, sb);
         chess::TBHandler_2v1<uint8_t, 6> TBH_KQvK(ps, chess::TBH_OPTION::none);
-        //TBH_KQvK.build(1);
-        //TBH_KQvK.save();
+        TBH_KQvK.build(1);
+        TBH_KQvK.save();
         TBH_KQvK.load();
 
         std::vector<uint8_t> ws1;
@@ -43,8 +43,8 @@ int main(int argc, char* argv[])
         std::vector<std::pair<uint8_t, uint8_t>> sb1 = chess::PieceSet<uint8_t, 6>::to_set(bs1);
         chess::PieceSet<uint8_t, 6> ps1(sw1, sb1);
         chess::TBHandler_2v1<uint8_t, 6> TBH_KPvK(ps1, chess::TBH_OPTION::try_load_on_build);
-        //TBH_KPvK.build(1);
-        //TBH_KPvK.save();
+        TBH_KPvK.build(1);
+        TBH_KPvK.save();
         TBH_KPvK.load();
 
         // expand_position()

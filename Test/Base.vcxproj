@@ -65,6 +65,7 @@
     <ClInclude Include="..\Tablebase\tablebase_Xv0.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_1v1.hpp" />
     <ClInclude Include="..\Tablebase\tablebase_2v1.hpp" />
+    <ClInclude Include="..\Tablebase\tb_algo.hpp" />
     <ClInclude Include="..\UnitTest\testboard.hpp" />
     <ClInclude Include="..\UnitTest\unittest.hpp" />
   </ItemGroup>

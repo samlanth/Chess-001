@@ -53,17 +53,7 @@ namespace chess
                 return true;
             }
         }
-
-        for (size_t i = 0; i < _tbh_children.size(); i++)
-        {
-            // full w+b pieces
-            if (_tbh_children[i]->name(color_to_play) == ps.name(color_to_play))
-            {
-                assert (_tb_children_info[i]._ps.name(color_to_play) == ps.name(color_to_play)); // TEST
-                ret_index = i;
-                return true;
-            }
-        }
+        assert(false);
         return  false;
     }
 
@@ -139,6 +129,7 @@ namespace chess
         return false;
     }
 
+    // Make as algo<N>...
     // print_pos_with_dtc_score
     template <typename PieceID, typename uint8_t _BoardSize>
     inline void TBHandler_2v1<PieceID, _BoardSize>::print_pos_with_dtc_score(uint8_t value_dtc, ExactScore value_sc) const

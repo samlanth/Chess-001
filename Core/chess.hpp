@@ -55,7 +55,6 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_1;
     template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_2;
     template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_3;
-    //template <typename PieceID, typename uint8_t _BoardSize> class TBHandlerCore;
     template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_Xv0;
     template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_0vX;
     template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_1v1;
@@ -100,5 +99,6 @@ namespace chess
 #include "Tablebase/Tablebase_0vX.hpp"
 #include "Tablebase/tablebase_1v1.hpp"
 #include "Tablebase/tablebase_2v1.hpp"
+#include "Tablebase/tb_algo.hpp"
 
 #endif
