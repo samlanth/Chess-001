@@ -17,7 +17,7 @@ namespace chess
     constexpr uint64_t  TB_size_dim(int boardsize) { return boardsize*boardsize; }
 
     enum class TB_TYPE {
-        none,
+        tb_unknown,
         tb_0vX, tb_Xv0,
         tb_1v1,
         tb_2v1, tb_2v1_sym,
@@ -32,13 +32,26 @@ namespace chess
 
     enum class TBH_OPTION { none, try_load_on_build, force_rebuild, memory_map_on_build };
 
-    static std::string TB_TYPE_to_string(TB_TYPE t)
+    TB_TYPE sym_tb_type(TB_TYPE t)
+    {
+        if (t == TB_TYPE::tb_2v1) return TB_TYPE::tb_2v1_sym;
+        else if (t == TB_TYPE::tb_3v1) return TB_TYPE::tb_3v1_sym;
+        else if (t == TB_TYPE::tb_4v1) return TB_TYPE::tb_4v1_sym;
+        else if (t == TB_TYPE::tb_3v2) return TB_TYPE::tb_3v2_sym;
+        return TB_TYPE::tb_unknown;
+    }
+
+    std::string TB_TYPE_to_string(TB_TYPE t)
     {
         if (t == TB_TYPE::tb_0vX) return "tb_0vX";
         else if (t == TB_TYPE::tb_Xv0) return "tb_Xv0";
         else if (t == TB_TYPE::tb_1v1) return "tb_1v1";
         else if (t == TB_TYPE::tb_2v1) return "tb_2v1";
-        else return "tb UNKNOWN";
+        else if (t == TB_TYPE::tb_2v1_sym) return "tb_2v1_sym";
+        else if (t == TB_TYPE::tb_3v1) return "tb_3v1";
+        else if (t == TB_TYPE::tb_3v1_sym) return "tb_3v1_sym";
+        else if (t == TB_TYPE::tb_2v2) return "tb_2v2";
+        return "tb_unknown";
     }
 
     // TablebaseBase
@@ -50,15 +63,13 @@ namespace chess
         virtual ~TablebaseBase() {}
 
         virtual bool        is_symmetry_TB() const = 0;
+
         virtual ExactScore  score_v(const std::vector<uint16_t>& sq) const = 0;
-        virtual void        set_dtc_v(const std::vector<uint16_t>& sq, uint8_t sc) = 0;
-        virtual void        set_score_v(const std::vector<uint16_t>& sq, ExactScore sc) = 0;
-        virtual void        set_marker_v(const std::vector<uint16_t>& sq, bool v) = 0;
-        virtual void        order_sq_v(std::vector<uint16_t>& sq) const = 0;
-        virtual void        square_at_index_v(uint64_t idx, std::vector<uint16_t>& sq) const = 0;
-        virtual bool        marker_v(const std::vector<uint16_t>& sq) const = 0;
         virtual uint8_t     dtc_v(const std::vector<uint16_t>& sq) const = 0;
+
         virtual bool        is_build() const = 0;
+        virtual bool        load() = 0;
+        virtual bool        save() const = 0;
     };
 
     // Tablebase
@@ -105,14 +116,14 @@ namespace chess
         Tablebase(std::vector<PieceID>& v, PieceColor c);
         virtual ~Tablebase() {}
 
-        virtual bool load() = 0;
-        virtual bool save() const = 0;
+        bool load() override        { return load_tb(); }
+        bool save() const override  { return save_tb(); }
 
-        bool        is_symmetry_TB() const override { return false; }
+        bool        is_symmetry_TB() const override { return false; } // symmetry is number white pieces n_w < n_b
         bool        is_build() const override { return _is_build; }
 
         PieceColor  color() const { return _color; }
-        uint8_t     getNPIECE()  const { return _NPIECE; }
+        uint8_t     getNPIECE() const { return _NPIECE; }
         std::vector<PieceID> piecesID() const { return _piecesID; }
         uint64_t    size_tb() const { return _size_tb; }
 
@@ -120,7 +131,7 @@ namespace chess
         void        print_dtc(int n)    const;
         uint8_t     checksum_dtc()      const;
 
-        ExactScore score_v(const std::vector<uint16_t>& sq)  const override
+        ExactScore score_v(const std::vector<uint16_t>& sq)  const 
         {
             assert(_NPIECE == sq.size());
             if (sq.size() == 1)      return score_at_idx(index_item(sq[0]));
@@ -128,35 +139,35 @@ namespace chess
             else if (sq.size() == 3) return score_at_idx(index_item(sq[0], sq[1], sq[2]));
             return ExactScore::UNKNOWN;
         }
-        virtual void set_dtc_v(const std::vector<uint16_t>& sq, uint8_t sc) override
+        void set_dtc_v(const std::vector<uint16_t>& sq, uint8_t sc) 
         {
             assert(_NPIECE == sq.size());
             if (sq.size() == 1) { set_dtc_at_idx(index_dtc(sq[0]), sc); return; }
             else if (sq.size() == 2) { set_dtc_at_idx(index_dtc(sq[0], sq[1]), sc); return; }
             else if (sq.size() == 3) { set_dtc_at_idx(index_dtc(sq[0], sq[1], sq[2]), sc); return; }
         }
-        virtual void set_score_v(const std::vector<uint16_t>& sq, ExactScore sc) override
+        void set_score_v(const std::vector<uint16_t>& sq, ExactScore sc)
         {
             assert(_NPIECE == sq.size());
             if (sq.size() == 1) { set_score_at_idx(index_item(sq[0]), sc); return; }
             else if (sq.size() == 2) { set_score_at_idx(index_item(sq[0], sq[1]), sc); return; }
             else if (sq.size() == 3) { set_score_at_idx(index_item(sq[0], sq[1], sq[2]), sc); return; }
         }
-        virtual void set_marker_v(const std::vector<uint16_t>& sq, bool v) override
+        void set_marker_v(const std::vector<uint16_t>& sq, bool v) 
         {
             assert(_NPIECE == sq.size());
             if (sq.size() == 1) { set_bit(index_item(sq[0]), 2, v); return; }
             else if (sq.size() == 2) { set_bit(index_item(sq[0], sq[1]), 2, v); return; }
             else if (sq.size() == 3) { set_bit(index_item(sq[0], sq[1], sq[2]), 2, v); return; }
         }
-        virtual void square_at_index_v(uint64_t idx, std::vector<uint16_t>& sq) const override
+        void square_at_index_v(uint64_t idx, std::vector<uint16_t>& sq) const 
         {
             assert(_NPIECE == sq.size());
             if (sq.size() == 1) { square_at_index(idx, sq[0]); return; }
             else if (sq.size() == 2) { square_at_index(idx, sq[0], sq[1]); return; }
             else if (sq.size() == 3) { square_at_index(idx, sq[0], sq[1], sq[2]); return; }
         }
-        virtual void order_sq_v(std::vector<uint16_t>& sq)  const override
+        void order_sq_v(std::vector<uint16_t>& sq)  const 
         {
             if (_NPIECE == 2)
             {
@@ -185,7 +196,7 @@ namespace chess
                 }
             }
         }
-        virtual bool marker_v(const std::vector<uint16_t>& sq) const override
+        bool marker_v(const std::vector<uint16_t>& sq) const 
         {
             assert(_NPIECE == sq.size());
             if (sq.size() == 1) return bit(index_item(sq[0]), 2);
@@ -193,7 +204,7 @@ namespace chess
             else if (sq.size() == 3) return bit(index_item(sq[0], sq[1], sq[2]), 2);
             return false;
         }
-        virtual uint8_t dtc_v(const std::vector<uint16_t>& sq)  const override
+        uint8_t dtc_v(const std::vector<uint16_t>& sq)  const 
         {
             assert(_NPIECE == sq.size());
             if (sq.size() == 1) return dtc_at_idx(index_dtc(sq[0]));
@@ -234,7 +245,7 @@ namespace chess
             return dtc_at_idx(index_dtc(sq0, sq1, sq2));
         }
 
-        std::string name() const    // Unique name to persist in file stream
+        std::string name() const    // Unique name to identify and persist in file stream
         {
             return TablebaseManager<PieceID, _BoardSize>::instance()->name_pieces(_piecesID, _color);
         }

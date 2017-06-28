@@ -3,7 +3,8 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// TBHandler_2   : handle 2 pieces TB
+// TBHandler_2   :  handle 2 pieces TB (1v1)
+//                  0vX or Xv0 is considered as 1 piece (X: any number of pieces)
 //
 //
 #ifndef _AL_CHESS_TABLEBASE_TBHandler_2_HPP
@@ -143,6 +144,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline bool TBHandler_2<PieceID, _BoardSize>::build(char verbose)
     {
+        // Make sure children are build first
         for (size_t i = 0; i < _tbh_children.size(); i++)
         {
             _tbh_children[i]->build(verbose);

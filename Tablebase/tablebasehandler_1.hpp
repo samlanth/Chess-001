@@ -3,7 +3,7 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// TBHandler_1   : handle 1 pieces TB
+// TBHandler_1   : handle 1 piece TB (White to play + Black to play)
 //
 //
 #ifndef _AL_CHESS_TABLEBASE_TBHandler_1_HPP
@@ -62,6 +62,8 @@ namespace chess
             {
                 assert(false);
             }
+
+            // No childs TB
         }
 
         virtual ~TBHandler_1() {}

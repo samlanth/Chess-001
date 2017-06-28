@@ -26,7 +26,7 @@ namespace chess
             Tablebase<PieceID, _BoardSize, 3>* tb_b = TablebaseManager<PieceID, _BoardSize>::instance()->find_3(ps.name(PieceColor::B));
             std::vector<PieceID> v = PieceSet<PieceID, _BoardSize>::ps_to_pieces(ps);
 
-            // TB bases
+            // TB bases 2v1 (1v2 would be a symmetry TB linking to 2v1) 
             if (tb_w == nullptr)
             {
                 _tb_W = new Tablebase_2v1<PieceID, _BoardSize>(v, PieceColor::W);

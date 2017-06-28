@@ -232,7 +232,7 @@ namespace chess
             nb = vz[i].count_all_piece(PieceColor::B);
 
             STRUCT_TBH<PieceID, _BoardSize> struct_tbh(vz[i]);
-            struct_tbh._t = TB_TYPE::none;
+            struct_tbh._t = TB_TYPE::tb_unknown;
             struct_tbh._nw = nw;
             struct_tbh._nb = nb;
             struct_tbh._tbh = nullptr;
@@ -270,14 +270,15 @@ namespace chess
                 Tablebase<PieceID, _BoardSize, 3>* tb = find_3(vz[i].name(PieceColor::W));
                 if (tb == nullptr)
                 {
-                    struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBHandler_2v1<PieceID, _BoardSize>(vz[i], option);
-                    //v.push_back(new TBH_Symmetry<PieceID, _BoardSize, 3>(tb3, TB_TYPE::tb_2v1, vz[i]));         // sym 2v1 = 1v2 (reverse ps...)
+                    struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBHandler_2v1<PieceID, _BoardSize>(vz[i], option);                 
                 }
                 v.push_back(struct_tbh);
             }
-            else
+            else if ((nw == 1) && (nb == 2)) // child of a 4 pieces 2v2 
             {
+                //v.push_back(new TBH_Symmetry<PieceID, _BoardSize, 3>(tb3, TB_TYPE::tb_2v1, vz[i]));  // reverse pieceset vz[i]
             }
+
         }
         return v;
     }
@@ -298,7 +299,7 @@ namespace chess
             if (nb == 0)                        v.push_back(TB_TYPE::tb_Xv0);
             else if (nw == 0)                   v.push_back(TB_TYPE::tb_0vX);
             else if ((nb == 1) && (nw == 1))    v.push_back(TB_TYPE::tb_1v1);
-            else if (nb + nw == 3)              v.push_back(TB_TYPE::tb_2v1); // v.push_back(TB_TYPE::tb_2v1_sym);
+            else if (nb + nw == 3)              v.push_back(TB_TYPE::tb_2v1); // and  v.push_back(TB_TYPE::tb_2v1_sym); ...
         }
         return v;
     }

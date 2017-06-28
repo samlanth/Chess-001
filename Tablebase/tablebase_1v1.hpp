@@ -19,9 +19,6 @@ namespace chess
     public:
         Tablebase_1v1(std::vector<PieceID>& v, PieceColor c) : Tablebase<PieceID, _BoardSize, 2>(v, c) {}
         ~Tablebase_1v1() {}
-
-        bool load() override        { return load_tb(); }
-        bool save() const override  { return save_tb(); }
     };
 
     // TBHandler_1v1

@@ -19,16 +19,12 @@ namespace chess
     public:
         Tablebase_2v1(std::vector<PieceID>& v, PieceColor c) : Tablebase<PieceID, _BoardSize, 3>(v, c) {}
         ~Tablebase_2v1() {}
-
-        bool load() override            { return load_tb(); }
-        bool save() const override      { return save_tb(); }
     };
 
     // TBHandler_2v1
     template <typename PieceID, typename uint8_t _BoardSize>
     class TBHandler_2v1 : public TBHandler_3<PieceID, _BoardSize>
     {
-        using _Piece = Piece<PieceID, _BoardSize>;
         using _Board = Board<PieceID, _BoardSize>;
 
     public:
@@ -76,7 +72,7 @@ namespace chess
             PieceSet<PieceID, _BoardSize> child_set({   (color_change == PieceColor::W) ? v : _pieceSet.wset(),
                                                         (color_change == PieceColor::W) ? _pieceSet.bset() : v } );
             size_t n = 0;
-            for (size_t i = 0; i < 2+1; i++) // child of 2v1 is 2 pieces or less + Promo
+            for (size_t i = 0; i < 2+1; i++) // child of 2v1 is 1v1 or Xv0 or Promo 2v1
             {
                 rank_ret_id = child_set.find_rank_index(i, ret_id, ret_count, ret_instance);
                 if (ret_count > 0)
@@ -96,7 +92,7 @@ namespace chess
                         ret_sc = (static_cast<TBHandler_1v1<PieceID, _BoardSize>*>(_tbh_children[ret_idx]))->tb_W()->score(ret_child_sq0, ret_child_sq1);
                     else if (_tbh_children[ret_idx]->tb_type() == TB_TYPE::tb_Xv0)
                         ret_sc = (static_cast<TBHandler_Xv0<PieceID, _BoardSize>*>(_tbh_children[ret_idx]))->tb_W()->score(ret_child_sq0);
-                    else if (_tbh_children[ret_idx]->tb_type() == TB_TYPE::tb_0vX)
+                    else if (_tbh_children[ret_idx]->tb_type() == TB_TYPE::tb_0vX) // not needed ...
                         ret_sc = (static_cast<TBHandler_0vX<PieceID, _BoardSize>*>(_tbh_children[ret_idx]))->tb_W()->score(ret_child_sq0);
                     else if (_tbh_children[ret_idx]->tb_type() == TB_TYPE::tb_2v1) // promo
                     {
@@ -111,9 +107,9 @@ namespace chess
                 {
                     if (_tbh_children[ret_idx]->tb_type() == TB_TYPE::tb_1v1)
                         ret_sc = (static_cast<TBHandler_1v1<PieceID, _BoardSize>*>(_tbh_children[ret_idx]))->tb_B()->score(ret_child_sq0, ret_child_sq1);
-                    else if (_tbh_children[ret_idx]->tb_type() == TB_TYPE::tb_Xv0)
+                    else if (_tbh_children[ret_idx]->tb_type() == TB_TYPE::tb_Xv0) 
                         ret_sc = (static_cast<TBHandler_Xv0<PieceID, _BoardSize>*>(_tbh_children[ret_idx]))->tb_B()->score(ret_child_sq0);
-                    else if (_tbh_children[ret_idx]->tb_type() == TB_TYPE::tb_0vX)
+                    else if (_tbh_children[ret_idx]->tb_type() == TB_TYPE::tb_0vX) // not needed ...
                         ret_sc = (static_cast<TBHandler_0vX<PieceID, _BoardSize>*>(_tbh_children[ret_idx]))->tb_B()->score(ret_child_sq0);
                     else if (_tbh_children[ret_idx]->tb_type() == TB_TYPE::tb_2v1) // promo
                         ret_sc = (static_cast<TBHandler_2v1<PieceID, _BoardSize>*>(_tbh_children[ret_idx]))->tb_B()->score(ret_child_sq0, ret_child_sq1, ret_child_sq2);

@@ -15,14 +15,9 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     class Tablebase_0vX : public Tablebase<PieceID, _BoardSize, 1>
     {
-        using _Board = Board<PieceID, _BoardSize>;
-
     public:
         Tablebase_0vX(std::vector<PieceID>& v, PieceColor c) : Tablebase<PieceID, _BoardSize, 1>(v, c) {}
         ~Tablebase_0vX() {}
-
-        bool load() override        { return load_tb(); }
-        bool save() const override  { return save_tb(); }
     };
 
     // TBHandler_0vX

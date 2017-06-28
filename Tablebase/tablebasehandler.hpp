@@ -3,7 +3,8 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// TBHandlerCore
+// TBH<> Handler of a 2 TB(TableBase) (White or Black to play a PieceSet) and childrens build/load/save hiaerchy 
+// EX: KPvK=>KQvK(=>KvK, PvK, KPv0), KvK, KPv0, PvK
 //
 //
 #ifndef _AL_CHESS_TABLEBASE_TBHandler_HPP
@@ -61,6 +62,7 @@ namespace chess
         size_t                          _child_index;
     };
 
+    // name() - unique per PieceSet
     template <typename PieceID, typename uint8_t _BoardSize>
     inline std::string TBH<PieceID, _BoardSize>::name(PieceColor color_toplay) const
     {
