@@ -65,11 +65,12 @@ namespace chess
         virtual bool        is_symmetry_TB() const = 0;
 
         virtual ExactScore  score_v(const std::vector<uint16_t>& sq) const = 0;
-        virtual uint8_t     dtc_v(const std::vector<uint16_t>& sq) const = 0;
+        virtual uint8_t     dtc_v(  const std::vector<uint16_t>& sq) const = 0;
 
         virtual bool        is_build() const = 0;
         virtual bool        load() = 0;
         virtual bool        save() const = 0;
+        virtual void        print() const = 0;
     };
 
     // Tablebase
@@ -94,7 +95,7 @@ namespace chess
         uint64_t friend process_marker_v(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb, Tablebase<PieceID, _BoardSize, NPIECE>* tb_oppo);
 
         template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
-        bool friend build_base_v(TBH<PieceID, _BoardSize>* tbh, Tablebase<PieceID, _BoardSize, NPIECE>** tbw, Tablebase<PieceID, _BoardSize, NPIECE>** tbb, char verbose);
+        bool friend build_base_vv(TBH<PieceID, _BoardSize>* tbh, TablebaseBase<PieceID, _BoardSize>* tb_W, TablebaseBase<PieceID, _BoardSize>* tb_B, char verbose);
 
     protected:
         const uint8_t                   _size_item = TB_size_item();
@@ -413,7 +414,7 @@ namespace chess
             set_bit(index_item(sq0, sq1, sq2), 2, v);
         }
 
-        void print() const;
+        void print() const override;
         bool check_unknown() const;
         void set_unknown_to_draw();
         void clear_marker();

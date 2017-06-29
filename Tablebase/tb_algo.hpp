@@ -11,18 +11,6 @@
 
 namespace chess
 {
-    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
-    uint64_t setup_marker_v(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb, Tablebase<PieceID, _BoardSize, NPIECE>* tb_oppo);
-
-    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
-    uint64_t process_marker_v(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb, Tablebase<PieceID, _BoardSize, NPIECE>* tb_oppo);
-
-    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
-    bool build_base_v(TBH<PieceID, _BoardSize>* tbh, Tablebase<PieceID, _BoardSize, NPIECE>** tbw, Tablebase<PieceID, _BoardSize, NPIECE>** tbb, char verbose);
-
-    template <typename PieceID, typename uint8_t _BoardSize>
-    ExactScore minmax_dtc(PieceColor color_parent, const std::vector<ExactScore>&  child_sc, const std::vector<uint8_t>& child_dtc, std::vector<bool>& child_is_promo, uint8_t& ret_dtc, size_t& ret_idx);
-
     // minmax_dtc
     template <typename PieceID, typename uint8_t _BoardSize>
     inline ExactScore minmax_dtc(   PieceColor color_parent,const std::vector<ExactScore>&  child_sc,const std::vector<uint8_t>& child_dtc, std::vector<bool>& child_is_promo,
@@ -177,7 +165,14 @@ namespace chess
         return ExactScore::UNKNOWN;
     }
 
+
     // set_mate_score_v - template function
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
+    uint64_t set_mate_score_vv(PieceColor color_to_play, TablebaseBase<PieceID, _BoardSize>* tb)
+    {
+        return  set_mate_score_v(color_to_play, (Tablebase<PieceID, _BoardSize, NPIECE>*)(tb));
+    }
+
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
     uint64_t set_mate_score_v(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb)
     {
@@ -236,6 +231,12 @@ namespace chess
     };
 
     // set_marker  - template function
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
+    uint64_t setup_marker_vv(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play, TablebaseBase<PieceID, _BoardSize>* tb, TablebaseBase<PieceID, _BoardSize>* tb_oppo)
+    {
+        return  setup_marker_v(tbh, color_to_play, (Tablebase<PieceID, _BoardSize, NPIECE>*)(tb), (Tablebase<PieceID, _BoardSize, NPIECE>*)(tb_oppo));
+    }
+
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
     uint64_t setup_marker_v(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb, Tablebase<PieceID, _BoardSize, NPIECE>* tb_oppo)
     {
@@ -344,6 +345,12 @@ namespace chess
 
     // process_marker_v - template function
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
+    inline uint64_t process_marker_vv(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play, TablebaseBase<PieceID, _BoardSize>* tb, TablebaseBase<PieceID, _BoardSize>* tb_oppo)
+    {
+        return process_marker_v(tbh, color_to_play, (Tablebase<PieceID, _BoardSize, NPIECE>*)(tb), (Tablebase<PieceID, _BoardSize, NPIECE>*) (tb_oppo));
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
     inline uint64_t process_marker_v(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb, Tablebase<PieceID, _BoardSize, NPIECE>* tb_oppo)
     {
         uint64_t n_changes = 0;
@@ -447,9 +454,8 @@ namespace chess
         return n_changes;
     }
 
-    // build_base_v - template function
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
-    inline bool build_base_v(TBH<PieceID, _BoardSize>* tbh, Tablebase<PieceID, _BoardSize, NPIECE>** tb_W, Tablebase<PieceID, _BoardSize, NPIECE>** tb_B, char verbose)
+    inline bool build_base_vv(TBH<PieceID, _BoardSize>* tbh, TablebaseBase<PieceID, _BoardSize>* tb_W, TablebaseBase<PieceID, _BoardSize>* tb_B, char verbose)
     {
         if (tbh->is_build()) return true;
 
@@ -461,8 +467,8 @@ namespace chess
             if ((tw->is_build() == true) && (tb->is_build() == true))
             {
                 // Replace and quit
-                (*tb_W) = (Tablebase<PieceID, _BoardSize, NPIECE>*)tw;
-                (*tb_B) = (Tablebase<PieceID, _BoardSize, NPIECE>*)tb;
+                tbh->set_TB_W(tw);
+                tbh->set_TB_B(tb);
                 return true;
             }
         }
@@ -479,13 +485,13 @@ namespace chess
 
         if (verbose) { std::cout << TB_TYPE_to_string(tbh->tb_type()) << " " << tbh->pieceSet().name(PieceColor::W) << tbh->pieceSet().name(PieceColor::B) << " scanning mate in (0/1) ply ..." << std::endl; }
 
-        n = set_mate_score_v<PieceID, _BoardSize, NPIECE>(PieceColor::W, (*tb_W));
+        n = set_mate_score_vv<PieceID, _BoardSize, NPIECE>(PieceColor::W, tb_W);
         if (verbose) { std::cout << "W (0/1 ply) mate positions:" << n << std::endl; }
-        if (verbose) (*tb_W)->print_dtc(2);
+        if (verbose) ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_W)->print_dtc(2);
 
-        n = set_mate_score_v<PieceID, _BoardSize, NPIECE>(PieceColor::B, (*tb_B));
+        n = set_mate_score_vv<PieceID, _BoardSize, NPIECE>(PieceColor::B, tb_B);
         if (verbose) { std::cout << "B (0/1 ply) mate positions:" << n << std::endl; }
-        if (verbose) (*tb_B)->print_dtc(2);
+        if (verbose) ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_B)->print_dtc(2);
 
         if (NPIECE > 1)
         {
@@ -493,44 +499,43 @@ namespace chess
             {
                 iter++;  if (verbose) { std::cout << "Iteration: " << iter << std::endl; }
 
-                (*tb_W)->clear_marker();
-                (*tb_B)->clear_marker();
+                ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_W)->clear_marker();
+                ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_B)->clear_marker();
 
-                n = setup_marker_v<PieceID, _BoardSize, NPIECE>(tbh, PieceColor::W, (*tb_W), (*tb_B));
+                n = setup_marker_vv<PieceID, _BoardSize, NPIECE>(tbh, PieceColor::W, tb_W, tb_B);
                 if (verbose) { std::cout << "W setup_marker_v positions:" << n << std::endl; }
 
-                n = process_marker_v<PieceID, _BoardSize, NPIECE>(tbh, PieceColor::B, (*tb_B), (*tb_W));
+                n = process_marker_vv<PieceID, _BoardSize, NPIECE>(tbh, PieceColor::B, tb_B, tb_W);
                 if (verbose) { std::cout << "B process_marker positions:" << n << std::endl; }
 
-                m = process_marker_v<PieceID, _BoardSize, NPIECE>(tbh, PieceColor::W, (*tb_W), (*tb_B));
+                m = process_marker_vv<PieceID, _BoardSize, NPIECE>(tbh, PieceColor::W, tb_W, tb_B);
                 if (verbose) { std::cout << "W process_marker positions:" << m << std::endl; }
 
 
-                m = setup_marker_v<PieceID, _BoardSize, NPIECE>(tbh, PieceColor::B, (*tb_B), (*tb_W));
+                m = setup_marker_vv<PieceID, _BoardSize, NPIECE>(tbh, PieceColor::B, tb_B, tb_W);
                 if (verbose) { std::cout << "B setup_marker_v positions:" << m << std::endl; }
 
-                n = process_marker_v<PieceID, _BoardSize, NPIECE>(tbh, PieceColor::B, (*tb_B), (*tb_W));
+                n = process_marker_vv<PieceID, _BoardSize, NPIECE>(tbh, PieceColor::B, tb_B, tb_W);
                 if (verbose) { std::cout << "B process_marker positions:" << n << std::endl; }
 
-                m = process_marker_v<PieceID, _BoardSize, NPIECE>(tbh, PieceColor::W, (*tb_W), (*tb_B));
+                m = process_marker_vv<PieceID, _BoardSize, NPIECE>(tbh, PieceColor::W, tb_W, tb_B);
                 if (verbose) { std::cout << "W process_marker positions:" << m << std::endl; }
 
                 if ((n + m) == 0) break;
             } while (n + m > 0);
         }
 
-        if (verbose) (*tb_W)->print_dtc(NPIECE * 5);
-        if (verbose) (*tb_B)->print_dtc(NPIECE * 5);
+        if (verbose) ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_W)->print_dtc(NPIECE * 5);
+        if (verbose) ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_B)->print_dtc(NPIECE * 5);
 
-        (*tb_W)->set_build(true);
-        (*tb_B)->set_build(true);
-        (*tb_W)->set_unknown_to_draw();
-        (*tb_B)->set_unknown_to_draw();
-        TablebaseManager<PieceID, _BoardSize>::instance()->add((*tb_W)->name(), (*tb_W));
-        TablebaseManager<PieceID, _BoardSize>::instance()->add((*tb_B)->name(), (*tb_B));
+        ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_W)->set_build(true);
+        ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_B)->set_build(true);
+        ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_W)->set_unknown_to_draw();
+        ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_B)->set_unknown_to_draw();
+        TablebaseManager<PieceID, _BoardSize>::instance()->add(((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_W)->name(), ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_W));
+        TablebaseManager<PieceID, _BoardSize>::instance()->add(((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_B)->name(), ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_B));
         return true;
     }
-
 };
 #endif
 
