@@ -3,7 +3,7 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// TablebaseManager : Track TB
+// TB_Manager : Track TB
 //
 //
 #ifndef _AL_CHESS_TABLEBASE_TABLEBASEMANAGER_HPP
@@ -11,39 +11,40 @@
 
 namespace chess
 {
-    // TablebaseManager
+    // TB_Manager
     template <typename PieceID, typename uint8_t _BoardSize>
-    class TablebaseManager
+    class TB_Manager
     {
         using _Piece = Piece<PieceID, _BoardSize>;
 
     private:
-        TablebaseManager() {}
-        TablebaseManager(const TablebaseManager&)               = delete;
-        TablebaseManager & operator=(const TablebaseManager &)  = delete;
-        TablebaseManager(TablebaseManager&&)                    = delete;
+        TB_Manager() {}
+        TB_Manager(const TB_Manager&)               = delete;
+        TB_Manager & operator=(const TB_Manager &)  = delete;
+        TB_Manager(TB_Manager&&)                    = delete;
 
     public:
-        ~TablebaseManager()
+        ~TB_Manager()
         {
             if (_instance.operator bool())
             {
                 _instance.release();
             }
         }
-        static const TablebaseManager* instance();
+        static const TB_Manager* instance();
         void clear() const;
 
         bool add(const std::string& name, Tablebase<PieceID, _BoardSize, 1>* tb) const;
         bool add(const std::string& name, Tablebase<PieceID, _BoardSize, 2>* tb) const;
         bool add(const std::string& name, Tablebase<PieceID, _BoardSize, 3>* tb) const;
+        bool add(const std::string& name, Tablebase<PieceID, _BoardSize, 4>* tb) const;
  
         TablebaseBase<PieceID, _BoardSize>*  find(uint8_t n, const std::string& name) const;
         Tablebase<PieceID, _BoardSize, 1>* find_1(const std::string& name) const;
         Tablebase<PieceID, _BoardSize, 2>* find_2(const std::string& name) const;
         Tablebase<PieceID, _BoardSize, 3>* find_3(const std::string& name) const;
+        Tablebase<PieceID, _BoardSize, 4>* find_4(const std::string& name) const;
 
-        std::vector<TB_TYPE> get_all_child_TB_TYPE(const PieceSet<PieceID, _BoardSize>& set) const;
         std::vector<STRUCT_TBH<PieceID, _BoardSize>> make_all_child_TBH(const PieceSet<PieceID, _BoardSize>& set, TBH_OPTION option) const;
 
     public:
@@ -61,26 +62,28 @@ namespace chess
         mutable std::map<std::string, Tablebase<PieceID, _BoardSize, 1>*>  _tbs1;
         mutable std::map<std::string, Tablebase<PieceID, _BoardSize, 2>*>  _tbs2;
         mutable std::map<std::string, Tablebase<PieceID, _BoardSize, 3>*>  _tbs3;
+        mutable std::map<std::string, Tablebase<PieceID, _BoardSize, 4>*>  _tbs4;
 
-        static std::unique_ptr<TablebaseManager> _instance;
+        static std::unique_ptr<TB_Manager> _instance;
     };
 
     //_instance
     template <typename PieceID, typename uint8_t _BoardSize>
-    std::unique_ptr<TablebaseManager<PieceID, _BoardSize>>
-    TablebaseManager<PieceID, _BoardSize>::_instance = nullptr;
+    std::unique_ptr<TB_Manager<PieceID, _BoardSize>>
+    TB_Manager<PieceID, _BoardSize>::_instance = nullptr;
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline void TablebaseManager<PieceID, _BoardSize>::clear() const
+    inline void TB_Manager<PieceID, _BoardSize>::clear() const
     {
         _tbs1.clear();
         _tbs2.clear();
         _tbs3.clear();
+        _tbs4.clear();
     }
 
-    // add
+    // add 1
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline bool TablebaseManager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 1>* tb) const
+    inline bool TB_Manager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 1>* tb) const
     {
         if (_instance == nullptr) return false;
         {
@@ -95,8 +98,9 @@ namespace chess
         return false;
     }
 
+    // add 2
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline bool TablebaseManager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 2>* tb) const
+    inline bool TB_Manager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 2>* tb) const
     {
         if (_instance == nullptr) return false;
         {
@@ -111,8 +115,9 @@ namespace chess
         return false;
     }
 
+    // add 3
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline bool TablebaseManager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 3>* tb) const
+    inline bool TB_Manager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 3>* tb) const
     {
         if (_instance == nullptr) return false;
         {
@@ -127,9 +132,26 @@ namespace chess
         return false;
     }
 
+    // add 4
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline bool TB_Manager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 4>* tb) const
+    {
+        if (_instance == nullptr) return false;
+        {
+            auto iter = _tbs4.find(name);
+            if (iter == _tbs4.end())
+            {
+                _tbs4[name] = tb;
+                return true;
+            }
+            return true;
+        }
+        return false;
+    }
+
     // find
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline TablebaseBase<PieceID, _BoardSize>*  TablebaseManager<PieceID, _BoardSize>::find(uint8_t n, const std::string& name) const
+    inline TablebaseBase<PieceID, _BoardSize>*  TB_Manager<PieceID, _BoardSize>::find(uint8_t n, const std::string& name) const
     {
         if (_instance == nullptr) return nullptr;
         {
@@ -157,13 +179,21 @@ namespace chess
                     return (TablebaseBase<PieceID, _BoardSize>*)_tbs3[name];
                 }
             }
+            else if (n == 4)
+            {
+                auto iter = _tbs4.find(name);
+                if (iter != _tbs4.end())
+                {
+                    return (TablebaseBase<PieceID, _BoardSize>*)_tbs4[name];
+                }
+            }
         }
         return nullptr;
     }
 
     // find_1
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline Tablebase<PieceID, _BoardSize, 1>*  TablebaseManager<PieceID, _BoardSize>::find_1(const std::string& name) const
+    inline Tablebase<PieceID, _BoardSize, 1>*  TB_Manager<PieceID, _BoardSize>::find_1(const std::string& name) const
     {
         if (_instance == nullptr) return nullptr;
         {
@@ -176,8 +206,9 @@ namespace chess
         return nullptr;
     }
 
+    // find_2
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline Tablebase<PieceID, _BoardSize, 2>*  TablebaseManager<PieceID, _BoardSize>::find_2(const std::string& name) const
+    inline Tablebase<PieceID, _BoardSize, 2>*  TB_Manager<PieceID, _BoardSize>::find_2(const std::string& name) const
     {
         if (_instance == nullptr) return nullptr;
         {
@@ -190,8 +221,9 @@ namespace chess
         return nullptr;
     }
 
+    // find_3
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline Tablebase<PieceID, _BoardSize, 3>*  TablebaseManager<PieceID, _BoardSize>::find_3(const std::string& name) const
+    inline Tablebase<PieceID, _BoardSize, 3>*  TB_Manager<PieceID, _BoardSize>::find_3(const std::string& name) const
     {
         if (_instance == nullptr) return nullptr;
         {
@@ -204,22 +236,37 @@ namespace chess
         return nullptr;
     }
 
+    // find_4
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline Tablebase<PieceID, _BoardSize, 4>*  TB_Manager<PieceID, _BoardSize>::find_4(const std::string& name) const
+    {
+        if (_instance == nullptr) return nullptr;
+        {
+            auto iter = _tbs4.find(name);
+            if (iter != _tbs4.end())
+            {
+                return _tbs4[name];
+            }
+        }
+        return nullptr;
+    }
+
     // instance()
     template <typename PieceID, typename uint8_t _BoardSize>
-    const TablebaseManager<PieceID, _BoardSize>* 
-    TablebaseManager<PieceID, _BoardSize>::instance()
+    const TB_Manager<PieceID, _BoardSize>* 
+    TB_Manager<PieceID, _BoardSize>::instance()
     {
         if (_instance == nullptr)
         {
-            _instance = std::unique_ptr<TablebaseManager>(new TablebaseManager);
+            _instance = std::unique_ptr<TB_Manager>(new TB_Manager);
             return _instance.get();
         }
         return  _instance.get();
     }
 
-    // Create all TB children handler of a TB
+    // make_all_child_TBH() - Create all TB children handler of a TB
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline std::vector<STRUCT_TBH<PieceID, _BoardSize>> TablebaseManager<PieceID, _BoardSize>::make_all_child_TBH(const PieceSet<PieceID, _BoardSize>& set, TBH_OPTION option) const
+    inline std::vector<STRUCT_TBH<PieceID, _BoardSize>> TB_Manager<PieceID, _BoardSize>::make_all_child_TBH(const PieceSet<PieceID, _BoardSize>& set, TBH_OPTION option) const
     {
         std::vector<STRUCT_TBH<PieceID, _BoardSize>> v;
         uint16_t nw; 
@@ -237,69 +284,38 @@ namespace chess
             struct_tbh._nb = nb;
             struct_tbh._tbh = nullptr;
 
-            // If a TB already exist, an handler is/was handling (building, loading, etc) it (do a clear() first) or check build status
-            // Launch a handler as necessary, the handler will create and add the TB to the repository immediately (is_build is false initially)
             if (nb == 0)                        
             { 
-                // Xv0
                 struct_tbh._t = TB_TYPE::tb_Xv0;
-                Tablebase<PieceID, _BoardSize, 1>* tb = find_1(vz[i].name(PieceColor::W));
-                if (tb == nullptr) struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBHandler_Xv0<PieceID, _BoardSize>(vz[i], option);
+                struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_1<PieceID, _BoardSize>(vz[i], TB_TYPE::tb_Xv0, option);
                 v.push_back(struct_tbh);
             } 
             else if (nw == 0)                   
             { 
-                // 0vX
                 struct_tbh._t = TB_TYPE::tb_0vX;
-                Tablebase<PieceID, _BoardSize, 1>* tb = find_1(vz[i].name(PieceColor::W));
-                if (tb == nullptr) struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBHandler_0vX<PieceID, _BoardSize>(vz[i], option);
+                struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_1<PieceID, _BoardSize>(vz[i], TB_TYPE::tb_0vX, option);
                 v.push_back(struct_tbh);
             }
             else if ((nb == 1) && (nw == 1))   
             { 
-                // 1v1
                 struct_tbh._t = TB_TYPE::tb_1v1;
-                Tablebase<PieceID, _BoardSize, 2>* tb = find_2(vz[i].name(PieceColor::W));
-                if (tb == nullptr) struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBHandler_1v1<PieceID, _BoardSize>(vz[i], option);
+                struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_1v1<PieceID, _BoardSize>(vz[i], option);
                 v.push_back(struct_tbh);
             } 
-            if ((nw == 2) && (nb == 1))
+            else if ((nw == 2) && (nb == 1))
             {
-                // 2v1
                 struct_tbh._t = TB_TYPE::tb_2v1;
-                Tablebase<PieceID, _BoardSize, 3>* tb = find_3(vz[i].name(PieceColor::W));
-                if (tb == nullptr)
-                {
-                    struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBHandler_2v1<PieceID, _BoardSize>(vz[i], option);                 
-                }
+                struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_2v1<PieceID, _BoardSize>(vz[i], option);                 
                 v.push_back(struct_tbh);
             }
-            else if ((nw == 1) && (nb == 2)) // child of a 4 pieces 2v2 
+            else if ((nw == 1) && (nb == 2)) // child of the 2v2 
             {
-                //v.push_back(new TBH_Symmetry<PieceID, _BoardSize, 3>(tb3, TB_TYPE::tb_2v1, vz[i]));  // reverse pieceset vz[i]
+                struct_tbh._t = TB_TYPE::tb_2v1_sym;
+                PieceSet<PieceID, _BoardSize> r({ vz[i].bset(), vz[i].wset() });
+                TBH<PieceID, _BoardSize>* tb3 = (TBH<PieceID, _BoardSize>*)new TBH_2v1<PieceID, _BoardSize>(r, option);
+                struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 3>(tb3, TB_TYPE::tb_2v1_sym, vz[i], option);
+                v.push_back(struct_tbh);
             }
-
-        }
-        return v;
-    }
-
-    template <typename PieceID, typename uint8_t _BoardSize>
-    inline std::vector<TB_TYPE> TablebaseManager<PieceID, _BoardSize>::get_all_child_TB_TYPE(const PieceSet<PieceID, _BoardSize>& set) const
-    {
-        std::vector<TB_TYPE> v;
-        uint16_t nw;
-        uint16_t nb;
-
-        std::vector<PieceSet<PieceID, _BoardSize>> vz = set.get_all_child();
-        for (size_t i = 0; i < vz.size(); i++)
-        {
-            nw = vz[i].count_all_piece(PieceColor::W);
-            nb = vz[i].count_all_piece(PieceColor::B);
-
-            if (nb == 0)                        v.push_back(TB_TYPE::tb_Xv0);
-            else if (nw == 0)                   v.push_back(TB_TYPE::tb_0vX);
-            else if ((nb == 1) && (nw == 1))    v.push_back(TB_TYPE::tb_1v1);
-            else if (nb + nw == 3)              v.push_back(TB_TYPE::tb_2v1); // and  v.push_back(TB_TYPE::tb_2v1_sym); ...
         }
         return v;
     }

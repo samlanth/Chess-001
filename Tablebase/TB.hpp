@@ -6,8 +6,8 @@
 // Tablebase
 //
 //
-#ifndef _AL_CHESS_TABLEBASE_TABLEBASE_HPP
-#define _AL_CHESS_TABLEBASE_TABLEBASE_HPP
+#ifndef _AL_CHESS_TABLEBASE_TB_HPP
+#define _AL_CHESS_TABLEBASE_TB_HPP
 
 namespace chess
 {
@@ -81,9 +81,9 @@ namespace chess
         using _Board = Board<PieceID, _BoardSize>;
         using _Move = Move<PieceID>;
 
-        friend class TBHandler_1<PieceID, _BoardSize>;
-        friend class TBHandler_2<PieceID, _BoardSize>;
-        friend class TBHandler_3<PieceID, _BoardSize>;
+        friend class TBH_1<PieceID, _BoardSize>;
+        friend class TBH_2<PieceID, _BoardSize>;
+        friend class TBH_3<PieceID, _BoardSize>;
 
         template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
         uint64_t friend set_mate_score_v(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb);
@@ -123,10 +123,10 @@ namespace chess
         bool        is_symmetry_TB() const override { return false; } // symmetry is number white pieces n_w < n_b
         bool        is_build() const override { return _is_build; }
 
-        PieceColor  color() const { return _color; }
-        uint8_t     getNPIECE() const { return _NPIECE; }
+        PieceColor  color() const       { return _color; }
+        uint8_t     getNPIECE() const   { return _NPIECE; }
         std::vector<PieceID> piecesID() const { return _piecesID; }
-        uint64_t    size_tb() const { return _size_tb; }
+        uint64_t    size_tb() const     { return _size_tb; }
 
         void        print_score(int n)  const;
         void        print_dtc(int n)    const;
@@ -135,38 +135,38 @@ namespace chess
         ExactScore score_v(const std::vector<uint16_t>& sq)  const 
         {
             assert(_NPIECE == sq.size());
-            if (sq.size() == 1)      return score_at_idx(index_item(sq[0]));
-            else if (sq.size() == 2) return score_at_idx(index_item(sq[0], sq[1]));
-            else if (sq.size() == 3) return score_at_idx(index_item(sq[0], sq[1], sq[2]));
+            if (_NPIECE == 1)      return score_at_idx(index_item(sq[0]));
+            else if (_NPIECE == 2) return score_at_idx(index_item(sq[0], sq[1]));
+            else if (_NPIECE == 3) return score_at_idx(index_item(sq[0], sq[1], sq[2]));
             return ExactScore::UNKNOWN;
         }
         void set_dtc_v(const std::vector<uint16_t>& sq, uint8_t sc) 
         {
             assert(_NPIECE == sq.size());
-            if (sq.size() == 1) { set_dtc_at_idx(index_dtc(sq[0]), sc); return; }
-            else if (sq.size() == 2) { set_dtc_at_idx(index_dtc(sq[0], sq[1]), sc); return; }
-            else if (sq.size() == 3) { set_dtc_at_idx(index_dtc(sq[0], sq[1], sq[2]), sc); return; }
+            if (_NPIECE == 1) { set_dtc_at_idx(index_dtc(sq[0]), sc); return; }
+            else if (_NPIECE == 2) { set_dtc_at_idx(index_dtc(sq[0], sq[1]), sc); return; }
+            else if (_NPIECE == 3) { set_dtc_at_idx(index_dtc(sq[0], sq[1], sq[2]), sc); return; }
         }
         void set_score_v(const std::vector<uint16_t>& sq, ExactScore sc)
         {
             assert(_NPIECE == sq.size());
-            if (sq.size() == 1) { set_score_at_idx(index_item(sq[0]), sc); return; }
-            else if (sq.size() == 2) { set_score_at_idx(index_item(sq[0], sq[1]), sc); return; }
-            else if (sq.size() == 3) { set_score_at_idx(index_item(sq[0], sq[1], sq[2]), sc); return; }
+            if (_NPIECE == 1) { set_score_at_idx(index_item(sq[0]), sc); return; }
+            else if (_NPIECE == 2) { set_score_at_idx(index_item(sq[0], sq[1]), sc); return; }
+            else if (_NPIECE == 3) { set_score_at_idx(index_item(sq[0], sq[1], sq[2]), sc); return; }
         }
         void set_marker_v(const std::vector<uint16_t>& sq, bool v) 
         {
             assert(_NPIECE == sq.size());
-            if (sq.size() == 1) { set_bit(index_item(sq[0]), 2, v); return; }
-            else if (sq.size() == 2) { set_bit(index_item(sq[0], sq[1]), 2, v); return; }
-            else if (sq.size() == 3) { set_bit(index_item(sq[0], sq[1], sq[2]), 2, v); return; }
+            if (_NPIECE == 1) { set_bit(index_item(sq[0]), 2, v); return; }
+            else if (_NPIECE == 2) { set_bit(index_item(sq[0], sq[1]), 2, v); return; }
+            else if (_NPIECE == 3) { set_bit(index_item(sq[0], sq[1], sq[2]), 2, v); return; }
         }
         void square_at_index_v(uint64_t idx, std::vector<uint16_t>& sq) const 
         {
             assert(_NPIECE == sq.size());
-            if (sq.size() == 1) { square_at_index(idx, sq[0]); return; }
-            else if (sq.size() == 2) { square_at_index(idx, sq[0], sq[1]); return; }
-            else if (sq.size() == 3) { square_at_index(idx, sq[0], sq[1], sq[2]); return; }
+            if (_NPIECE == 1) { square_at_index(idx, sq[0]); return; }
+            else if (_NPIECE == 2) { square_at_index(idx, sq[0], sq[1]); return; }
+            else if (_NPIECE == 3) { square_at_index(idx, sq[0], sq[1], sq[2]); return; }
         }
         void order_sq_v(std::vector<uint16_t>& sq)  const 
         {
@@ -248,7 +248,7 @@ namespace chess
 
         std::string name() const    // Unique name to identify and persist in file stream
         {
-            return TablebaseManager<PieceID, _BoardSize>::instance()->name_pieces(_piecesID, _color);
+            return TB_Manager<PieceID, _BoardSize>::instance()->name_pieces(_piecesID, _color);
         }
 
     protected:
@@ -518,9 +518,10 @@ namespace chess
             for (uint64_t i = 0; i < this->_size_tb; i++)
             {
                 sc = this->score_at_idx(i * this->_size_item);
-                if (sc == ExactScore::UNKNOWN)                          // ILLEGAL position exist in the TB _bits.....
+                if (sc == ExactScore::UNKNOWN)                          
                 {
-                    set_score_at_idx(i * _size_item, ExactScore::DRAW); // dtc....
+                    // ILLEGAL position exist in the TB _bits, check legal_pos()...
+                    set_score_at_idx(i * _size_item, ExactScore::DRAW); // dtc...
                 }
             }
         }
@@ -606,7 +607,7 @@ namespace chess
         if (_is_build) return true;
         _is_build = read_tb();
         if (_is_build)
-            TablebaseManager<PieceID, _BoardSize>::instance()->add(name(), this);
+            TB_Manager<PieceID, _BoardSize>::instance()->add(name(), this);
         return _is_build;
     }
 

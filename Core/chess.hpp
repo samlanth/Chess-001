@@ -52,14 +52,14 @@ namespace chess
 
     template <typename PieceID, typename uint8_t _BoardSize> class PieceSet;
     template <typename PieceID, typename uint8_t _BoardSize> class TBH;
-    template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_1;
-    template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_2;
-    template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_3;
+    template <typename PieceID, typename uint8_t _BoardSize> class TBH_1;
+    template <typename PieceID, typename uint8_t _BoardSize> class TBH_2;
+    template <typename PieceID, typename uint8_t _BoardSize> class TBH_3;
     template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_Xv0;
     template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_0vX;
-    template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_1v1;
-    template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_2v1;
-    template <typename PieceID, typename uint8_t _BoardSize> class TablebaseManager;
+    template <typename PieceID, typename uint8_t _BoardSize> class TBH_1v1;
+    template <typename PieceID, typename uint8_t _BoardSize> class TBH_2v1;
+    template <typename PieceID, typename uint8_t _BoardSize> class TB_Manager;
     template <typename PieceID, typename uint8_t _BoardSize> struct STRUCT_TBH;
 
 }
@@ -95,10 +95,9 @@ namespace chess
 #include "Tablebase/TBH_3.hpp"
 #include "Tablebase/TB_util.hpp"
 #include "Tablebase/TB_mgr.hpp"
-#include "Tablebase/TB_Xv0.hpp"
-#include "Tablebase/TB_0vX.hpp"
-#include "Tablebase/TB_1v1.hpp"
-#include "Tablebase/TB_2v1.hpp"
-#include "Tablebase/tb_algo.hpp"
+#include "Tablebase/TB_1.hpp"
+#include "Tablebase/TB_2.hpp"
+#include "Tablebase/TB_3.hpp"
+#include "Tablebase/TB_algo.hpp"
 
 #endif

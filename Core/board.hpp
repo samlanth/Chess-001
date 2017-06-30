@@ -36,6 +36,9 @@ namespace chess
         Board & operator=(Board&&)          = default;
         ~Board()                            = default;
 
+        // ...
+        bool legal_pos(char option = 0) const;  // 0==just check pawn row
+
         const uint8_t index_at(uint8_t x, uint8_t y) const { return _BoardSize * y + x; }
         const _Piece* piece_at(uint8_t x, uint8_t y) const { return _Piece::get(_cells.at(index_at(x, y))); }
 
@@ -111,6 +114,31 @@ namespace chess
         // History
         std::list<_Move> _history_moves; 
     };
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline bool Board<PieceID, _BoardSize>::legal_pos(char option) const
+    {
+        if (option == 0)
+        {
+            // No pawn at first/last row
+            PieceID WPid = _Piece::get_id(PieceName::P, PieceColor::W);
+            PieceID BPid = _Piece::get_id(PieceName::P, PieceColor::B);
+            PieceID id;
+
+            for (uint8_t y = 0; y < _BoardSize; y++)
+            {
+                for (uint8_t x = 0; x < _BoardSize; x++)
+                {
+                    id = _cells.at(index_at(x, y));
+                    if ((id == WPid) && (y == 0)) return false;
+                    if ((id == BPid) && (y == 0)) return false;
+                    if ((id == WPid) && (y == _BoardSize-1)) return false;
+                    if ((id == BPid) && (y == _BoardSize-1)) return false;
+                }
+            }
+        }
+        return true;
+    }
 
     template <typename PieceID, typename uint8_t _BoardSize>
     std::ofstream& operator<<(std::ofstream& os, const Board<PieceID, _BoardSize>& play_board)
@@ -992,7 +1020,7 @@ namespace chess
         uint8_t wP = 0;
         uint8_t wK = 0;
         uint8_t bK = 0;
-        while ((wK == bK) || (wK == wP) || (bK == wP) || ( ((uint8_t)(wP / _BoardSize)) == (_BoardSize - 1)) )
+        while ((wK == bK) || (wK == wP) || (bK == wP) || (((uint8_t)(wP / _BoardSize)) == (_BoardSize - 1)) || (((uint8_t)(wP / _BoardSize)) == (0)))
         {
             wP = (std::rand() % (_BoardSize*_BoardSize));
             wK = (std::rand() % (_BoardSize*_BoardSize));
@@ -1026,7 +1054,7 @@ namespace chess
     {
         if (_history_moves.size() == 0) return false;
         _Move mv = last_history_move();
-        if (mv.mu.context_extra == "Q") 
+        if (mv.mu.context_extra == "Q")     // only Q for now..
             return true;
         return false;
     }

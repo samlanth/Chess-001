@@ -49,7 +49,9 @@ namespace chess
             if (pos.get_histo_size() > 256) return false;
 
             parent_color = pos.get_color();
-            v_dtc.clear(); v_sc.clear();
+            v_dtc.clear(); 
+            v_sc.clear(); 
+            child_is_promo.clear();
             for (size_t i = 0; i < m.size(); i++) { v_dtc.push_back(0); v_sc.push_back(ExactScore::UNKNOWN); child_is_promo.push_back(false); }
 
             for (size_t k = 0; k < m.size(); k++)
@@ -64,7 +66,7 @@ namespace chess
                 }
                 child_is_promo[k] = pos.is_last_move_promo();
 
-                std::string tb_name = TablebaseManager<PieceID, _BoardSize>::instance()->name_pieces(v_id, pos.get_color());
+                std::string tb_name = TB_Manager<PieceID, _BoardSize>::instance()->name_pieces(v_id, pos.get_color());
 
                 sc = ExactScore::UNKNOWN;
                 NPIECE = v_id.size();
@@ -72,22 +74,25 @@ namespace chess
 
                 if (NPIECE == 1)
                 {
-                    Tablebase<PieceID, _BoardSize, 1>* tb1 = TablebaseManager<PieceID, _BoardSize>::instance()->find_1(tb_name);
-                    if (tb1 == nullptr) return false;
+                    Tablebase<PieceID, _BoardSize, 1>* tb1 = TB_Manager<PieceID, _BoardSize>::instance()->find_1(tb_name);
+                    if (tb1 == nullptr) 
+                        return false;
                     sc  = tb1->score(v_sq[0]);
                     dtc = tb1->dtc(v_sq[0]);
                 }
                 else if (NPIECE == 2)
                 {
-                    Tablebase<PieceID, _BoardSize, 2>* tb2 = TablebaseManager<PieceID, _BoardSize>::instance()->find_2(tb_name);
-                    if (tb2 == nullptr) return false;
+                    Tablebase<PieceID, _BoardSize, 2>* tb2 = TB_Manager<PieceID, _BoardSize>::instance()->find_2(tb_name);
+                    if (tb2 == nullptr) 
+                        return false;
                     sc  = tb2->score(v_sq[0], v_sq[1]);
                     dtc = tb2->dtc(v_sq[0], v_sq[1]);
                 }
                 else if (NPIECE == 3)
                 {
-                    Tablebase<PieceID, _BoardSize, 3>* tb3 = TablebaseManager<PieceID, _BoardSize>::instance()->find_3(tb_name);
-                    if (tb3 == nullptr) return false;
+                    Tablebase<PieceID, _BoardSize, 3>* tb3 = TB_Manager<PieceID, _BoardSize>::instance()->find_3(tb_name);
+                    if (tb3 == nullptr) 
+                        return false;
                     sc  = tb3->score(v_sq[0], v_sq[1], v_sq[2]);
                     dtc = tb3->dtc(v_sq[0], v_sq[1], v_sq[2]);
                 }

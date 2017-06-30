@@ -21,6 +21,7 @@ namespace chess
     public:
         // EX: KQPPvKRPP - w_set is KQP(2), b_set is KRP(2)
         PieceSet(const std::vector<std::pair<PieceID, uint8_t>>& w_set, const std::vector<std::pair<PieceID, uint8_t>>& b_set);
+        PieceSet(std::vector<const _Piece*>& v);
         ~PieceSet() {}
 
         bool is_valid()  const { return _is_valid; }
@@ -48,6 +49,7 @@ namespace chess
         static std::vector<PieceID> to_pieces(const std::vector<std::pair<PieceID, uint8_t>>& v);
         static std::vector<PieceID> ps_to_pieces(const PieceSet<PieceID, _BoardSize>& v);
         static std::vector<std::pair<PieceID, uint8_t>> to_set(const std::vector<PieceID>& v);
+        static std::vector<std::pair<PieceID, uint8_t>> to_set_p(std::vector<const _Piece*>& v, PieceColor c);
 
     protected:
         bool _is_valid;
@@ -65,6 +67,16 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     PieceSet<PieceID, _BoardSize>::PieceSet(const  std::vector<std::pair<PieceID, uint8_t>>& w_set, const  std::vector<std::pair<PieceID, uint8_t>>& b_set)
             : _is_valid(true), _wset(w_set), _bset(b_set)
+    {
+        if (validate())
+            make_children();
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    PieceSet<PieceID, _BoardSize>::PieceSet(std::vector<const _Piece*>& v)
+        : _is_valid(true), 
+        _wset(PieceSet<PieceID, _BoardSize>::to_set_p(v, PieceColor::W)),
+        _bset(PieceSet<PieceID, _BoardSize>::to_set_p(v, PieceColor::B))
     {
         if (validate())
             make_children();
@@ -92,7 +104,7 @@ namespace chess
     inline std::string  PieceSet<PieceID, _BoardSize>::name(PieceColor color_toplay)  const
     {
         std::vector<PieceID> v = PieceSet<PieceID, _BoardSize>::ps_to_pieces(*this);
-        return TablebaseManager<PieceID, _BoardSize>::instance()->name_pieces(v, color_toplay);
+        return TB_Manager<PieceID, _BoardSize>::instance()->name_pieces(v, color_toplay);
     }
 
     // find_rank_index
@@ -501,6 +513,18 @@ namespace chess
         for (size_t i = 0; i < v.size(); i++)
         {
             add_to_v(v[i], r);
+        }
+        return r;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    std::vector<std::pair<PieceID, uint8_t>> PieceSet<PieceID, _BoardSize>::to_set_p(std::vector<const _Piece*>& v, PieceColor c)
+    {
+        std::vector<std::pair<PieceID, uint8_t>> r;
+        for (size_t i = 0; i < v.size(); i++)
+        {
+            if (v[i]->get_color() == c)
+                add_to_v(v[i]->get_id(), r);
         }
         return r;
     }

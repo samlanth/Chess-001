@@ -7,8 +7,8 @@
 // EX: KPvK=>KQvK(=>KvK, PvK, KPv0), KvK, KPv0, PvK
 //
 //
-#ifndef _AL_CHESS_TABLEBASE_TBHandler_HPP
-#define _AL_CHESS_TABLEBASE_TBHandler_HPP
+#ifndef _AL_CHESS_TABLEBASE_TBH_HPP
+#define _AL_CHESS_TABLEBASE_TBH_HPP
 
 namespace chess
 {
@@ -21,7 +21,6 @@ namespace chess
 
         template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
         bool friend build_base_vv(TBH<PieceID, _BoardSize>* tbh, TablebaseBase<PieceID, _BoardSize>* tb_W, TablebaseBase<PieceID, _BoardSize>* tb_B, char verbose);
-
 
     public:
         TBH(TB_TYPE t, const PieceSet<PieceID, _BoardSize>& ps, uint8_t np, TBH_OPTION option) : _type(t), _NPIECE(np), _pieceSet({ ps.wset(), ps.bset() }), _option(option)
@@ -40,7 +39,6 @@ namespace chess
             return _TB_W->is_build() && _TB_B->is_build(); 
         }
         virtual void print() const;
-
         virtual bool find_score_children_tb(const _Board& pos, PieceColor color, bool isPromo, ExactScore& ret_sc) const;
 
         std::string name(PieceColor color_toplay)   const;  // unique name of tB W or B to play
@@ -48,9 +46,6 @@ namespace chess
         uint8_t     get_NPIECE()                    const { return _NPIECE; }
         TB_TYPE     tb_type()                       const { return _type; }
         const PieceSet<PieceID, _BoardSize>& pieceSet()   const { return _pieceSet;}
-
-        TablebaseBase<PieceID, _BoardSize>* TB_W() const { return  _TB_W; }
-        TablebaseBase<PieceID, _BoardSize>* TB_B() const { return  _TB_B; }
 
     protected:
         TB_TYPE                         _type;
@@ -67,6 +62,8 @@ namespace chess
         std::vector<STRUCT_TBH<PieceID, _BoardSize>>    _tb_children_info;
         std::vector<TBH<PieceID, _BoardSize>*>          _tbh_children;
 
+        TablebaseBase<PieceID, _BoardSize>* TB_W() const { return  _TB_W; }
+        TablebaseBase<PieceID, _BoardSize>* TB_B() const { return  _TB_B; }
         void set_TB_W(TablebaseBase<PieceID, _BoardSize>* t)  { _TB_W = t; }
         void set_TB_B(TablebaseBase<PieceID, _BoardSize>* t)  { _TB_B = t; }
 
@@ -94,6 +91,11 @@ namespace chess
         if ((_TB_W == nullptr) || (_TB_B == nullptr)) return false;
         if (!_TB_W->save()) return false;
         if (!_TB_B->save()) return false;
+        for (size_t i = 0; i < _tbh_children.size(); i++)
+        {
+            if (!_tbh_children[i]->save())
+                return false;
+        }
         return true;
     }
 
@@ -102,6 +104,11 @@ namespace chess
     {
         if ((_TB_W == nullptr) || (_TB_B == nullptr)) return false;
         if (is_build()) return true;
+        for (size_t i = 0; i < _tbh_children.size(); i++)
+        {
+            if (!_tbh_children[i]->load())
+            return false;
+        }
         if (!_TB_W->load()) return false;
         if (!_TB_B->load()) return false;
         return true;
@@ -172,8 +179,7 @@ namespace chess
             PieceColor color_change = color;
             if (isPromo) color_change = c_oppo;
             std::vector<std::pair<PieceID, uint8_t>> v = _pieceSet.children(color_change, ret_child_index);
-            PieceSet<PieceID, _BoardSize> child_set({ (color_change == PieceColor::W) ? v : _pieceSet.wset(),
-                (color_change == PieceColor::W) ? _pieceSet.bset() : v });
+            PieceSet<PieceID, _BoardSize> child_set({ (color_change == PieceColor::W) ? v : _pieceSet.wset(), (color_change == PieceColor::W) ? _pieceSet.bset() : v });
             ret_child_sq.clear();
             for (size_t i = 0; i < get_NPIECE(); i++) // child is capture N-1 piece or promo N piece
             {

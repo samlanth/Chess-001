@@ -41,10 +41,10 @@ namespace chess
         using _Board = Board<PieceID, _BoardSize>;
 
     public:
-        TBH_Symmetry(const TBH<PieceID, _BoardSize>* refTBH, TB_TYPE t , PieceSet<PieceID, _BoardSize> ps)
-            : TBH<PieceID, _BoardSize>(t, ps, NPIECE), _symTBH(refTBH), _type(t) 
+        TBH_Symmetry(TBH<PieceID, _BoardSize>* refTBH, TB_TYPE t , PieceSet<PieceID, _BoardSize> ps, TBH_OPTION option)
+            : TBH<PieceID, _BoardSize>(t, ps, NPIECE, option), _symTBH(refTBH), _type(t)
         {
-            assert( t == TB_TYPE::sym_tb_type(refTBH->tb_type()) );
+            //assert( t == TB_TYPE::sym_tb_type(refTBH->tb_type()) );
         }
         ~TBH_Symmetry() {}
 
@@ -55,17 +55,17 @@ namespace chess
         bool build(char verbose) override   { return _symTBH->build(verbose); }
         bool is_build() const override      { return _symTBH->is_build(); }
 
-        bool find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const override 
-        { 
-            // Not needed since not building a TB just linking to one
-            return false; 
-        }
+        //bool find_score_children_tb(const _Board& pos, PieceColor color, ExactScore& ret_sc) const override 
+        //{ 
+        //    // Not needed since not building a TB just linking to one
+        //    return false; 
+        //}
 
         TBH<PieceID, _BoardSize>* symTBH() const { return _symTBH; }
 
     protected:
-        TB_TYPE                         _type;
-        const TBH<PieceID, _BoardSize>* _symTBH;
+        TB_TYPE                   _type;
+        TBH<PieceID, _BoardSize>* _symTBH;
     };
 
 };

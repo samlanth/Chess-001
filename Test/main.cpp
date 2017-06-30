@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
 
     // Test TB
     {
-        chess::TablebaseManager<uint8_t, 6>::instance()->clear();
+        chess::TB_Manager<uint8_t, 6>::instance()->clear();
         std::vector<uint8_t> ws;
         std::vector<uint8_t> bs;
         ws.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
         std::vector<std::pair<uint8_t, uint8_t>> sw = chess::PieceSet<uint8_t, 6>::to_set(ws);
         std::vector<std::pair<uint8_t, uint8_t>> sb = chess::PieceSet<uint8_t, 6>::to_set(bs);
         chess::PieceSet<uint8_t, 6> ps(sw, sb);
-        chess::TBHandler_2v1<uint8_t, 6> TBH_KQvK(ps, chess::TBH_OPTION::none);
+        chess::TBH_2v1<uint8_t, 6> TBH_KQvK(ps, chess::TBH_OPTION::none);
         //TBH_KQvK.build(1);
         //TBH_KQvK.save();
         TBH_KQvK.load();
@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
         std::vector<std::pair<uint8_t, uint8_t>> sw1 = chess::PieceSet<uint8_t, 6>::to_set(ws1);
         std::vector<std::pair<uint8_t, uint8_t>> sb1 = chess::PieceSet<uint8_t, 6>::to_set(bs1);
         chess::PieceSet<uint8_t, 6> ps1(sw1, sb1);
-        chess::TBHandler_2v1<uint8_t, 6> TBH_KPvK(ps1, chess::TBH_OPTION::try_load_on_build);
+        chess::TBH_2v1<uint8_t, 6> TBH_KPvK(ps1, chess::TBH_OPTION::try_load_on_build);
         //TBH_KPvK.build(1);
         //TBH_KPvK.save();
         TBH_KPvK.load();
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
             chess::TablebaseUtil<uint8_t, 6> tbu;
 
             std::cout << "===================================" << std::endl;
-            std::cout << b.to_str() << std::endl;
+            std::cout << b.to_str() << std::endl << std::endl;
             tbu.expand_position(bt, 0);
 
             std::vector<chess::Move<uint8_t>>  m = b.generate_moves();
@@ -70,11 +70,11 @@ int main(int argc, char* argv[])
                 std::cout << b.to_str() << std::endl << std::endl;
                 m = b.generate_moves();
                 n++;
-                if (n > 20) break;
+                if (n > 30) break;
             }
 
             //// replay
-            //bt = bcopy;
+            bt = bcopy;
             //tbu.expand_position(bt, 1);
             //std::cout << b.to_str() << std::endl << std::endl;
             //m = b.generate_moves();

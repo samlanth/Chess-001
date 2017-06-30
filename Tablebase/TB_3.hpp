@@ -3,33 +3,33 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// TBHandler_2v1
-// Tablebase_2v1
+// TBH_2v1
+// TB_3
 //
 //
-#ifndef _AL_CHESS_TABLEBASE_TABLEBASE_2v1_HPP
-#define _AL_CHESS_TABLEBASE_TABLEBASE_2v1_HPP
+#ifndef _AL_CHESS_TABLEBASE_TB_3_HPP
+#define _AL_CHESS_TABLEBASE_TB_3_HPP
 
 namespace chess
 {
-    // Tablebase_2v1
+    // TB_3
     template <typename PieceID, typename uint8_t _BoardSize>
-    class Tablebase_2v1 : public Tablebase<PieceID, _BoardSize, 3>
+    class TB_3 : public Tablebase<PieceID, _BoardSize, 3>
     {
     public:
-        Tablebase_2v1(std::vector<PieceID>& v, PieceColor c) : Tablebase<PieceID, _BoardSize, 3>(v, c) {}
-        ~Tablebase_2v1() {}
+        TB_3(std::vector<PieceID>& v, PieceColor c) : Tablebase<PieceID, _BoardSize, 3>(v, c) {}
+        ~TB_3() {}
     };
 
-    // TBHandler_2v1
+    // TBH_2v1
     template <typename PieceID, typename uint8_t _BoardSize>
-    class TBHandler_2v1 : public TBHandler_3<PieceID, _BoardSize>
+    class TBH_2v1 : public TBH_3<PieceID, _BoardSize>
     {
         using _Board = Board<PieceID, _BoardSize>;
 
     public:
-        TBHandler_2v1(const PieceSet<PieceID, _BoardSize>& ps, TBH_OPTION option) : TBHandler_3<PieceID, _BoardSize>(ps, TB_TYPE::tb_2v1, option ) {}
-        ~TBHandler_2v1() {}
+        TBH_2v1(const PieceSet<PieceID, _BoardSize>& ps, TBH_OPTION option) : TBH_3<PieceID, _BoardSize>(ps, TB_TYPE::tb_2v1, option ) {}
+        ~TBH_2v1() {}
 
     protected:      
          void print_pos_with_dtc_score(uint8_t value_dtc, ExactScore value_sc) const;
@@ -40,7 +40,7 @@ namespace chess
     // Make as algo<N>...
     // print_pos_with_dtc_score
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline void TBHandler_2v1<PieceID, _BoardSize>::print_pos_with_dtc_score(uint8_t value_dtc, ExactScore value_sc) const
+    inline void TBH_2v1<PieceID, _BoardSize>::print_pos_with_dtc_score(uint8_t value_dtc, ExactScore value_sc) const
     {
         std::vector<uint64_t> v_dtc = _tb_W->get_index_dtc(value_dtc, value_sc);
         if (v_dtc.size() == 0) return;

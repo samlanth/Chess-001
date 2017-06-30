@@ -59,13 +59,12 @@
     <ClInclude Include="..\Tablebase\TBH_1.hpp" />
     <ClInclude Include="..\Tablebase\TBH_2.hpp" />
     <ClInclude Include="..\Tablebase\TBH_3.hpp" />
+    <ClInclude Include="..\Tablebase\TB_algo.hpp" />
     <ClInclude Include="..\Tablebase\TB_mgr.hpp" />
     <ClInclude Include="..\Tablebase\TB_util.hpp" />
-    <ClInclude Include="..\Tablebase\TB_0vX.hpp" />
-    <ClInclude Include="..\Tablebase\TB_Xv0.hpp" />
-    <ClInclude Include="..\Tablebase\TB_1v1.hpp" />
-    <ClInclude Include="..\Tablebase\TB_2v1.hpp" />
-    <ClInclude Include="..\Tablebase\tb_algo.hpp" />
+    <ClInclude Include="..\Tablebase\TB_1.hpp" />
+    <ClInclude Include="..\Tablebase\TB_2.hpp" />
+    <ClInclude Include="..\Tablebase\TB_3.hpp" />
     <ClInclude Include="..\UnitTest\testboard.hpp" />
     <ClInclude Include="..\UnitTest\unittest.hpp" />
   </ItemGroup>
