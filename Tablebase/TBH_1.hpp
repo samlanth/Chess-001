@@ -70,10 +70,11 @@ namespace chess
         bool     build_base(char verbose = 0);
         uint64_t set_mate_score(PieceColor color_to_play);
 
-        bool find_score_children_tb(const _Board& pos, PieceColor color, bool isPromo, ExactScore& ret_sc) const override
+        bool find_score_children_tb(const _Board& pos, PieceColor color_pos, bool isPromo, bool isCapture, ExactScore& ret_sc, uint8_t& ret_dtc) const override
         { 
             // No children tb exist
             ret_sc = ExactScore::UNKNOWN;
+            ret_dtc = 0;
             return false; 
         }
     };

@@ -74,6 +74,7 @@ namespace chess
         ExactScore final_score(const std::vector<_Move>& m) const;
         ExactScore minmax_score(const std::vector<_Move>& m);
         bool is_last_move_promo() const;
+        bool is_last_move_capture() const;
 
         const std::vector<_Move>    generate_moves(bool is_recursive_call = false);
         const std::list<_Move>      get_history_moves() const { return _history_moves; }
@@ -101,6 +102,7 @@ namespace chess
 
         Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KQK(bool no_check = false) const;
         Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KPK(bool no_check = false) const;
+        Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KPKP(bool no_check = false) const;
 
     private:
         PieceColor              _color_toplay;
@@ -1050,11 +1052,62 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
+    Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KPKP(bool no_check) const
+    {
+        uint8_t wP = 0;
+        uint8_t wK = 0;
+        uint8_t bK = 0;
+        uint8_t bP = 0;
+        while ( (wK == bK) || (wK == wP) || (wK == bP) || (bK == wP) || (bK == bP) || (wP == bP) ||
+                (((uint8_t)(wP / _BoardSize)) == (_BoardSize - 1)) || (((uint8_t)(wP / _BoardSize)) == (0)) ||
+                (((uint8_t)(bP / _BoardSize)) == (_BoardSize - 1)) || (((uint8_t)(bP / _BoardSize)) == (0)))
+        {
+            wP = (std::rand() % (_BoardSize*_BoardSize));
+            wK = (std::rand() % (_BoardSize*_BoardSize));
+            bK = (std::rand() % (_BoardSize*_BoardSize));
+            bP = (std::rand() % (_BoardSize*_BoardSize));
+        }
+        Board<PieceID, _BoardSize>  b;
+        b.set_pieceid_at(_Piece::get_id(PieceName::P, PieceColor::W), wP % _BoardSize, ((uint8_t)(wP / _BoardSize)));
+        b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::W), wK % _BoardSize, ((uint8_t)(wK / _BoardSize)));
+        b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::B), bK % _BoardSize, ((uint8_t)(bK / _BoardSize)));
+        b.set_pieceid_at(_Piece::get_id(PieceName::P, PieceColor::B), bP % _BoardSize, ((uint8_t)(bP / _BoardSize)));
+        //b.set_pieceid_at(_Piece::get_id(PieceName::Q, PieceColor::B), bP % _BoardSize, ((uint8_t)(bP / _BoardSize)));
+        b.set_color(PieceColor::W);
+
+        if (no_check)
+        {
+            if (b.is_in_check())
+            {
+                return get_random_position_KPKP(no_check);
+            }
+            else
+            {
+                std::vector<_Move> m = b.generate_moves();
+                size_t mv;
+                if (b.can_capture_opposite_king(m, mv))
+                    return get_random_position_KPKP(no_check);
+            }
+        }
+        return b;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
     bool Board<PieceID, _BoardSize>::is_last_move_promo() const
     {
         if (_history_moves.size() == 0) return false;
         _Move mv = last_history_move();
         if (mv.mu.context_extra == "Q")     // only Q for now..
+            return true;
+        return false;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool Board<PieceID, _BoardSize>::is_last_move_capture() const
+    {
+        if (_history_moves.size() == 0) return false;
+        _Move mv = last_history_move();
+        if (mv.prev_dst_id != Piece<PieceID, _BoardSize>::empty_id())
             return true;
         return false;
     }

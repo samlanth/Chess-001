@@ -22,12 +22,31 @@ namespace chess
     {
         uint8_t x = sq%_BoardSize;
         uint8_t y = (uint8_t) (sq / _BoardSize);
-        sq = (_BoardSize - y)*_BoardSize + (_BoardSize - x);
+        sq = (_BoardSize - (y+1))*_BoardSize + (_BoardSize - (x+1));
     }
     void reverse_sq_v(std::vector<uint16_t>& sq, uint8_t _BoardSize)
     {
         for (size_t i = 0; i < sq.size(); i++) 
             reverse_sq(sq[i], _BoardSize);
+    }
+
+    std::vector<uint16_t> reverse_order_sq(const std::vector<uint16_t>& sq, bool is_ref_to_sym, uint16_t nw, uint16_t nb, uint8_t _BoardSize)
+    {
+        std::vector<uint16_t> sq_copy = sq;
+        reverse_sq_v(sq_copy, _BoardSize);
+        //Re-order piece square
+        std::vector<uint16_t> sq_reverse;
+        if (!is_ref_to_sym)
+        {
+            for (size_t i = 0; i < nw; i++) sq_reverse.push_back(sq_copy[nb + i]);
+            for (size_t i = 0; i < nb; i++) sq_reverse.push_back(sq_copy[0 + i]);
+        }
+        else
+        {
+            for (size_t i = 0; i < nb; i++) sq_reverse.push_back(sq_copy[nw + i]);
+            for (size_t i = 0; i < nw; i++) sq_reverse.push_back(sq_copy[0 + i]);
+        }
+        return sq_reverse;
     }
     
     ExactScore reverse_score(ExactScore sc)
@@ -97,5 +116,33 @@ namespace chess
         return false;
     }
 
+    template <typename PieceID, typename uint8_t _BoardSize>
+    struct sorter_less_pieces
+    {
+        using _Piece = Piece<PieceID, _BoardSize>;
+
+        bool operator() (const PieceID& lhs, const PieceID& rhs)
+        {
+            const _Piece* a = _Piece::get(lhs);
+            const _Piece* b = _Piece::get(rhs);
+            if ((a->get_color() == PieceColor::W) && (b->get_color() == PieceColor::B)) return true;
+            else if ((a->get_color() == PieceColor::B) && (b->get_color() == PieceColor::W)) return false;
+            else
+            {
+                // KQRBNP 
+                if ((a->get_name() == PieceName::K) && (b->get_name() != PieceName::K)) return true;
+                if ((a->get_name() == PieceName::Q) && (b->get_name() == PieceName::R)) return true;
+                if ((a->get_name() == PieceName::Q) && (b->get_name() == PieceName::B)) return true;
+                if ((a->get_name() == PieceName::Q) && (b->get_name() == PieceName::N)) return true;
+                if ((a->get_name() == PieceName::Q) && (b->get_name() == PieceName::P)) return true;
+                if ((a->get_name() == PieceName::R) && (b->get_name() == PieceName::B)) return true;
+                if ((a->get_name() == PieceName::R) && (b->get_name() == PieceName::N)) return true;
+                if ((a->get_name() == PieceName::R) && (b->get_name() == PieceName::P)) return true;
+                if ((a->get_name() == PieceName::B) && (b->get_name() == PieceName::N)) return true;
+                if ((a->get_name() == PieceName::B) && (b->get_name() == PieceName::P)) return true;
+                return false;
+            }
+        }
+    };
 }
 #endif

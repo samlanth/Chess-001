@@ -34,14 +34,16 @@ namespace chess
         if (pos.is_final(m))
             return true;
 
-        size_t          NPIECE;
-        ExactScore      sc;
-        uint8_t         dtc;
+        uint8_t NPIECE;
         std::vector<uint8_t>    v_dtc;
         std::vector<ExactScore> v_sc;
         std::vector<bool>       child_is_promo;
+        std::vector<bool>       child_is_capture;
+        std::vector<std::vector<uint16_t>>    mv_sq;
         std::string     tb_name;
         PieceColor      parent_color;
+        std::vector<uint16_t> v_sq;
+        std::vector<PieceID>  v_id;
 
         if (verbose) std::cout << "expanding position:\n" << pos.to_str() << std::endl << std::endl;
         while (!pos.is_final(m))
@@ -52,74 +54,115 @@ namespace chess
             v_dtc.clear(); 
             v_sc.clear(); 
             child_is_promo.clear();
-            for (size_t i = 0; i < m.size(); i++) { v_dtc.push_back(0); v_sc.push_back(ExactScore::UNKNOWN); child_is_promo.push_back(false); }
+            child_is_capture.clear();
+            mv_sq.clear();
+            for (size_t i = 0; i < m.size(); i++) 
+            { 
+                v_dtc.push_back(0); 
+                v_sc.push_back(ExactScore::UNKNOWN); 
+                child_is_promo.push_back(false); 
+                child_is_capture.push_back(false);
+            }
 
             for (size_t k = 0; k < m.size(); k++)
             {
                 pos.apply_move(m[k]);
 
-                std::vector<uint16_t> v_sq;
-                std::vector<PieceID>  v_id = pos.get_piecesID();        // sorted
+                v_sq.clear();
+                v_id.clear();
+                v_id = pos.get_piecesID();        // sorted
                 for (auto& id : v_id)
                 {
+                    //..repeat..
                     v_sq.push_back(pos.get_square_ofpiece(  _Piece::get(id)->get_name(), _Piece::get(id)->get_color()));
                 }
+                mv_sq.push_back(v_sq);
                 child_is_promo[k] = pos.is_last_move_promo();
+                child_is_capture[k] = pos.is_last_move_capture();
 
-                std::string tb_name = TB_Manager<PieceID, _BoardSize>::instance()->name_pieces(v_id, pos.get_color());
+                PieceSet<PieceID, _BoardSize> ps(PieceSet<PieceID, _BoardSize>::to_set(v_id, PieceColor::W), PieceSet<PieceID, _BoardSize>::to_set(v_id, PieceColor::B));
+                uint16_t nw = ps.count_all_piece(PieceColor::W);
+                uint16_t nb = ps.count_all_piece(PieceColor::B);
 
-                sc = ExactScore::UNKNOWN;
-                NPIECE = v_id.size();
-                assert((NPIECE >= 1) && (NPIECE <= 3));
+                std::string tb_name;
+                //assert((NPIECE >= 1) && (NPIECE <= 4));
 
-                if (NPIECE == 1)
+                if ((nw == 0) || (nb == 0))
                 {
-                    Tablebase<PieceID, _BoardSize, 1>* tb1 = TB_Manager<PieceID, _BoardSize>::instance()->find_1(tb_name);
-                    if (tb1 == nullptr) 
+                    NPIECE = 1; // case Xv0 0vX
+                    PieceSet<PieceID, _BoardSize> ps(v_id); ps.collapse_to_one_piece();
+                    tb_name = ps.name(pos.get_color());
+
+                    // collapse v_sq
+                    uint16_t sq0 = v_sq[0];
+                    v_sq.clear();
+                    v_sq.push_back(sq0);
+
+                    TablebaseBase<PieceID, _BoardSize>*  tb = TB_Manager<PieceID, _BoardSize>::instance()->find(NPIECE, tb_name);
+                    if (tb == nullptr)
                         return false;
-                    sc  = tb1->score(v_sq[0]);
-                    dtc = tb1->dtc(v_sq[0]);
+                    v_sc[k] = tb->score_v(v_sq);
+                    if ((child_is_promo[k]) || (child_is_capture[k]))
+                        v_dtc[k] = 0;
+                    else
+                        v_dtc[k] = tb->dtc_v(v_sq);
                 }
-                else if (NPIECE == 2)
+                else if (nw < nb)
                 {
-                    Tablebase<PieceID, _BoardSize, 2>* tb2 = TB_Manager<PieceID, _BoardSize>::instance()->find_2(tb_name);
-                    if (tb2 == nullptr) 
+                    assert(nw == pos.cnt_all_piece(PieceColor::W));
+                    assert(nb == pos.cnt_all_piece(PieceColor::B));
+             
+                    //ret_sc = reverse_score(t->score_v(reverse_order_sq(ret_child_sq, true, pos.cnt_all_piece(PieceColor::W), pos.cnt_all_piece(PieceColor::B), _BoardSize)));
+                    //ret_dtc = t->dtc_v(reverse_order_sq(ret_child_sq, true, pos.cnt_all_piece(PieceColor::W), pos.cnt_all_piece(PieceColor::B), _BoardSize));
+
+                    tb_name = TB_Manager<PieceID, _BoardSize>::instance()->name_pieces(v_id, pos.get_color());
+                    NPIECE = (uint8_t)v_id.size();
+                    TablebaseBase<PieceID, _BoardSize>*  tbsym = TB_Manager<PieceID, _BoardSize>::instance()->find_sym(tb_name);
+                    if (tbsym == nullptr)
                         return false;
-                    sc  = tb2->score(v_sq[0], v_sq[1]);
-                    dtc = tb2->dtc(v_sq[0], v_sq[1]);
-                }
-                else if (NPIECE == 3)
-                {
-                    Tablebase<PieceID, _BoardSize, 3>* tb3 = TB_Manager<PieceID, _BoardSize>::instance()->find_3(tb_name);
-                    if (tb3 == nullptr) 
-                        return false;
-                    sc  = tb3->score(v_sq[0], v_sq[1], v_sq[2]);
-                    dtc = tb3->dtc(v_sq[0], v_sq[1], v_sq[2]);
+                    //v_sc[k]  = reverse_score(tbsym->score_v(reverse_order_sq(v_sq, false, nw, nb, _BoardSize)));
+                    v_sc[k] = tbsym->score_v(v_sq);
+                    if ((child_is_promo[k]) || (child_is_capture[k]))
+                        v_dtc[k] = 0;
+                    else
+                        //v_dtc[k] = tbsym->dtc_v(reverse_order_sq(v_sq, false, nw, nb, _BoardSize));
+                        v_dtc[k] = tbsym->dtc_v(v_sq);
                 }
                 else
                 {
-                    assert(false);
-                }
-                v_sc[k]     = sc;
-                v_dtc[k]    = dtc;
+                    tb_name = TB_Manager<PieceID, _BoardSize>::instance()->name_pieces(v_id, pos.get_color());
+                    NPIECE = (uint8_t)v_id.size();
+                    TablebaseBase<PieceID, _BoardSize>*  tb = TB_Manager<PieceID, _BoardSize>::instance()->find(NPIECE, tb_name);
+                    if (tb == nullptr)
+                        return false;
+                    v_sc[k]  = tb->score_v(v_sq);
+                    if ((child_is_promo[k]) || (child_is_capture[k]))
+                        v_dtc[k] = 0;
+                    else
+                        v_dtc[k] = tb->dtc_v(v_sq);
+                };
 
                 pos.undo_move();
             }
 
             uint8_t ret_dtc; size_t ret_idx = 0;
-            sc = minmax_dtc<PieceID, _BoardSize>(parent_color, v_sc, v_dtc, child_is_promo, ret_dtc, ret_idx);
+            ExactScore sc = minmax_dtc<PieceID, _BoardSize>(parent_color, v_sc, v_dtc, child_is_promo, child_is_capture, ret_dtc, ret_idx);
             if (sc != ExactScore::UNKNOWN)
             {
-                pos.apply_move(m[ret_idx]);
-
                 if (verbose)
                 {
-                    std::cout << pos.to_str() << std::endl;
                     std::cout << "best: " << ret_idx << std::endl;
                     for (size_t i = 0; i < m.size(); i++)
                     {
-                        std::cout << i << " dtc:" << (int)v_dtc[i] << " sc:" << ExactScore_to_string(v_sc[i]) << " " << m[i].to_str() << std::endl;
+                        std::cout << i << " dtc:" << (int)v_dtc[i] << " sc:" << ExactScore_to_string(v_sc[i]) << " " << m[i].to_str() << " ";
+                        for (size_t z = 0; z < mv_sq[i].size(); z++) std::cout << (int) mv_sq[i][z] << " ";
+                        std::cout << std::endl;
                     }
+                }
+                pos.apply_move(m[ret_idx]);
+                if (verbose)
+                {
+                    std::cout << pos.to_str() << std::endl;
                 }
             }
             else

@@ -59,6 +59,8 @@
     <ClInclude Include="..\Tablebase\TBH_1.hpp" />
     <ClInclude Include="..\Tablebase\TBH_2.hpp" />
     <ClInclude Include="..\Tablebase\TBH_3.hpp" />
+    <ClInclude Include="..\Tablebase\TBH_4.hpp" />
+    <ClInclude Include="..\Tablebase\TB_4.hpp" />
     <ClInclude Include="..\Tablebase\TB_algo.hpp" />
     <ClInclude Include="..\Tablebase\TB_mgr.hpp" />
     <ClInclude Include="..\Tablebase\TB_util.hpp" />
@@ -136,6 +138,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\000Chess\000Base\Core\Chess-001;C:\000Lib\boost_1_64_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -162,6 +165,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\000Chess\000Base\Core\Chess-001;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

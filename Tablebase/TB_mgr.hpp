@@ -38,8 +38,11 @@ namespace chess
         bool add(const std::string& name, Tablebase<PieceID, _BoardSize, 2>* tb) const;
         bool add(const std::string& name, Tablebase<PieceID, _BoardSize, 3>* tb) const;
         bool add(const std::string& name, Tablebase<PieceID, _BoardSize, 4>* tb) const;
+        bool add_sym(const std::string& name, TablebaseBase<PieceID, _BoardSize>* tb) const;
  
         TablebaseBase<PieceID, _BoardSize>*  find(uint8_t n, const std::string& name) const;
+        TablebaseBase<PieceID, _BoardSize>*  find_sym(const std::string& name) const;
+
         Tablebase<PieceID, _BoardSize, 1>* find_1(const std::string& name) const;
         Tablebase<PieceID, _BoardSize, 2>* find_2(const std::string& name) const;
         Tablebase<PieceID, _BoardSize, 3>* find_3(const std::string& name) const;
@@ -53,7 +56,7 @@ namespace chess
             // assume sorted
             std::string str_pieces;
             if (color_to_play == PieceColor::W) str_pieces = "W_"; else str_pieces = "B_";
-            for (auto& vv : v) str_pieces += Piece<PieceID, _BoardSize>::to_str2(vv);
+            for (auto& vv : v) str_pieces += Piece<PieceID, _BoardSize>::to_str(vv, false); // Filesystem not case sensitive!
             return str_pieces;
         }
 
@@ -63,6 +66,7 @@ namespace chess
         mutable std::map<std::string, Tablebase<PieceID, _BoardSize, 2>*>  _tbs2;
         mutable std::map<std::string, Tablebase<PieceID, _BoardSize, 3>*>  _tbs3;
         mutable std::map<std::string, Tablebase<PieceID, _BoardSize, 4>*>  _tbs4;
+        mutable std::map<std::string, TablebaseBase<PieceID, _BoardSize>*> _tbsym;
 
         static std::unique_ptr<TB_Manager> _instance;
     };
@@ -79,6 +83,24 @@ namespace chess
         _tbs2.clear();
         _tbs3.clear();
         _tbs4.clear();
+        _tbsym.clear();
+    }
+
+    // add_sym
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool TB_Manager<PieceID, _BoardSize>::add_sym(const std::string& name, TablebaseBase<PieceID, _BoardSize>* tb) const
+    {
+        if (_instance == nullptr) return false;
+        {
+            auto iter = _tbsym.find(name);
+            if (iter == _tbsym.end())
+            {
+                _tbsym[name] = tb;
+                return true;
+            }
+            return true;
+        }
+        return false;
     }
 
     // add 1
@@ -147,6 +169,21 @@ namespace chess
             return true;
         }
         return false;
+    }
+
+    // find_sym
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline TablebaseBase<PieceID, _BoardSize>*  TB_Manager<PieceID, _BoardSize>::find_sym(const std::string& name) const
+    {
+        if (_instance == nullptr) return nullptr;
+        {
+            auto iter = _tbsym.find(name);
+            if (iter != _tbsym.end())
+            {
+                return _tbsym[name];
+            }
+        }
+        return nullptr;
     }
 
     // find
@@ -286,14 +323,16 @@ namespace chess
 
             if (nb == 0)                        
             { 
+                PieceSet<PieceID, _BoardSize> ps(vz[i].wset(), vz[i].bset()); ps.collapse_to_one_piece();
                 struct_tbh._t = TB_TYPE::tb_Xv0;
-                struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_1<PieceID, _BoardSize>(vz[i], TB_TYPE::tb_Xv0, option);
+                struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_1<PieceID, _BoardSize>(ps, TB_TYPE::tb_Xv0, option);
                 v.push_back(struct_tbh);
             } 
             else if (nw == 0)                   
             { 
+                PieceSet<PieceID, _BoardSize> ps(vz[i].wset(), vz[i].bset()); ps.collapse_to_one_piece();
                 struct_tbh._t = TB_TYPE::tb_0vX;
-                struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_1<PieceID, _BoardSize>(vz[i], TB_TYPE::tb_0vX, option);
+                struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_1<PieceID, _BoardSize>(ps, TB_TYPE::tb_0vX, option);
                 v.push_back(struct_tbh);
             }
             else if ((nb == 1) && (nw == 1))   
@@ -308,15 +347,41 @@ namespace chess
                 struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_2v1<PieceID, _BoardSize>(vz[i], option);                 
                 v.push_back(struct_tbh);
             }
-            else if ((nw == 1) && (nb == 2)) // child of the 2v2 
+            else if ((nw == 2) && (nb == 2)) // promo 2v2
             {
-                struct_tbh._t = TB_TYPE::tb_2v1_sym;
-                PieceSet<PieceID, _BoardSize> r({ vz[i].bset(), vz[i].wset() });
-                TBH<PieceID, _BoardSize>* tb3 = (TBH<PieceID, _BoardSize>*)new TBH_2v1<PieceID, _BoardSize>(r, option);
-                struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 3>(tb3, TB_TYPE::tb_2v1_sym, vz[i], option);
+                struct_tbh._t = TB_TYPE::tb_2v2;
+                struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_4<PieceID, _BoardSize>(vz[i], TB_TYPE::tb_2v2, option);
                 v.push_back(struct_tbh);
             }
+            else if ((nw == 1) && (nb == 2))
+            {
+                // master TB - lookup if not already in ...
+                struct_tbh._t = TB_TYPE::tb_2v1;
+                PieceSet<PieceID, _BoardSize> copy(vz[i].wset(), vz[i].bset());
+                PieceSet<PieceID, _BoardSize> r({ PieceSet<PieceID, _BoardSize>::reverse_color_set(copy.bset()), PieceSet<PieceID, _BoardSize>::reverse_color_set(copy.wset()) });
+                struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_2v1<PieceID, _BoardSize>(r, option);
+                assert(r.count_all_piece(PieceColor::W) >= r.count_all_piece(PieceColor::B));
+                struct_tbh._ps = r;
+                struct_tbh._nw = nb;    // reversed
+                struct_tbh._nb = nw;
+                v.push_back(struct_tbh);
+
+                // sym TB
+                STRUCT_TBH<PieceID, _BoardSize> struct_tbh_sym(vz[i]);
+                struct_tbh_sym._t = TB_TYPE::tb_2v1_sym;
+                struct_tbh_sym._nw = nw;
+                struct_tbh_sym._nb = nb;
+                struct_tbh_sym._tbh = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 3>(struct_tbh._tbh, TB_TYPE::tb_2v1_sym);
+                v.push_back(struct_tbh_sym);
+            }
+            else if ((nw == 1) && (nb == 3))
+            {
+            }
+            else if ((nw == 3) && (nb == 1))
+            {
+            }
         }
+
         return v;
     }
 

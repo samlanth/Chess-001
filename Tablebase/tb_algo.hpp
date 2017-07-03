@@ -17,6 +17,7 @@ namespace chess
                                     const std::vector<ExactScore>&  child_sc,
                                     const std::vector<uint8_t>&     child_dtc, 
                                     std::vector<bool>&              child_is_promo,
+                                    std::vector<bool>&              child_is_capture,
                                     uint8_t& ret_dtc, size_t& ret_idx)
     {
         if (child_sc.size() == 0)
@@ -32,7 +33,7 @@ namespace chess
             {
                 if (child_sc[i] == ExactScore::WIN)
                 {
-                    if (child_is_promo[i]) // 1 move promo and win
+                    if (child_is_promo[i] || child_is_capture[i]) // 1 move promo/capture and win
                     {
                         ret_dtc = child_dtc[i];
                         ret_idx = i;
@@ -62,7 +63,7 @@ namespace chess
                 if (child_sc[i] == ExactScore::UNKNOWN)
                 {
                     ret_idx = i;
-                    ret_dtc = child_dtc[i];
+                    ret_dtc = child_dtc[i]; //...max limit...
                     return ExactScore::UNKNOWN;
                 }
             }
@@ -77,12 +78,12 @@ namespace chess
                     size_t  min_idx = i;
                     for (size_t j = 0; j < child_sc.size(); j++)
                     {
-                        if ((child_sc[j] == ExactScore::DRAW) && (child_is_promo[j] == false))
+                        if ((child_sc[j] == ExactScore::DRAW) && (child_is_capture[j] == true))
                         {
                             if (init == false)
                             {
-                                min_dtc = child_dtc[i];
-                                min_idx = i;
+                                min_dtc = child_dtc[j]; // ...
+                                min_idx = j;
                                 init = true;
                             }
                             if (child_dtc[j] < min_dtc) { min_dtc = child_dtc[j]; min_idx = j; }
@@ -117,7 +118,7 @@ namespace chess
             {
                 if (child_sc[i] == ExactScore::LOSS)
                 {
-                    if (child_is_promo[i]) // 1 move promo and loss
+                    if (child_is_promo[i] || child_is_capture[i]) // 1 move promo/capture and loss
                     {
                         ret_dtc = child_dtc[i];
                         ret_idx = i;
@@ -164,12 +165,12 @@ namespace chess
                     size_t  min_idx = i;
                     for (size_t j = 0; j < child_sc.size(); j++)
                     {
-                        if ((child_sc[j] == ExactScore::DRAW) && (child_is_promo[j] == false))
+                        if ((child_sc[j] == ExactScore::DRAW) && (child_is_capture[j] == true))
                         {
                             if (init == false)
                             {
-                                min_dtc = child_dtc[i];
-                                min_idx = i;
+                                min_dtc = child_dtc[j];
+                                min_idx = j;
                                 init = true;
                             }
                             if (child_dtc[j] < min_dtc) { min_dtc = child_dtc[j]; min_idx = j; }
@@ -232,7 +233,7 @@ namespace chess
             legal_pos = true;
             for (size_t z = 0; z < NPIECE; z++)
             {
-                // square of pieces unique
+                // square where pieces are must be unique
                 if (std::count(sq.begin(), sq.end(), sq[z]) > 1) { legal_pos = false; break; }
             }
             if (!legal_pos) continue;
@@ -257,7 +258,7 @@ namespace chess
             else if (_work_board->can_capture_opposite_king(m, ret_idx))
             {
                 tb->set_dtc_v(sq, 1);
-                tb->set_score_v(sq, (_work_board->get_color() == PieceColor::W)?ExactScore::WIN : ExactScore::LOSS);
+                tb->set_score_v(sq, (_work_board->get_color() == PieceColor::W) ? ExactScore::WIN : ExactScore::LOSS);
                 tb->set_marker_v(sq, false);
                 n_changes++;
             }
@@ -276,15 +277,18 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
     uint64_t setup_marker_v(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb, Tablebase<PieceID, _BoardSize, NPIECE>* tb_oppo)
     {
-        ExactScore sc;
+        ExactScore  sc;
+        uint8_t     dtc;
         std::vector<uint16_t> sq;
         std::vector<Move<PieceID>>  m_child;
         std::vector<ExactScore>     child_sc;
         std::vector<uint8_t>        child_dtc;
         std::vector<bool>           child_is_promo;
+        std::vector<bool>           child_is_capture;
         std::vector<uint16_t>       child_sq;
         bool        exist_child_score;
         bool        isPromo;
+        bool        isCapture;
         bool        legal_pos;
         uint64_t    n_changes = 0;
 
@@ -295,7 +299,9 @@ namespace chess
             uint16_t    rank_ret_id;
             uint16_t    ret_instance;
         };
+        assert(tb->_NPIECE == NPIECE);
 
+        // tb->_pieces[z] is at ret_instance in the board    
         std::map<size_t, STRUCT_PIECE_RANK> map_piece_rank;
         PieceSet<PieceID, _BoardSize> piece_set(tb->_pieces);
         for (size_t z = 0; z < NPIECE; z++)
@@ -304,7 +310,7 @@ namespace chess
             r.rank_ret_id = piece_set.find_rank_index(z, r.ret_id, r.ret_count, r.ret_instance);
             if (r.ret_count > 0)
             {
-                map_piece_rank[z] = r; // copy
+                map_piece_rank[z] = r;
             }
             else
             {
@@ -328,37 +334,65 @@ namespace chess
             }
             if (!legal_pos) continue;
 
-            sc = tb->score_v(sq);
-            if (sc != ExactScore::UNKNOWN) continue;
-
             _work_board->clear();
             _work_board->set_color(color_to_play);
             for (size_t z = 0; z < NPIECE; z++)  _work_board->set_pieceid_at(tb->_piecesID[z], sq[z]);
-
             if (!_work_board->legal_pos()) 
                 continue;
+
+            sc = tb->score_v(sq);
+
+            // TEST
+            if (sq.size() == 4)
+            {
+                if ((std::count(sq.begin(), sq.end(), 35) == 1) &&
+                    (std::count(sq.begin(), sq.end(), 16) == 1) &&
+                    (std::count(sq.begin(), sq.end(), 15) == 1) &&
+                    (std::count(sq.begin(), sq.end(), 11) == 1) &&
+                    (std::count(tb->_piecesID.begin(), tb->_piecesID.end(), 11) == 1) &&
+                    (std::count(tb->_piecesID.begin(), tb->_piecesID.end(), 10) == 1) &&
+                    (std::count(tb->_piecesID.begin(), tb->_piecesID.end(), 5) == 1) &&
+                    (std::count(tb->_piecesID.begin(), tb->_piecesID.end(), 6) == 1))
+                {
+                    int debug = 1;
+                    debug++;
+                    std::cout << "setup_marker_v color:" << PieceColor_to_int(_work_board->get_color()) << " 11 15 35 16 " << ExactScore_to_string(sc) << std::endl;
+                }
+            }
+            if (sc != ExactScore::UNKNOWN) continue;
 
             m_child = _work_board->generate_moves();
             child_sc.clear();
             child_dtc.clear();
             child_is_promo.clear();
-            for (size_t j = 0; j < m_child.size(); j++) { child_sc.push_back(ExactScore::UNKNOWN); child_dtc.push_back(0); child_is_promo.push_back(false); }
+            child_is_capture.clear();
+            for (size_t j = 0; j < m_child.size(); j++) 
+            { 
+                child_sc.push_back(ExactScore::UNKNOWN); 
+                child_dtc.push_back(0); 
+                child_is_promo.push_back(false); 
+                child_is_capture.push_back(false);
+            }
 
             exist_child_score = false;
             for (size_t j = 0; j < m_child.size(); j++)
             {
                 _work_board->apply_move(m_child[j]);
                 isPromo = _work_board->is_last_move_promo();
-                if ((_work_board->cnt_all_piece() == tb->_NPIECE) && !isPromo)
+                isCapture = _work_board->is_last_move_capture();
+
+                if ((_work_board->cnt_all_piece() == tb->_NPIECE) && !isPromo) // exact same pieces as parent
                 {
                     for (size_t z = 0; z < NPIECE; z++)
                         child_sq[z] = _work_board->get_square_ofpiece_instance(Piece<PieceID, _BoardSize>::get(map_piece_rank[z].ret_id)->get_name(), Piece<PieceID, _BoardSize>::get(map_piece_rank[z].ret_id)->get_color(), map_piece_rank[z].ret_instance);
 
+                    // Set an ordering of repeating position in the TB
                     tb->order_sq_v(child_sq);
 
                     legal_pos = true;
                     for (size_t z = 0; z < NPIECE; z++)
                     {
+                        // pieces on unique square
                         if (std::count(child_sq.begin(), child_sq.end(), child_sq[z]) > 1) { legal_pos = false; break; }
                     }
                     if (!legal_pos)
@@ -368,17 +402,20 @@ namespace chess
                         continue;
                     }
 
+
                     child_sc[j]  = tb_oppo->score_v(child_sq);
                     child_dtc[j] = tb_oppo->dtc_v(child_sq);
+                    child_is_promo[j] = isPromo;
+                    child_is_capture[j] = isCapture;
                 }
                 else
                 {
-                    // child in other tb
-                    if (tbh->find_score_children_tb(*_work_board, _work_board->get_color(), isPromo, sc))
+                    if (tbh->find_score_children_tb(*_work_board, _work_board->get_color(), isPromo, isCapture, sc, dtc))
                     {
                         child_sc[j] = sc;
-                        child_dtc[j] = 0;
+                        child_dtc[j] = 0; // dtc;
                         child_is_promo[j] = isPromo;
+                        child_is_capture[j] = isCapture;
                     }
                     else
                     {
@@ -393,13 +430,23 @@ namespace chess
             if (sc == ExactScore::UNKNOWN)
             {
                 uint8_t ret_dtc; size_t ret_idx;
-                sc = minmax_dtc<PieceID, _BoardSize>(tb->color(), child_sc, child_dtc, child_is_promo, ret_dtc, ret_idx);
+                sc = minmax_dtc<PieceID, _BoardSize>(tb->color(), child_sc, child_dtc, child_is_promo, child_is_capture, ret_dtc, ret_idx);
                 if (sc != ExactScore::UNKNOWN)
                 {
-                    if (!child_is_promo[ret_idx])  
+                    if ((!child_is_promo[ret_idx]) && (child_is_capture[ret_idx]))
+                    {
+                        int debug = 1;
+                        debug++;
+                    }
+                    if ((!child_is_promo[ret_idx]) && (!child_is_capture[ret_idx]))
+                    {
+                        //assert(ret_dtc > 0); // draw...
                         tb->set_dtc_v(sq, 1 + ret_dtc);
-                    else 
+                    }
+                    else
+                    {
                         tb->set_dtc_v(sq, 1);
+                    }
                     tb->set_score_v(sq, sc);
                     tb->set_marker_v(sq, false);
                     n_changes++;
@@ -431,14 +478,17 @@ namespace chess
     {
         uint64_t n_changes = 0;
         ExactScore sc;
+        uint8_t dtc;
         std::vector<uint16_t> sq;
         std::vector<Move<PieceID>>  m;
         std::vector<Move<PieceID>>  m_child;
         std::vector<ExactScore>     child_sc;
         std::vector<uint8_t>        child_dtc;
         std::vector<bool>           child_is_promo;
+        std::vector<bool>           child_is_capture;
         std::vector<uint16_t>       child_sq;
         bool        isPromo;
+        bool        isCapture;
         bool        legal_pos;
 
         struct STRUCT_PIECE_RANK
@@ -457,7 +507,7 @@ namespace chess
             r.rank_ret_id = piece_set.find_rank_index(z, r.ret_id, r.ret_count, r.ret_instance);
             if (r.ret_count > 0)
             {
-                map_piece_rank[z] = r; // copy
+                map_piece_rank[z] = r;
             }
             else
             {
@@ -486,7 +536,6 @@ namespace chess
             _work_board->clear();
             _work_board->set_color(color_to_play);
             for (size_t z = 0; z < NPIECE; z++)  _work_board->set_pieceid_at(tb->_piecesID[z], sq[z]);
-
             if (!_work_board->legal_pos()) 
                 continue;
 
@@ -508,11 +557,20 @@ namespace chess
                 child_sc.clear();
                 child_dtc.clear();
                 child_is_promo.clear();
-                for (size_t j = 0; j < m_child.size(); j++) { child_sc.push_back(ExactScore::UNKNOWN); child_dtc.push_back(0); child_is_promo.push_back(false); }
+                child_is_capture.clear();
+                for (size_t j = 0; j < m_child.size(); j++) 
+                { 
+                    child_sc.push_back(ExactScore::UNKNOWN); 
+                    child_dtc.push_back(0); 
+                    child_is_promo.push_back(false); 
+                    child_is_capture.push_back(false);
+                }
                 for (size_t j = 0; j < m_child.size(); j++)
                 {
                     _work_board->apply_move(m_child[j]);
                     isPromo = _work_board->is_last_move_promo();
+                    isCapture = _work_board->is_last_move_capture();
+
                     if ((_work_board->cnt_all_piece() == tb->_NPIECE) && !isPromo) // same pieces as parent position
                     {
                         for (size_t z = 0; z < NPIECE; z++)
@@ -532,17 +590,24 @@ namespace chess
                             continue;
                         }
 
-                        child_sc[j] = tb_oppo->score_v(child_sq);
+                        child_sc[j]  = tb_oppo->score_v(child_sq);
                         child_dtc[j] = tb_oppo->dtc_v(child_sq);
+                        child_is_promo[j] = isPromo;
+                        child_is_capture[j] = isCapture;
                     }
                     else
                     {
-                        // child in other tb
-                        if (tbh->find_score_children_tb(*_work_board, _work_board->get_color(), isPromo, sc))
+                        if (tbh->find_score_children_tb(*_work_board, _work_board->get_color(), isPromo, isCapture, sc, dtc))
                         {
+                            if ((!isPromo) && (!isCapture))
+                            {
+                                assert(dtc > 0);
+                            }
+
                             child_sc[j] = sc;
-                            child_dtc[j] = 0;
+                            child_dtc[j] = 0; // dtc;
                             child_is_promo[j] = isPromo;
+                            child_is_capture[j] = isCapture;
                         }
                         else
                         {
@@ -553,10 +618,15 @@ namespace chess
                 }
 
                 uint8_t ret_dtc; size_t ret_idx;
-                sc = minmax_dtc<PieceID, _BoardSize>(tb->color(), child_sc, child_dtc, child_is_promo, ret_dtc, ret_idx);
+                sc = minmax_dtc<PieceID, _BoardSize>(tb->color(), child_sc, child_dtc, child_is_promo, child_is_capture, ret_dtc, ret_idx);
                 if (sc != ExactScore::UNKNOWN)
                 {
-                    if (!child_is_promo[ret_idx])  
+                    if ((!child_is_promo[ret_idx]) && (child_is_capture[ret_idx]))
+                    {
+                        int debug = 1;
+                        debug++;
+                    }
+                    if ((!child_is_promo[ret_idx]) && (!child_is_capture[ret_idx]))
                         tb->set_dtc_v(sq, 1 + ret_dtc);
                     else 
                         tb->set_dtc_v(sq, 1);
@@ -599,7 +669,7 @@ namespace chess
         uint64_t m = 0;
         int iter = 0;
 
-        if (verbose) { std::cout << TB_TYPE_to_string(tbh->tb_type()) << " " << tbh->pieceSet().name(PieceColor::W) << tbh->pieceSet().name(PieceColor::B) << " scanning mate in (0/1) ply ..." << std::endl; }
+        if (verbose) { std::cout << TB_TYPE_to_string(tbh->tb_type()) << " " << tbh->pieceSet().name(PieceColor::W) << " " << tbh->pieceSet().name(PieceColor::B) << " scanning mate in (0/1) ply ..." << std::endl; }
 
         n = set_mate_score_vv<PieceID, _BoardSize, NPIECE>(PieceColor::W, tb_W);
         if (verbose) { std::cout << "W (0/1 ply) mate positions:" << n << std::endl; }
@@ -650,6 +720,11 @@ namespace chess
         ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_B)->set_unknown_to_draw();
         TB_Manager<PieceID, _BoardSize>::instance()->add(((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_W)->name(), ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_W));
         TB_Manager<PieceID, _BoardSize>::instance()->add(((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_B)->name(), ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_B));
+        
+        // TEST save
+        ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_W)->save();
+        ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_B)->save();
+
         return true;
     }
 };

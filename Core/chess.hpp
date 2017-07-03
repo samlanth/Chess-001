@@ -27,13 +27,11 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize> class Board;
     template <typename PieceID, typename uint8_t _BoardSize> class Piece;
     template <typename PieceID> struct Move;
-    enum class ExactScore;
-    enum class PieceName;
-    enum class PieceColor;
 
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class Domain;
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class Partition;
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class PartitionManager;
+    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class BasePlayer;
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class PlayerFactory;
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class ConditionValuationNode;
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class FeatureManager;
@@ -43,24 +41,20 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class ConditionFeature_isOppositeKinCheck;
 
     template <typename T, int PARAM_NBIT> class ChessGeneticAlgorithm;
-    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class ConditionValuationNode;
-
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT, int WEIGHT_BOUND> class ChessCoEvolveGA;
+
     template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class GameDB;
     template <typename PieceID, typename uint8_t _BoardSize> struct GameDB_Record;
-    template <typename PieceID, typename uint8_t _BoardSize, typename TYPE_PARAM, int PARAM_NBIT> class BasePlayer;
 
     template <typename PieceID, typename uint8_t _BoardSize> class PieceSet;
+    template <typename PieceID, typename uint8_t _BoardSize> class TBH_Base;
     template <typename PieceID, typename uint8_t _BoardSize> class TBH;
     template <typename PieceID, typename uint8_t _BoardSize> class TBH_1;
     template <typename PieceID, typename uint8_t _BoardSize> class TBH_2;
     template <typename PieceID, typename uint8_t _BoardSize> class TBH_3;
-    template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_Xv0;
-    template <typename PieceID, typename uint8_t _BoardSize> class TBHandler_0vX;
-    template <typename PieceID, typename uint8_t _BoardSize> class TBH_1v1;
-    template <typename PieceID, typename uint8_t _BoardSize> class TBH_2v1;
-    template <typename PieceID, typename uint8_t _BoardSize> class TB_Manager;
     template <typename PieceID, typename uint8_t _BoardSize> struct STRUCT_TBH;
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE> class TBH_Symmetry;
+
 
 }
 
@@ -93,11 +87,13 @@ namespace chess
 #include "Tablebase/TBH_1.hpp"
 #include "Tablebase/TBH_2.hpp"
 #include "Tablebase/TBH_3.hpp"
+#include "Tablebase/TBH_4.hpp"
 #include "Tablebase/TB_util.hpp"
 #include "Tablebase/TB_mgr.hpp"
 #include "Tablebase/TB_1.hpp"
 #include "Tablebase/TB_2.hpp"
 #include "Tablebase/TB_3.hpp"
+#include "Tablebase/TB_4.hpp"
 #include "Tablebase/TB_algo.hpp"
 
 #endif
