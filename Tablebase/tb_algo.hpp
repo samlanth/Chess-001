@@ -18,6 +18,7 @@ namespace chess
                                     const std::vector<uint8_t>&     child_dtc, 
                                     std::vector<bool>&              child_is_promo,
                                     std::vector<bool>&              child_is_capture,
+                                    std::vector<bool>&              child_is_pawn,
                                     uint8_t& ret_dtc, size_t& ret_idx)
     {
         if (child_sc.size() == 0)
@@ -72,17 +73,17 @@ namespace chess
                 // draw
                 if (child_sc[i] == ExactScore::DRAW)
                 {
-                    // seek a capture
                     bool init = false;
                     uint8_t min_dtc = child_dtc[i];
                     size_t  min_idx = i;
                     for (size_t j = 0; j < child_sc.size(); j++)
                     {
-                        if ((child_sc[j] == ExactScore::DRAW) && (child_is_capture[j] == true))
+                        // seek a capture or pawn move
+                        if ((child_sc[j] == ExactScore::DRAW) && ((child_is_capture[j] == true)|| (child_is_pawn[j] == true)))
                         {
                             if (init == false)
                             {
-                                min_dtc = child_dtc[j]; // ...
+                                min_dtc = child_dtc[j]; 
                                 min_idx = j;
                                 init = true;
                             }
@@ -159,13 +160,13 @@ namespace chess
             {
                 if (child_sc[i] == ExactScore::DRAW)
                 {
-                    // seek a capture
+                    // seek a capture or pawn move
                     bool init = false;
                     uint8_t min_dtc = child_dtc[i];
                     size_t  min_idx = i;
                     for (size_t j = 0; j < child_sc.size(); j++)
                     {
-                        if ((child_sc[j] == ExactScore::DRAW) && (child_is_capture[j] == true))
+                        if ((child_sc[j] == ExactScore::DRAW) && ((child_is_capture[j] == true) || (child_is_pawn[j] == true)))
                         {
                             if (init == false)
                             {
@@ -285,10 +286,12 @@ namespace chess
         std::vector<uint8_t>        child_dtc;
         std::vector<bool>           child_is_promo;
         std::vector<bool>           child_is_capture;
+        std::vector<bool>           child_is_pawn;
         std::vector<uint16_t>       child_sq;
         bool        exist_child_score;
         bool        isPromo;
         bool        isCapture;
+        bool        isPawn;
         bool        legal_pos;
         uint64_t    n_changes = 0;
 
@@ -341,24 +344,6 @@ namespace chess
                 continue;
 
             sc = tb->score_v(sq);
-
-            // TEST
-            if (sq.size() == 4)
-            {
-                if ((std::count(sq.begin(), sq.end(), 35) == 1) &&
-                    (std::count(sq.begin(), sq.end(), 16) == 1) &&
-                    (std::count(sq.begin(), sq.end(), 15) == 1) &&
-                    (std::count(sq.begin(), sq.end(), 11) == 1) &&
-                    (std::count(tb->_piecesID.begin(), tb->_piecesID.end(), 11) == 1) &&
-                    (std::count(tb->_piecesID.begin(), tb->_piecesID.end(), 10) == 1) &&
-                    (std::count(tb->_piecesID.begin(), tb->_piecesID.end(), 5) == 1) &&
-                    (std::count(tb->_piecesID.begin(), tb->_piecesID.end(), 6) == 1))
-                {
-                    int debug = 1;
-                    debug++;
-                    std::cout << "setup_marker_v color:" << PieceColor_to_int(_work_board->get_color()) << " 11 15 35 16 " << ExactScore_to_string(sc) << std::endl;
-                }
-            }
             if (sc != ExactScore::UNKNOWN) continue;
 
             m_child = _work_board->generate_moves();
@@ -366,12 +351,14 @@ namespace chess
             child_dtc.clear();
             child_is_promo.clear();
             child_is_capture.clear();
+            child_is_pawn.clear();
             for (size_t j = 0; j < m_child.size(); j++) 
             { 
                 child_sc.push_back(ExactScore::UNKNOWN); 
                 child_dtc.push_back(0); 
                 child_is_promo.push_back(false); 
                 child_is_capture.push_back(false);
+                child_is_pawn.push_back(false);
             }
 
             exist_child_score = false;
@@ -380,6 +367,7 @@ namespace chess
                 _work_board->apply_move(m_child[j]);
                 isPromo = _work_board->is_last_move_promo();
                 isCapture = _work_board->is_last_move_capture();
+                isPawn = _work_board->is_last_move_pawn();
 
                 if ((_work_board->cnt_all_piece() == tb->_NPIECE) && !isPromo) // exact same pieces as parent
                 {
@@ -407,6 +395,7 @@ namespace chess
                     child_dtc[j] = tb_oppo->dtc_v(child_sq);
                     child_is_promo[j] = isPromo;
                     child_is_capture[j] = isCapture;
+                    child_is_pawn[j] = isPawn;
                 }
                 else
                 {
@@ -416,6 +405,7 @@ namespace chess
                         child_dtc[j] = 0; // dtc;
                         child_is_promo[j] = isPromo;
                         child_is_capture[j] = isCapture;
+                        child_is_pawn[j] = isPawn;
                     }
                     else
                     {
@@ -430,7 +420,7 @@ namespace chess
             if (sc == ExactScore::UNKNOWN)
             {
                 uint8_t ret_dtc; size_t ret_idx;
-                sc = minmax_dtc<PieceID, _BoardSize>(tb->color(), child_sc, child_dtc, child_is_promo, child_is_capture, ret_dtc, ret_idx);
+                sc = minmax_dtc<PieceID, _BoardSize>(tb->color(), child_sc, child_dtc, child_is_promo, child_is_capture, child_is_pawn, ret_dtc, ret_idx);
                 if (sc != ExactScore::UNKNOWN)
                 {
                     if ((!child_is_promo[ret_idx]) && (child_is_capture[ret_idx]))
@@ -440,7 +430,6 @@ namespace chess
                     }
                     if ((!child_is_promo[ret_idx]) && (!child_is_capture[ret_idx]))
                     {
-                        //assert(ret_dtc > 0); // draw...
                         tb->set_dtc_v(sq, 1 + ret_dtc);
                     }
                     else
@@ -486,9 +475,11 @@ namespace chess
         std::vector<uint8_t>        child_dtc;
         std::vector<bool>           child_is_promo;
         std::vector<bool>           child_is_capture;
+        std::vector<bool>           child_is_pawn;
         std::vector<uint16_t>       child_sq;
         bool        isPromo;
         bool        isCapture;
+        bool        isPawn;
         bool        legal_pos;
 
         struct STRUCT_PIECE_RANK
@@ -558,18 +549,21 @@ namespace chess
                 child_dtc.clear();
                 child_is_promo.clear();
                 child_is_capture.clear();
+                child_is_pawn.clear();
                 for (size_t j = 0; j < m_child.size(); j++) 
                 { 
                     child_sc.push_back(ExactScore::UNKNOWN); 
                     child_dtc.push_back(0); 
                     child_is_promo.push_back(false); 
                     child_is_capture.push_back(false);
+                    child_is_pawn.push_back(false);
                 }
                 for (size_t j = 0; j < m_child.size(); j++)
                 {
                     _work_board->apply_move(m_child[j]);
                     isPromo = _work_board->is_last_move_promo();
                     isCapture = _work_board->is_last_move_capture();
+                    isPawn = _work_board->is_last_move_pawn();
 
                     if ((_work_board->cnt_all_piece() == tb->_NPIECE) && !isPromo) // same pieces as parent position
                     {
@@ -594,20 +588,17 @@ namespace chess
                         child_dtc[j] = tb_oppo->dtc_v(child_sq);
                         child_is_promo[j] = isPromo;
                         child_is_capture[j] = isCapture;
+                        child_is_pawn[j] = isPawn;
                     }
                     else
                     {
                         if (tbh->find_score_children_tb(*_work_board, _work_board->get_color(), isPromo, isCapture, sc, dtc))
                         {
-                            if ((!isPromo) && (!isCapture))
-                            {
-                                assert(dtc > 0);
-                            }
-
                             child_sc[j] = sc;
                             child_dtc[j] = 0; // dtc;
                             child_is_promo[j] = isPromo;
                             child_is_capture[j] = isCapture;
+                            child_is_pawn[j] = isPawn;
                         }
                         else
                         {
@@ -618,7 +609,7 @@ namespace chess
                 }
 
                 uint8_t ret_dtc; size_t ret_idx;
-                sc = minmax_dtc<PieceID, _BoardSize>(tb->color(), child_sc, child_dtc, child_is_promo, child_is_capture, ret_dtc, ret_idx);
+                sc = minmax_dtc<PieceID, _BoardSize>(tb->color(), child_sc, child_dtc, child_is_promo, child_is_capture, child_is_pawn, ret_dtc, ret_idx);
                 if (sc != ExactScore::UNKNOWN)
                 {
                     if ((!child_is_promo[ret_idx]) && (child_is_capture[ret_idx]))

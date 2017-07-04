@@ -75,6 +75,7 @@ namespace chess
         ExactScore minmax_score(const std::vector<_Move>& m);
         bool is_last_move_promo() const;
         bool is_last_move_capture() const;
+        bool is_last_move_pawn() const;
 
         const std::vector<_Move>    generate_moves(bool is_recursive_call = false);
         const std::list<_Move>      get_history_moves() const { return _history_moves; }
@@ -1108,6 +1109,17 @@ namespace chess
         if (_history_moves.size() == 0) return false;
         _Move mv = last_history_move();
         if (mv.prev_dst_id != Piece<PieceID, _BoardSize>::empty_id())
+            return true;
+        return false;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool Board<PieceID, _BoardSize>::is_last_move_pawn() const
+    {
+        if (_history_moves.size() == 0) return false;
+        _Move mv = last_history_move();
+        PieceID P_id = _Piece::get_id(PieceName::P, get_opposite_color());
+        if (mv.prev_src_id == P_id)
             return true;
         return false;
     }

@@ -39,6 +39,7 @@ namespace chess
         std::vector<ExactScore> v_sc;
         std::vector<bool>       child_is_promo;
         std::vector<bool>       child_is_capture;
+        std::vector<bool>       child_is_pawn;
         std::vector<std::vector<uint16_t>>    mv_sq;
         std::string     tb_name;
         PieceColor      parent_color;
@@ -55,6 +56,7 @@ namespace chess
             v_sc.clear(); 
             child_is_promo.clear();
             child_is_capture.clear();
+            child_is_pawn.clear();
             mv_sq.clear();
             for (size_t i = 0; i < m.size(); i++) 
             { 
@@ -62,6 +64,7 @@ namespace chess
                 v_sc.push_back(ExactScore::UNKNOWN); 
                 child_is_promo.push_back(false); 
                 child_is_capture.push_back(false);
+                child_is_pawn.push_back(false);
             }
 
             for (size_t k = 0; k < m.size(); k++)
@@ -79,6 +82,7 @@ namespace chess
                 mv_sq.push_back(v_sq);
                 child_is_promo[k] = pos.is_last_move_promo();
                 child_is_capture[k] = pos.is_last_move_capture();
+                child_is_pawn[k] = pos.is_last_move_pawn();
 
                 PieceSet<PieceID, _BoardSize> ps(PieceSet<PieceID, _BoardSize>::to_set(v_id, PieceColor::W), PieceSet<PieceID, _BoardSize>::to_set(v_id, PieceColor::B));
                 uint16_t nw = ps.count_all_piece(PieceColor::W);
@@ -111,21 +115,15 @@ namespace chess
                 {
                     assert(nw == pos.cnt_all_piece(PieceColor::W));
                     assert(nb == pos.cnt_all_piece(PieceColor::B));
-             
-                    //ret_sc = reverse_score(t->score_v(reverse_order_sq(ret_child_sq, true, pos.cnt_all_piece(PieceColor::W), pos.cnt_all_piece(PieceColor::B), _BoardSize)));
-                    //ret_dtc = t->dtc_v(reverse_order_sq(ret_child_sq, true, pos.cnt_all_piece(PieceColor::W), pos.cnt_all_piece(PieceColor::B), _BoardSize));
-
                     tb_name = TB_Manager<PieceID, _BoardSize>::instance()->name_pieces(v_id, pos.get_color());
                     NPIECE = (uint8_t)v_id.size();
                     TablebaseBase<PieceID, _BoardSize>*  tbsym = TB_Manager<PieceID, _BoardSize>::instance()->find_sym(tb_name);
                     if (tbsym == nullptr)
                         return false;
-                    //v_sc[k]  = reverse_score(tbsym->score_v(reverse_order_sq(v_sq, false, nw, nb, _BoardSize)));
                     v_sc[k] = tbsym->score_v(v_sq);
                     if ((child_is_promo[k]) || (child_is_capture[k]))
                         v_dtc[k] = 0;
                     else
-                        //v_dtc[k] = tbsym->dtc_v(reverse_order_sq(v_sq, false, nw, nb, _BoardSize));
                         v_dtc[k] = tbsym->dtc_v(v_sq);
                 }
                 else
@@ -146,7 +144,7 @@ namespace chess
             }
 
             uint8_t ret_dtc; size_t ret_idx = 0;
-            ExactScore sc = minmax_dtc<PieceID, _BoardSize>(parent_color, v_sc, v_dtc, child_is_promo, child_is_capture, ret_dtc, ret_idx);
+            ExactScore sc = minmax_dtc<PieceID, _BoardSize>(parent_color, v_sc, v_dtc, child_is_promo, child_is_capture, child_is_pawn, ret_dtc, ret_idx);
             if (sc != ExactScore::UNKNOWN)
             {
                 if (verbose)

@@ -3,7 +3,7 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// TBH<> Handler of a 2 TB(TableBase) (White or Black to play a PieceSet) and childrens build/load/save hiearchy 
+// TBH<> Handler of 2 TB(TableBase) (White or Black to play a PieceSet) and childrens build/load/save hiearchy 
 // EX: KPvK=>KQvK(=>KvK, PvK, KPv0), KvK, KPv0, PvK
 //
 //
@@ -40,6 +40,7 @@ namespace chess
         friend class TBH_Symmetry<PieceID, _BoardSize, 1>;
         friend class TBH_Symmetry<PieceID, _BoardSize, 2>;
         friend class TBH_Symmetry<PieceID, _BoardSize, 3>;
+        friend class TBH_Symmetry<PieceID, _BoardSize, 4>;
 
     public:
         TBH(TB_TYPE t, const PieceSet<PieceID, _BoardSize>& ps, uint8_t np, TBH_OPTION option) 

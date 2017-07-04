@@ -91,16 +91,13 @@ namespace chess
     bool TB_Manager<PieceID, _BoardSize>::add_sym(const std::string& name, TablebaseBase<PieceID, _BoardSize>* tb) const
     {
         if (_instance == nullptr) return false;
+
+        auto iter = _tbsym.find(name);
+        if (iter == _tbsym.end())
         {
-            auto iter = _tbsym.find(name);
-            if (iter == _tbsym.end())
-            {
-                _tbsym[name] = tb;
-                return true;
-            }
-            return true;
+            _tbsym[name] = tb;
         }
-        return false;
+        return true;
     }
 
     // add 1
@@ -108,16 +105,13 @@ namespace chess
     inline bool TB_Manager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 1>* tb) const
     {
         if (_instance == nullptr) return false;
+
+        auto iter = _tbs1.find(name);
+        if (iter == _tbs1.end())
         {
-            auto iter = _tbs1.find(name);
-            if (iter == _tbs1.end())
-            {
-                _tbs1[name] = tb;
-                return true;
-            }
-            return true;
+            _tbs1[name] = tb;
         }
-        return false;
+        return true;
     }
 
     // add 2
@@ -125,16 +119,13 @@ namespace chess
     inline bool TB_Manager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 2>* tb) const
     {
         if (_instance == nullptr) return false;
+
+        auto iter = _tbs2.find(name);
+        if (iter == _tbs2.end())
         {
-            auto iter = _tbs2.find(name);
-            if (iter == _tbs2.end())
-            {
-                _tbs2[name] = tb;
-                return true;
-            }
-            return true;
+            _tbs2[name] = tb;
         }
-        return false;
+        return true;
     }
 
     // add 3
@@ -142,16 +133,13 @@ namespace chess
     inline bool TB_Manager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 3>* tb) const
     {
         if (_instance == nullptr) return false;
+
+        auto iter = _tbs3.find(name);
+        if (iter == _tbs3.end())
         {
-            auto iter = _tbs3.find(name);
-            if (iter == _tbs3.end())
-            {
-                _tbs3[name] = tb;
-                return true;
-            }
-            return true;
+            _tbs3[name] = tb;
         }
-        return false;
+        return true;
     }
 
     // add 4
@@ -159,16 +147,13 @@ namespace chess
     inline bool TB_Manager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 4>* tb) const
     {
         if (_instance == nullptr) return false;
+
+        auto iter = _tbs4.find(name);
+        if (iter == _tbs4.end())
         {
-            auto iter = _tbs4.find(name);
-            if (iter == _tbs4.end())
-            {
-                _tbs4[name] = tb;
-                return true;
-            }
-            return true;
+            _tbs4[name] = tb;
         }
-        return false;
+        return true;
     }
 
     // find_sym
@@ -176,12 +161,11 @@ namespace chess
     inline TablebaseBase<PieceID, _BoardSize>*  TB_Manager<PieceID, _BoardSize>::find_sym(const std::string& name) const
     {
         if (_instance == nullptr) return nullptr;
+
+        auto iter = _tbsym.find(name);
+        if (iter != _tbsym.end())
         {
-            auto iter = _tbsym.find(name);
-            if (iter != _tbsym.end())
-            {
-                return _tbsym[name];
-            }
+            return _tbsym[name];
         }
         return nullptr;
     }
@@ -191,40 +175,40 @@ namespace chess
     inline TablebaseBase<PieceID, _BoardSize>*  TB_Manager<PieceID, _BoardSize>::find(uint8_t n, const std::string& name) const
     {
         if (_instance == nullptr) return nullptr;
+
+        if (n == 1)
         {
-            if (n == 1)
+            auto iter = _tbs1.find(name);
+            if (iter != _tbs1.end())
             {
-                auto iter = _tbs1.find(name);
-                if (iter != _tbs1.end())
-                {
-                    return (TablebaseBase<PieceID, _BoardSize>*)_tbs1[name];
-                }
-            }
-            else if (n == 2)
-            {
-                auto iter = _tbs2.find(name);
-                if (iter != _tbs2.end())
-                {
-                    return (TablebaseBase<PieceID, _BoardSize>*)_tbs2[name];
-                }
-            }
-            else if (n == 3)
-            {
-                auto iter = _tbs3.find(name);
-                if (iter != _tbs3.end())
-                {
-                    return (TablebaseBase<PieceID, _BoardSize>*)_tbs3[name];
-                }
-            }
-            else if (n == 4)
-            {
-                auto iter = _tbs4.find(name);
-                if (iter != _tbs4.end())
-                {
-                    return (TablebaseBase<PieceID, _BoardSize>*)_tbs4[name];
-                }
+                return (TablebaseBase<PieceID, _BoardSize>*)_tbs1[name];
             }
         }
+        else if (n == 2)
+        {
+            auto iter = _tbs2.find(name);
+            if (iter != _tbs2.end())
+            {
+                return (TablebaseBase<PieceID, _BoardSize>*)_tbs2[name];
+            }
+        }
+        else if (n == 3)
+        {
+            auto iter = _tbs3.find(name);
+            if (iter != _tbs3.end())
+            {
+                return (TablebaseBase<PieceID, _BoardSize>*)_tbs3[name];
+            }
+        }
+        else if (n == 4)
+        {
+            auto iter = _tbs4.find(name);
+            if (iter != _tbs4.end())
+            {
+                return (TablebaseBase<PieceID, _BoardSize>*)_tbs4[name];
+            }
+        }
+
         return nullptr;
     }
 
@@ -233,12 +217,11 @@ namespace chess
     inline Tablebase<PieceID, _BoardSize, 1>*  TB_Manager<PieceID, _BoardSize>::find_1(const std::string& name) const
     {
         if (_instance == nullptr) return nullptr;
+
+        auto iter = _tbs1.find(name);
+        if (iter != _tbs1.end())
         {
-            auto iter = _tbs1.find(name);
-            if (iter != _tbs1.end())
-            {
-                return _tbs1[name];
-            }
+            return _tbs1[name];
         }
         return nullptr;
     }
@@ -248,12 +231,11 @@ namespace chess
     inline Tablebase<PieceID, _BoardSize, 2>*  TB_Manager<PieceID, _BoardSize>::find_2(const std::string& name) const
     {
         if (_instance == nullptr) return nullptr;
+
+        auto iter = _tbs2.find(name);
+        if (iter != _tbs2.end())
         {
-            auto iter = _tbs2.find(name);
-            if (iter != _tbs2.end())
-            {
-                return _tbs2[name];
-            }
+            return _tbs2[name];
         }
         return nullptr;
     }
@@ -263,12 +245,11 @@ namespace chess
     inline Tablebase<PieceID, _BoardSize, 3>*  TB_Manager<PieceID, _BoardSize>::find_3(const std::string& name) const
     {
         if (_instance == nullptr) return nullptr;
+
+        auto iter = _tbs3.find(name);
+        if (iter != _tbs3.end())
         {
-            auto iter = _tbs3.find(name);
-            if (iter != _tbs3.end())
-            {
-                return _tbs3[name];
-            }
+            return _tbs3[name];
         }
         return nullptr;
     }
@@ -278,12 +259,11 @@ namespace chess
     inline Tablebase<PieceID, _BoardSize, 4>*  TB_Manager<PieceID, _BoardSize>::find_4(const std::string& name) const
     {
         if (_instance == nullptr) return nullptr;
+
+        auto iter = _tbs4.find(name);
+        if (iter != _tbs4.end())
         {
-            auto iter = _tbs4.find(name);
-            if (iter != _tbs4.end())
-            {
-                return _tbs4[name];
-            }
+            return _tbs4[name];
         }
         return nullptr;
     }
@@ -376,9 +356,30 @@ namespace chess
             }
             else if ((nw == 1) && (nb == 3))
             {
+                // master TB - lookup if not already in ...
+                struct_tbh._t = TB_TYPE::tb_3v1;
+                PieceSet<PieceID, _BoardSize> copy(vz[i].wset(), vz[i].bset());
+                PieceSet<PieceID, _BoardSize> r({ PieceSet<PieceID, _BoardSize>::reverse_color_set(copy.bset()), PieceSet<PieceID, _BoardSize>::reverse_color_set(copy.wset()) });
+                struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_4<PieceID, _BoardSize>(r, TB_TYPE::tb_3v1, option);
+                assert(r.count_all_piece(PieceColor::W) >= r.count_all_piece(PieceColor::B));
+                struct_tbh._ps = r;
+                struct_tbh._nw = nb;    // reversed
+                struct_tbh._nb = nw;
+                v.push_back(struct_tbh);
+
+                // sym TB
+                STRUCT_TBH<PieceID, _BoardSize> struct_tbh_sym(vz[i]);
+                struct_tbh_sym._t = TB_TYPE::tb_3v1_sym;
+                struct_tbh_sym._nw = nw;
+                struct_tbh_sym._nb = nb;
+                struct_tbh_sym._tbh = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 4>(struct_tbh._tbh, TB_TYPE::tb_3v1_sym);
+                v.push_back(struct_tbh_sym);
             }
             else if ((nw == 3) && (nb == 1))
             {
+                struct_tbh._t = TB_TYPE::tb_3v1;
+                struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_4<PieceID, _BoardSize>(vz[i], TB_TYPE::tb_3v1, option);
+                v.push_back(struct_tbh);
             }
         }
 

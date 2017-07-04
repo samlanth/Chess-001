@@ -25,7 +25,7 @@ namespace chess
         tb_4v1, tb_3v2, tb_4v1_sym, tb_3v2_sym,
         tb_5v1, tb_4v2, tb_3v3, tb_5v1_sym, tb_4v2_sym,
         tb_6v1, tb_5v2, tb_4v3, tb_6v1_sym, tb_5v2_sym, tb_4v3_sym,
-        tb_7v1, tb_6v2, tb_5v3, tb_4v4,
+        tb_7v1, tb_6v2, tb_5v3, tb_4v4, //...
         tb_8v1, tb_7v2, tb_6v3, tb_5v4,
         tb_9v1, tb_8v2, tb_7v3, tb_6v4, tb_5v5
     };
@@ -88,6 +88,7 @@ namespace chess
         friend class TBH_Symmetry<PieceID, _BoardSize, 1>;
         friend class TBH_Symmetry<PieceID, _BoardSize, 2>;
         friend class TBH_Symmetry<PieceID, _BoardSize, 3>;
+        friend class TBH_Symmetry<PieceID, _BoardSize, 4>;
 
         template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
         uint64_t friend set_mate_score_v(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb);

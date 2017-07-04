@@ -18,9 +18,24 @@ int main(int argc, char* argv[])
 {
     srand((unsigned int)time(NULL));
 
+    {
+        std::vector<uint8_t> ws1;
+        std::vector<uint8_t> bs1;
+        ws1.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
+        ws1.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::P, chess::PieceColor::W));
+        bs1.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
+        bs1.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::P, chess::PieceColor::B));
+        std::vector<std::pair<uint8_t, uint8_t>> sw1 = chess::PieceSet<uint8_t, 6>::to_set(ws1);
+        std::vector<std::pair<uint8_t, uint8_t>> sb1 = chess::PieceSet<uint8_t, 6>::to_set(bs1);
+        chess::PieceSet<uint8_t, 6> ps1(sw1, sb1);
+        std::vector<chess::PieceSet<uint8_t, 6>> vp = ps1.get_all_child();
+        assert(vp.size() == 10);
+    }
+
     // Test TB
     {
         bool DO_BUILD = false;
+
         {
             chess::TB_Manager<uint8_t, 6>::instance()->clear();
             std::vector<uint8_t> ws;
@@ -122,7 +137,6 @@ int main(int argc, char* argv[])
             std::vector<std::pair<uint8_t, uint8_t>> sb4 = chess::PieceSet<uint8_t, 6>::to_set(b4);
             chess::PieceSet<uint8_t, 6> ps4(sw4, sb4);
             chess::TBH_4<uint8_t, 6> TBH_4X(ps4, chess::TB_TYPE::tb_2v2, chess::TBH_OPTION::try_load_on_build);
-            std::vector<chess::PieceSet<uint8_t, 6>> vz = ps4.get_all_child();
             if (DO_BUILD) TBH_4X.build(1);
             if (DO_BUILD) TBH_4X.save();
             TBH_4X.load();
@@ -140,13 +154,30 @@ int main(int argc, char* argv[])
             std::vector<std::pair<uint8_t, uint8_t>> sb4 = chess::PieceSet<uint8_t, 6>::to_set(b4);
             chess::PieceSet<uint8_t, 6> ps4(sw4, sb4);
             chess::TBH_4<uint8_t, 6> TBH_4X(ps4, chess::TB_TYPE::tb_2v2, chess::TBH_OPTION::try_load_on_build);
-            std::vector<chess::PieceSet<uint8_t, 6>> vz = ps4.get_all_child();
             if (DO_BUILD) TBH_4X.build(1);
             if (DO_BUILD) TBH_4X.save();
             TBH_4X.load();
         }
+
+        // KPPvK
         {
-            // KQvKP
+            std::vector<uint8_t> w4;
+            std::vector<uint8_t> b4;
+            w4.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
+            w4.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::P, chess::PieceColor::W));
+            w4.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::P, chess::PieceColor::W));
+            b4.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
+            std::vector<std::pair<uint8_t, uint8_t>> sw4 = chess::PieceSet<uint8_t, 6>::to_set(w4);
+            std::vector<std::pair<uint8_t, uint8_t>> sb4 = chess::PieceSet<uint8_t, 6>::to_set(b4);
+            chess::PieceSet<uint8_t, 6> ps4(sw4, sb4);
+            chess::TBH_4<uint8_t, 6> TBH_KPPvK(ps4, chess::TB_TYPE::tb_3v1, chess::TBH_OPTION::try_load_on_build);
+            if (DO_BUILD) TBH_KPPvK.build(1);
+            if (DO_BUILD) TBH_KPPvK.save();
+            TBH_KPPvK.load();
+        }
+
+        // KQvKP
+        {
             std::vector<uint8_t> w4;
             std::vector<uint8_t> b4;
             w4.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
@@ -221,6 +252,25 @@ int main(int argc, char* argv[])
         if (DO_BUILD) TBH_KPvKP.build(1);
         if (DO_BUILD) TBH_KPvKP.save();
         TBH_KPvKP.load();
+
+        // KPPvK
+        {
+            std::vector<uint8_t> w4;
+            std::vector<uint8_t> b4;
+            w4.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
+            w4.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::P, chess::PieceColor::W));
+            w4.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::P, chess::PieceColor::W));
+            b4.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
+            b4.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::P, chess::PieceColor::B));
+            std::vector<std::pair<uint8_t, uint8_t>> sw4 = chess::PieceSet<uint8_t, 6>::to_set(w4);
+            std::vector<std::pair<uint8_t, uint8_t>> sb4 = chess::PieceSet<uint8_t, 6>::to_set(b4);
+            chess::PieceSet<uint8_t, 6> ps4(sw4, sb4);
+            chess::TBH_4<uint8_t, 6> TBH_KPPvK(ps4, chess::TB_TYPE::tb_3v1, chess::TBH_OPTION::try_load_on_build);
+            std::vector<chess::PieceSet<uint8_t, 6>> vz = ps4.get_all_child();
+            if (DO_BUILD) TBH_KPPvK.build(1);
+            if (DO_BUILD) TBH_KPPvK.save();
+            TBH_KPPvK.load();
+        }
 
         // expand_position()
         for (int i = 0; i < 1; i++)
