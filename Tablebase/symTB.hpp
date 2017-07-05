@@ -36,9 +36,13 @@ namespace chess
                     TB_Manager<PieceID, _BoardSize>::instance()->add_sym(nm, this);
                 }
             }
+            //else
+            //{
+            //    return false;
+            //}
             return true;
         }
-        bool save() const           override { return true; }
+        bool save() const           override { return true; /*_refTB->save();*/ }
         void print() const          override {}
         uint8_t getNPIECE() const   override { return _refTB->getNPIECE(); }
 
@@ -167,6 +171,10 @@ namespace chess
                     TB_Manager<PieceID, _BoardSize>::instance()->add_sym(reverse.name(PieceColor::W), sym_tb);
                 }
             }
+            //else
+            //{
+            //    return false;
+            //}
             return true;
         }
         bool save() const override          { return _refTBH->save();  }

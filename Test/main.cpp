@@ -23,6 +23,7 @@ int main(int argc, char* argv[])
         std::vector<uint8_t> bs1;
         ws1.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::W));
         ws1.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::P, chess::PieceColor::W));
+        ws1.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::P, chess::PieceColor::W));
         bs1.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::K, chess::PieceColor::B));
         bs1.push_back(chess::Piece<uint8_t, 6>::get_id(chess::PieceName::P, chess::PieceColor::B));
         std::vector<std::pair<uint8_t, uint8_t>> sw1 = chess::PieceSet<uint8_t, 6>::to_set(ws1);

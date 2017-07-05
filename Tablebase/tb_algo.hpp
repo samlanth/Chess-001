@@ -107,6 +107,11 @@ namespace chess
                         if (child_sc[j] == ExactScore::LOSS)
                             if (child_dtc[j] > max_dtc) { max_dtc = child_dtc[j]; max_idx = j; }
                     }
+                    // seek a capture or pawn move
+                    if (max_dtc == 1)
+                    {
+                        //...
+                    }
                     ret_dtc = child_dtc[max_idx];
                     ret_idx = max_idx;
                     return ExactScore::LOSS;
@@ -193,6 +198,11 @@ namespace chess
                     {
                         if (child_sc[j] == ExactScore::WIN)
                             if (child_dtc[j] > max_dtc) { max_dtc = child_dtc[j]; max_idx = j; }
+                    }
+                    // seek a capture or pawn move
+                    if (max_dtc == 1)
+                    {
+                        //...
                     }
                     ret_dtc = child_dtc[max_idx];
                     ret_idx = max_idx;
@@ -390,7 +400,6 @@ namespace chess
                         continue;
                     }
 
-
                     child_sc[j]  = tb_oppo->score_v(child_sq);
                     child_dtc[j] = tb_oppo->dtc_v(child_sq);
                     child_is_promo[j] = isPromo;
@@ -423,11 +432,6 @@ namespace chess
                 sc = minmax_dtc<PieceID, _BoardSize>(tb->color(), child_sc, child_dtc, child_is_promo, child_is_capture, child_is_pawn, ret_dtc, ret_idx);
                 if (sc != ExactScore::UNKNOWN)
                 {
-                    if ((!child_is_promo[ret_idx]) && (child_is_capture[ret_idx]))
-                    {
-                        int debug = 1;
-                        debug++;
-                    }
                     if ((!child_is_promo[ret_idx]) && (!child_is_capture[ret_idx]))
                     {
                         tb->set_dtc_v(sq, 1 + ret_dtc);
@@ -612,11 +616,6 @@ namespace chess
                 sc = minmax_dtc<PieceID, _BoardSize>(tb->color(), child_sc, child_dtc, child_is_promo, child_is_capture, child_is_pawn, ret_dtc, ret_idx);
                 if (sc != ExactScore::UNKNOWN)
                 {
-                    if ((!child_is_promo[ret_idx]) && (child_is_capture[ret_idx]))
-                    {
-                        int debug = 1;
-                        debug++;
-                    }
                     if ((!child_is_promo[ret_idx]) && (!child_is_capture[ret_idx]))
                         tb->set_dtc_v(sq, 1 + ret_dtc);
                     else 
@@ -712,7 +711,7 @@ namespace chess
         TB_Manager<PieceID, _BoardSize>::instance()->add(((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_W)->name(), ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_W));
         TB_Manager<PieceID, _BoardSize>::instance()->add(((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_B)->name(), ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_B));
         
-        // TEST save
+        // save now
         ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_W)->save();
         ((Tablebase<PieceID, _BoardSize, NPIECE>*)tb_B)->save();
 

@@ -3,7 +3,7 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// PieceSet
+// PieceSet - To keep track of W/B piece combinations when capture/promo
 //
 //
 #ifndef _AL_CHESS_TABLEBASE_PIECESET_HPP
@@ -31,19 +31,16 @@ namespace chess
         const std::vector<std::pair<PieceID, uint8_t>>& wset_ref() const  { return _wset; }
         const std::vector<std::pair<PieceID, uint8_t>>& bset_ref() const  { return _bset; }
 
+        bool is_same(const PieceSet<PieceID, _BoardSize>& v) const;
         std::string name(PieceColor color_toplay) const;
         uint16_t find_rank_index(size_t rank, PieceID& ret_id, uint16_t& ret_count, uint16_t& ret_instance)  const;
         uint16_t count_one_piece(PieceColor c, PieceID id)  const;
         uint16_t count_all_piece(PieceColor c) const;
         uint16_t count_one_piecename(PieceColor c, PieceName n)  const;
-        void remove_one_piecename(PieceColor c, PieceName n);
-        void add_one_Q(PieceColor c);
         void add_promo_capture(PieceColor color, PieceName n);
 
         void collapse_to_one_piece();
-        size_t children_size(PieceColor c) const;
-        std::string name_child(PieceColor color_toplay, PieceColor color_child, size_t children_index) const;
-        std::vector<std::pair<PieceID, uint8_t>> children(PieceColor c, size_t children_index) const;
+        std::vector<std::pair<PieceID, uint8_t>> capture_only_set(PieceColor c, size_t children_index) const;
 
         // All combination of 1 piece less either white or black + promo
         std::vector<PieceSet> get_all_child() const;
@@ -68,7 +65,9 @@ namespace chess
         mutable std::vector<PieceSet<PieceID, _BoardSize>>      _all_child_set; 
                        
         bool validate();
-        void make_children();
+        void remove_one_piecename(PieceColor c, PieceName n);
+        void add_one_Q(PieceColor c);
+        void make_capture_only_set();
         static void add_to_v(PieceID id, std::vector<std::pair<PieceID, uint8_t>>& v);
     };
 
@@ -78,7 +77,7 @@ namespace chess
             : _is_valid(true), _wset(w_set), _bset(b_set)
     {
         if (validate())
-            make_children();
+            make_capture_only_set();
     }
 
     // ct
@@ -89,7 +88,7 @@ namespace chess
         _bset(PieceSet<PieceID, _BoardSize>::to_set_p(v, PieceColor::B))
     {
         if (validate())
-            make_children();
+            make_capture_only_set();
     }
 
     // ct
@@ -100,25 +99,7 @@ namespace chess
         _bset(PieceSet<PieceID, _BoardSize>::to_set(v, PieceColor::B))
     {
         if (validate())
-            make_children();
-    }
-
-    template <typename PieceID, typename uint8_t _BoardSize>
-    inline size_t PieceSet<PieceID, _BoardSize>::children_size(PieceColor c)  const
-    {
-        if (!_is_valid) return 0;
-
-        if (c == PieceColor::W) return _wchildren.size();
-        return _bchildren.size();
-    }
-
-    template <typename PieceID, typename uint8_t _BoardSize>
-    inline std::string  PieceSet<PieceID, _BoardSize>::name_child(PieceColor color_toplay, PieceColor color_child, size_t children_index)  const
-    {
-        assert(children_index < children_size(color_child));
-        PieceSet child_set( (color_child == PieceColor::W) ? children(PieceColor::W, children_index) : _wset,
-                            (color_child == PieceColor::W) ? _bset : children(PieceColor::B, children_index));
-        return child_set.name(color_toplay);
+            make_capture_only_set();
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
@@ -208,6 +189,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline void PieceSet<PieceID, _BoardSize>::remove_one_piecename(PieceColor c, PieceName n)
     {
+        // not an atomic operation
         if (c == PieceColor::W)
         {
             for (size_t i = 0; i < _wset.size(); i++)
@@ -239,6 +221,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline void PieceSet<PieceID, _BoardSize>::add_one_Q(PieceColor c)
     {
+        // not an atomic operation
         if (c == PieceColor::W)
         {
             for (size_t i = 0; i < _wset.size(); i++)
@@ -263,7 +246,6 @@ namespace chess
 
             _wset = to_set(v, PieceColor::W);
             _bset = to_set(v, PieceColor::B);
-             make_children();
         }
         else if (c == PieceColor::B)
         {
@@ -289,10 +271,8 @@ namespace chess
 
             _wset = to_set(v, PieceColor::W);
             _bset = to_set(v, PieceColor::B);
-            make_children();
         }
     }
-
 
     template <typename PieceID, typename uint8_t _BoardSize> 
     inline uint16_t PieceSet<PieceID, _BoardSize>::count_all_piece(PieceColor c)  const
@@ -312,7 +292,7 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline std::vector<std::pair<PieceID, uint8_t>> PieceSet<PieceID, _BoardSize>::children(PieceColor c, size_t children_index)  const
+    inline std::vector<std::pair<PieceID, uint8_t>> PieceSet<PieceID, _BoardSize>::capture_only_set(PieceColor c, size_t children_index)  const
     {
         if (c == PieceColor::W)
         {
@@ -337,7 +317,7 @@ namespace chess
 
     // make_children
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline void PieceSet<PieceID, _BoardSize>::make_children()
+    inline void PieceSet<PieceID, _BoardSize>::make_capture_only_set()
     {
         std::vector<std::pair<PieceID, uint8_t>> workset;
         std::pair<PieceID, uint8_t>              pair_piece_count;
@@ -424,15 +404,21 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline std::vector<PieceSet<PieceID, _BoardSize>>  PieceSet<PieceID, _BoardSize>::get_all_child() const
     {
+        // Reject if no wK, bK
+
         // 1 piece capture
         std::vector<PieceSet<PieceID, _BoardSize>> v;
-        for (size_t i = _wchildren.size() ; i > 0; i--)  // keep K as long as possible
+        for (size_t i = _wchildren.size() ; i > 0; i--)
         {
-            v.push_back(PieceSet<PieceID, _BoardSize>({ children(PieceColor::W, i-1), _bset }));
+            PieceSet<PieceID, _BoardSize> ps({ capture_only_set(PieceColor::W, i - 1), _bset });
+            if ((ps.count_one_piecename(PieceColor::W, PieceName::K)==1) || (ps.count_one_piecename(PieceColor::B, PieceName::K) == 1))
+                v.push_back(ps);
         }
         for (size_t i = _bchildren.size() ; i > 0; i--)
         {
-            v.push_back(PieceSet<PieceID, _BoardSize>({ _wset, children(PieceColor::B, i-1) }));
+            PieceSet<PieceID, _BoardSize> ps({ _wset, capture_only_set(PieceColor::B, i - 1) });
+            if ((ps.count_one_piecename(PieceColor::W, PieceName::K) == 1) || (ps.count_one_piecename(PieceColor::B, PieceName::K) == 1))
+                v.push_back(ps);
         }
 
         // 1 pawn promo
@@ -441,11 +427,11 @@ namespace chess
             PieceColor color = (i == 0) ? PieceColor::W : PieceColor::B;
             if (count_one_piecename(color, PieceName::P) > 0)
             {
-                // TEST...
                 PieceSet<PieceID, _BoardSize> ps(_wset, _bset);
                 ps.add_one_Q(color);
                 ps.remove_one_piecename(color, PieceName::P);
-                v.push_back(ps);
+                if ((ps.count_one_piecename(PieceColor::W, PieceName::K) == 1) || (ps.count_one_piecename(PieceColor::B, PieceName::K) == 1))
+                    v.push_back(ps);
             }
         }
 
@@ -460,19 +446,22 @@ namespace chess
                 {
                     PieceSet<PieceID, _BoardSize> ps(_wset, _bset);
                     ps.add_promo_capture(color, PieceName::K);
-                    v.push_back(ps);
+                    if ((ps.count_one_piecename(PieceColor::W, PieceName::K) == 1) || (ps.count_one_piecename(PieceColor::B, PieceName::K) == 1))
+                        v.push_back(ps);
                 }
                 if (count_one_piecename(c_oppo, PieceName::Q) > 0)
                 {
                     PieceSet<PieceID, _BoardSize> ps(_wset, _bset);
                     ps.add_promo_capture(color, PieceName::Q);
-                    v.push_back(ps);
+                    if ((ps.count_one_piecename(PieceColor::W, PieceName::K) == 1) || (ps.count_one_piecename(PieceColor::B, PieceName::K) == 1))
+                        v.push_back(ps);
                 }
                 if (count_one_piecename(c_oppo, PieceName::P) > 0)
                 {
                     PieceSet<PieceID, _BoardSize> ps(_wset, _bset);
                     ps.add_promo_capture(color, PieceName::P);
-                    v.push_back(ps);
+                    if ((ps.count_one_piecename(PieceColor::W, PieceName::K) == 1) || (ps.count_one_piecename(PieceColor::B, PieceName::K) == 1))
+                        v.push_back(ps);
                 }
             }
         }
@@ -686,6 +675,37 @@ namespace chess
                 }
             }
         }
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    bool PieceSet<PieceID, _BoardSize>::is_same(const PieceSet<PieceID, _BoardSize>& v) const
+    {
+        //..
+        if (count_all_piece(PieceColor::W) != v.count_all_piece(PieceColor::W)) return false;
+        if (count_all_piece(PieceColor::B) != v.count_all_piece(PieceColor::B)) return false;
+
+        {
+            for (size_t i = 0; i < _wset.size(); i++)
+            {
+                if (_wset[i].second > 0)
+                {
+                    if (_wset[i].second != v.count_one_piece(PieceColor::W, _wset[i].first))
+                        return false;
+                }
+            }
+        }
+
+        {
+            for (size_t i = 0; i < _bset.size(); i++)
+            {
+                if (_bset[i].second > 0)
+                {
+                    if (_bset[i].second != v.count_one_piece(PieceColor::B, _bset[i].first))
+                        return false;
+                }
+            }
+        }
+        return true;
     }
 };
 #endif
