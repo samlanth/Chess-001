@@ -60,6 +60,7 @@
     <ClInclude Include="..\Tablebase\TBH_2.hpp" />
     <ClInclude Include="..\Tablebase\TBH_3.hpp" />
     <ClInclude Include="..\Tablebase\TBH_4.hpp" />
+    <ClInclude Include="..\Tablebase\TBH_mgr.hpp" />
     <ClInclude Include="..\Tablebase\TB_4.hpp" />
     <ClInclude Include="..\Tablebase\TB_algo.hpp" />
     <ClInclude Include="..\Tablebase\TB_mgr.hpp" />

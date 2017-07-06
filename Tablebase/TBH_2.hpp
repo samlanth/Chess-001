@@ -64,9 +64,10 @@ namespace chess
                     if (_tb_children_info[i]._tbh != nullptr)
                     {
                         _tbh_children.push_back(_tb_children_info[i]._tbh);
-                        _tb_children_info[i]._owner = true;
                         _tb_children_info[i]._child_index = _tbh_children.size() - 1;
                     }
+                    else
+                        assert(false);
                 }
             }
         }

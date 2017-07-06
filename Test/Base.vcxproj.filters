@@ -183,5 +183,8 @@
     <ClInclude Include="..\Tablebase\TBH_4.hpp">
       <Filter>Tablebase</Filter>
     </ClInclude>
+    <ClInclude Include="..\Tablebase\TBH_mgr.hpp">
+      <Filter>Tablebase</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

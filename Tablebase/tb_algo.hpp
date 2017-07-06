@@ -110,7 +110,15 @@ namespace chess
                     // seek a capture or pawn move
                     if (max_dtc == 1)
                     {
-                        //...
+                        for (size_t j = 0; j < child_sc.size(); j++)
+                        {
+                            if ((child_sc[j] == ExactScore::LOSS) && ((child_is_capture[j] == true) || (child_is_pawn[j] == true)))
+                            {
+                                max_dtc = child_dtc[j];
+                                max_idx = j;
+                                break;
+                            }
+                        }
                     }
                     ret_dtc = child_dtc[max_idx];
                     ret_idx = max_idx;
@@ -202,7 +210,15 @@ namespace chess
                     // seek a capture or pawn move
                     if (max_dtc == 1)
                     {
-                        //...
+                        for (size_t j = 0; j < child_sc.size(); j++)
+                        {
+                            if ((child_sc[j] == ExactScore::WIN) && ((child_is_capture[j] == true) || (child_is_pawn[j] == true)))
+                            {
+                                max_dtc = child_dtc[j];
+                                max_idx = j;
+                                break;
+                            }
+                        }
                     }
                     ret_dtc = child_dtc[max_idx];
                     ret_idx = max_idx;

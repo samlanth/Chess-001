@@ -6,8 +6,8 @@
 // TB_Manager : Track TB
 //
 //
-#ifndef _AL_CHESS_TABLEBASE_TABLEBASEMANAGER_HPP
-#define _AL_CHESS_TABLEBASE_TABLEBASEMANAGER_HPP
+#ifndef _AL_CHESS_TABLEBASE_TB_MANAGER_HPP
+#define _AL_CHESS_TABLEBASE_TB_MANAGER_HPP
 
 namespace chess
 {
@@ -326,7 +326,7 @@ namespace chess
                 size_t ret_idx;bool found = check_tbh_exist(v, struct_tbh._t, ps, ret_idx);
                 if (found == false)
                 {
-                    struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_1<PieceID, _BoardSize>(ps, TB_TYPE::tb_Xv0, option);
+                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_Xv0, ps, option);
                     v.push_back(struct_tbh);
                 }
             } 
@@ -337,7 +337,7 @@ namespace chess
                 size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, ps, ret_idx);
                 if (found == false)
                 {
-                    struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_1<PieceID, _BoardSize>(ps, TB_TYPE::tb_0vX, option);
+                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_0vX, ps, option);
                     v.push_back(struct_tbh);
                 }
             }
@@ -347,7 +347,7 @@ namespace chess
                 size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, vz[i], ret_idx);
                 if (found == false)
                 {
-                    struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_1v1<PieceID, _BoardSize>(vz[i], option);
+                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_1v1, vz[i], option);
                     v.push_back(struct_tbh);
                 }
             } 
@@ -357,7 +357,7 @@ namespace chess
                 size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, vz[i], ret_idx);
                 if (found == false)
                 {
-                    struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_2v1<PieceID, _BoardSize>(vz[i], option);
+                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_2v1, vz[i], option);
                     v.push_back(struct_tbh);
                 }
             }
@@ -367,7 +367,7 @@ namespace chess
                 size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, vz[i], ret_idx);
                 if (found == false)
                 {
-                    struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_4<PieceID, _BoardSize>(vz[i], TB_TYPE::tb_2v2, option);
+                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_2v2, vz[i], option);
                     v.push_back(struct_tbh);
                 }
             }
@@ -380,12 +380,14 @@ namespace chess
                 size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, r, ret_idx);
                 if (found == false)
                 {
-                    struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_2v1<PieceID, _BoardSize>(r, option);
+                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_2v1, r, option);
                     assert(r.count_all_piece(PieceColor::W) >= r.count_all_piece(PieceColor::B));
                     struct_tbh._ps = r;
                     struct_tbh._nw = nb;    // reversed
                     struct_tbh._nb = nw;
                     v.push_back(struct_tbh);
+
+                    assert(struct_tbh._tbh != nullptr);
                 }
                 else
                 {
@@ -397,7 +399,7 @@ namespace chess
                 struct_tbh_sym._t = TB_TYPE::tb_2v1_sym;
                 struct_tbh_sym._nw = nw;
                 struct_tbh_sym._nb = nb;
-                struct_tbh_sym._tbh = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 3>(struct_tbh._tbh, TB_TYPE::tb_2v1_sym);
+                struct_tbh_sym._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add_sym(TB_TYPE::tb_2v1_sym, struct_tbh._tbh);
                 v.push_back(struct_tbh_sym);
             }
             else if ((nw == 1) && (nb == 3))
@@ -409,12 +411,14 @@ namespace chess
                 size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, r, ret_idx);
                 if (found == false)
                 {
-                    struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_4<PieceID, _BoardSize>(r, TB_TYPE::tb_3v1, option);
+                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_3v1, r, option);
                     assert(r.count_all_piece(PieceColor::W) >= r.count_all_piece(PieceColor::B));
                     struct_tbh._ps = r;
                     struct_tbh._nw = nb;    // reversed
                     struct_tbh._nb = nw;
                     v.push_back(struct_tbh);
+
+                    assert(struct_tbh._tbh != nullptr);
                 }
                 else
                 {
@@ -426,7 +430,7 @@ namespace chess
                 struct_tbh_sym._t = TB_TYPE::tb_3v1_sym;
                 struct_tbh_sym._nw = nw;
                 struct_tbh_sym._nb = nb;
-                struct_tbh_sym._tbh = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 4>(struct_tbh._tbh, TB_TYPE::tb_3v1_sym);
+                struct_tbh_sym._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add_sym(TB_TYPE::tb_3v1_sym, struct_tbh._tbh);
                 v.push_back(struct_tbh_sym);
             }
             else if ((nw == 3) && (nb == 1))
@@ -435,7 +439,7 @@ namespace chess
                 size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, vz[i], ret_idx);
                 if (found == false)
                 {
-                    struct_tbh._tbh = (TBH<PieceID, _BoardSize>*)new TBH_4<PieceID, _BoardSize>(vz[i], TB_TYPE::tb_3v1, option);
+                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_3v1, vz[i], option);
                     v.push_back(struct_tbh);
                 }
             }

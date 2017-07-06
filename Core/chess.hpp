@@ -90,6 +90,7 @@ namespace chess
 #include "Tablebase/TBH_4.hpp"
 #include "Tablebase/TB_util.hpp"
 #include "Tablebase/TB_mgr.hpp"
+#include "Tablebase/TBH_mgr.hpp"
 #include "Tablebase/TB_1.hpp"
 #include "Tablebase/TB_2.hpp"
 #include "Tablebase/TB_3.hpp"
