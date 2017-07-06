@@ -54,6 +54,7 @@ namespace chess
     inline void TBH_Manager<PieceID, _BoardSize>::clear() const
     {
         // owner
+        _map_tbh_sym.clear();
         _map_tbh.clear();
     }
 
@@ -67,12 +68,30 @@ namespace chess
         auto iter = _map_tbh.find(name);
         if (iter == _map_tbh.end())
         {
-            if      (t == TB_TYPE::tb_Xv0) _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_1<PieceID, _BoardSize>(ps, TB_TYPE::tb_Xv0, option);
-            else if (t == TB_TYPE::tb_0vX) _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_1<PieceID, _BoardSize>(ps, TB_TYPE::tb_0vX, option);
-            else if (t == TB_TYPE::tb_1v1) _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_1v1<PieceID, _BoardSize>(ps, option);
-            else if (t == TB_TYPE::tb_2v1) _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_2v1<PieceID, _BoardSize>(ps, option);
-            else if (t == TB_TYPE::tb_2v2) _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_4<PieceID, _BoardSize>(ps, TB_TYPE::tb_2v2, option);
-            else if (t == TB_TYPE::tb_3v1) _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_4<PieceID, _BoardSize>(ps, TB_TYPE::tb_3v1, option);
+            if (t == TB_TYPE::tb_Xv0)
+            {
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 1>(ps, TB_TYPE::tb_Xv0, option);
+            }
+            else if (t == TB_TYPE::tb_0vX)
+            {
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 1>(ps, TB_TYPE::tb_0vX, option);
+            }
+            else if (t == TB_TYPE::tb_1v1)
+            {
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 2>(ps, TB_TYPE::tb_1v1, option);
+            }
+            else if (t == TB_TYPE::tb_2v1)
+            {
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 3>(ps, TB_TYPE::tb_2v1, option);
+            }
+            else if (t == TB_TYPE::tb_2v2)
+            {
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 4>(ps, TB_TYPE::tb_2v2, option);
+            }
+            else if (t == TB_TYPE::tb_3v1)
+            {
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 4>(ps, TB_TYPE::tb_3v1, option);
+            }
             else
             {
                 assert(false);
@@ -102,7 +121,6 @@ namespace chess
         }
         return _map_tbh_sym[name];
     }
-
 
     // find
     template <typename PieceID, typename uint8_t _BoardSize>

@@ -43,14 +43,14 @@ namespace chess
 
     std::string TB_TYPE_to_string(TB_TYPE t)
     {
-        if (t == TB_TYPE::tb_0vX) return "tb_0vX";
-        else if (t == TB_TYPE::tb_Xv0) return "tb_Xv0";
-        else if (t == TB_TYPE::tb_1v1) return "tb_1v1";
-        else if (t == TB_TYPE::tb_2v1) return "tb_2v1";
+        if (t == TB_TYPE::tb_0vX)       return "tb_0vX";
+        else if (t == TB_TYPE::tb_Xv0)  return "tb_Xv0";
+        else if (t == TB_TYPE::tb_1v1)  return "tb_1v1";
+        else if (t == TB_TYPE::tb_2v1)  return "tb_2v1";
         else if (t == TB_TYPE::tb_2v1_sym) return "tb_2v1_sym";
-        else if (t == TB_TYPE::tb_3v1) return "tb_3v1";
+        else if (t == TB_TYPE::tb_3v1)  return "tb_3v1";
         else if (t == TB_TYPE::tb_3v1_sym) return "tb_3v1_sym";
-        else if (t == TB_TYPE::tb_2v2) return "tb_2v2";
+        else if (t == TB_TYPE::tb_2v2)  return "tb_2v2";
         return "tb_unknown";
     }
 
@@ -126,7 +126,6 @@ namespace chess
         bool load() override        
         { 
             if (!load_tb()) return false;;
-            //load_sym_tb();
             return true;
         }
         bool save() const override  { return save_tb(); }

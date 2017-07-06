@@ -141,15 +141,6 @@
     <ClInclude Include="..\Tablebase\pieceset.hpp">
       <Filter>Tablebase</Filter>
     </ClInclude>
-    <ClInclude Include="..\Tablebase\TBH_3.hpp">
-      <Filter>Tablebase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Tablebase\TBH_2.hpp">
-      <Filter>Tablebase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Tablebase\TBH_1.hpp">
-      <Filter>Tablebase</Filter>
-    </ClInclude>
     <ClInclude Include="..\Tablebase\TBH.hpp">
       <Filter>Tablebase</Filter>
     </ClInclude>
@@ -165,25 +156,16 @@
     <ClInclude Include="..\Tablebase\TB_util.hpp">
       <Filter>Tablebase</Filter>
     </ClInclude>
-    <ClInclude Include="..\Tablebase\TB_1.hpp">
-      <Filter>Tablebase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Tablebase\TB_2.hpp">
-      <Filter>Tablebase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Tablebase\TB_3.hpp">
-      <Filter>Tablebase</Filter>
-    </ClInclude>
     <ClInclude Include="..\Tablebase\TB_algo.hpp">
       <Filter>Tablebase</Filter>
     </ClInclude>
-    <ClInclude Include="..\Tablebase\TB_4.hpp">
-      <Filter>Tablebase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Tablebase\TBH_4.hpp">
-      <Filter>Tablebase</Filter>
-    </ClInclude>
     <ClInclude Include="..\Tablebase\TBH_mgr.hpp">
+      <Filter>Tablebase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Tablebase\TB_N.hpp">
+      <Filter>Tablebase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Tablebase\TBH_N.hpp">
       <Filter>Tablebase</Filter>
     </ClInclude>
   </ItemGroup>

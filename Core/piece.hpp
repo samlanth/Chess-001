@@ -19,7 +19,7 @@ namespace chess
 {
     struct PieceKey
     {
-        PieceName _n;
+        PieceName  _n;
         PieceColor _c;
     };
     struct PieceKeyLess

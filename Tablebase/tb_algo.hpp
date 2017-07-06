@@ -652,8 +652,10 @@ namespace chess
         if (tbh->is_build()) return true;
 
         // Lookup in memory
-        TablebaseBase<PieceID, _BoardSize>* tw = TB_Manager<PieceID, _BoardSize>::instance()->find(NPIECE, tbh->pieceSet().name(PieceColor::W));
-        TablebaseBase<PieceID, _BoardSize>* tb = TB_Manager<PieceID, _BoardSize>::instance()->find(NPIECE, tbh->pieceSet().name(PieceColor::B));
+        //TablebaseBase<PieceID, _BoardSize>* tw = TB_Manager<PieceID, _BoardSize>::instance()->find(NPIECE, tbh->pieceSet().name(PieceColor::W));
+        //TablebaseBase<PieceID, _BoardSize>* tb = TB_Manager<PieceID, _BoardSize>::instance()->find(NPIECE, tbh->pieceSet().name(PieceColor::B));
+        TablebaseBase<PieceID, _BoardSize>* tw = TB_Manager<PieceID, _BoardSize>::instance()->find_N(NPIECE, tbh->pieceSet().name(PieceColor::W));
+        TablebaseBase<PieceID, _BoardSize>* tb = TB_Manager<PieceID, _BoardSize>::instance()->find_N(NPIECE, tbh->pieceSet().name(PieceColor::B));
         if ((tw != nullptr) && (tb != nullptr))
         {
             if ((tw->is_build() == true) && (tb->is_build() == true))

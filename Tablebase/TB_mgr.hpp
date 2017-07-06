@@ -40,13 +40,27 @@ namespace chess
         bool add(const std::string& name, Tablebase<PieceID, _BoardSize, 4>* tb) const;
         bool add_sym(const std::string& name, TablebaseBase<PieceID, _BoardSize>* tb) const;
  
-        TablebaseBase<PieceID, _BoardSize>*  find(uint8_t n, const std::string& name) const;
         TablebaseBase<PieceID, _BoardSize>*  find_sym(const std::string& name) const;
 
         Tablebase<PieceID, _BoardSize, 1>* find_1(const std::string& name) const;
         Tablebase<PieceID, _BoardSize, 2>* find_2(const std::string& name) const;
         Tablebase<PieceID, _BoardSize, 3>* find_3(const std::string& name) const;
         Tablebase<PieceID, _BoardSize, 4>* find_4(const std::string& name) const;
+
+        TablebaseBase<PieceID, _BoardSize>* find_N(uint8_t N, const std::string& name) const
+        {
+            // ...
+            TablebaseBase<PieceID, _BoardSize>* t;
+            if      (N == 1) t = (TablebaseBase<PieceID, _BoardSize>*)find_1(name);
+            else if (N == 2) t = (TablebaseBase<PieceID, _BoardSize>*)find_2(name);
+            else if (N == 3) t = (TablebaseBase<PieceID, _BoardSize>*)find_3(name);
+            else if (N == 4) t = (TablebaseBase<PieceID, _BoardSize>*)find_4(name);
+            else
+            {
+                return nullptr;
+            }
+            return t;
+        }
 
         std::vector<STRUCT_TBH<PieceID, _BoardSize>> make_all_child_TBH(const PieceSet<PieceID, _BoardSize>& set, TBH_OPTION option) const;
 
@@ -172,47 +186,6 @@ namespace chess
         return nullptr;
     }
 
-    // find
-    template <typename PieceID, typename uint8_t _BoardSize>
-    inline TablebaseBase<PieceID, _BoardSize>*  TB_Manager<PieceID, _BoardSize>::find(uint8_t n, const std::string& name) const
-    {
-        if (_instance == nullptr) return nullptr;
-
-        if (n == 1)
-        {
-            auto iter = _tbs1.find(name);
-            if (iter != _tbs1.end())
-            {
-                return (TablebaseBase<PieceID, _BoardSize>*)_tbs1[name];
-            }
-        }
-        else if (n == 2)
-        {
-            auto iter = _tbs2.find(name);
-            if (iter != _tbs2.end())
-            {
-                return (TablebaseBase<PieceID, _BoardSize>*)_tbs2[name];
-            }
-        }
-        else if (n == 3)
-        {
-            auto iter = _tbs3.find(name);
-            if (iter != _tbs3.end())
-            {
-                return (TablebaseBase<PieceID, _BoardSize>*)_tbs3[name];
-            }
-        }
-        else if (n == 4)
-        {
-            auto iter = _tbs4.find(name);
-            if (iter != _tbs4.end())
-            {
-                return (TablebaseBase<PieceID, _BoardSize>*)_tbs4[name];
-            }
-        }
-
-        return nullptr;
-    }
 
     // find_1
     template <typename PieceID, typename uint8_t _BoardSize>

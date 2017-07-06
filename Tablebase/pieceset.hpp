@@ -431,7 +431,10 @@ namespace chess
                 ps.add_one_Q(color);
                 ps.remove_one_piecename(color, PieceName::P);
                 if ((ps.count_one_piecename(PieceColor::W, PieceName::K) == 1) || (ps.count_one_piecename(PieceColor::B, PieceName::K) == 1))
+                {
+                    ps.make_capture_only_set();
                     v.push_back(ps);
+                }
             }
         }
 
@@ -447,21 +450,30 @@ namespace chess
                     PieceSet<PieceID, _BoardSize> ps(_wset, _bset);
                     ps.add_promo_capture(color, PieceName::K);
                     if ((ps.count_one_piecename(PieceColor::W, PieceName::K) == 1) || (ps.count_one_piecename(PieceColor::B, PieceName::K) == 1))
+                    {
+                        ps.make_capture_only_set();
                         v.push_back(ps);
+                    }
                 }
                 if (count_one_piecename(c_oppo, PieceName::Q) > 0)
                 {
                     PieceSet<PieceID, _BoardSize> ps(_wset, _bset);
                     ps.add_promo_capture(color, PieceName::Q);
                     if ((ps.count_one_piecename(PieceColor::W, PieceName::K) == 1) || (ps.count_one_piecename(PieceColor::B, PieceName::K) == 1))
+                    {
+                        ps.make_capture_only_set();
                         v.push_back(ps);
+                    }
                 }
                 if (count_one_piecename(c_oppo, PieceName::P) > 0)
                 {
                     PieceSet<PieceID, _BoardSize> ps(_wset, _bset);
                     ps.add_promo_capture(color, PieceName::P);
                     if ((ps.count_one_piecename(PieceColor::W, PieceName::K) == 1) || (ps.count_one_piecename(PieceColor::B, PieceName::K) == 1))
+                    {
+                        ps.make_capture_only_set();
                         v.push_back(ps);
+                    }
                 }
             }
         }
