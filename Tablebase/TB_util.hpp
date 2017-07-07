@@ -89,8 +89,6 @@ namespace chess
                 uint16_t nb = ps.count_all_piece(PieceColor::B);
 
                 std::string tb_name;
-                //assert((NPIECE >= 1) && (NPIECE <= 4));
-
                 if ((nw == 0) || (nb == 0))
                 {
                     NPIECE = 1; // case Xv0 0vX
@@ -102,7 +100,6 @@ namespace chess
                     v_sq.clear();
                     v_sq.push_back(sq0);
 
-                    //TablebaseBase<PieceID, _BoardSize>*  tb = TB_Manager<PieceID, _BoardSize>::instance()->find(NPIECE, tb_name);
                     TablebaseBase<PieceID, _BoardSize>*  tb = TB_Manager<PieceID, _BoardSize>::instance()->find_N(NPIECE, tb_name);
                     if (tb == nullptr)
                         return false;
@@ -131,7 +128,6 @@ namespace chess
                 {
                     tb_name = TB_Manager<PieceID, _BoardSize>::instance()->name_pieces(v_id, pos.get_color());
                     NPIECE = (uint8_t)v_id.size();
-                    //TablebaseBase<PieceID, _BoardSize>*  tb = TB_Manager<PieceID, _BoardSize>::instance()->find(NPIECE, tb_name);
                     TablebaseBase<PieceID, _BoardSize>*  tb = TB_Manager<PieceID, _BoardSize>::instance()->find_N(NPIECE, tb_name);
                     if (tb == nullptr)
                         return false;

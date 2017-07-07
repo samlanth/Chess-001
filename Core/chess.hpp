@@ -17,10 +17,13 @@
 #include <cassert>
 #include <list>
 #include <future>
+#include <mutex>
+#include <thread>
 #include <conio.h>
 #include <bitset>
 #include <cmath>
 #include <array>
+
 
 namespace chess
 {

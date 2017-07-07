@@ -23,7 +23,7 @@ namespace chess
         PieceSet(const std::vector<std::pair<PieceID, uint8_t>>& w_set, const std::vector<std::pair<PieceID, uint8_t>>& b_set);
         PieceSet(std::vector<const _Piece*>& v);
         PieceSet(std::vector<PieceID>& v);
-        ~PieceSet() { }
+        ~PieceSet() {  }
 
         bool is_valid()  const { return _is_valid; }
         std::vector<std::pair<PieceID, uint8_t>> wset() const { return _wset; }
@@ -54,6 +54,7 @@ namespace chess
         static std::vector<std::pair<PieceID, uint8_t>> to_set_p(std::vector<const _Piece*>& v, PieceColor c);
         static std::vector<std::pair<PieceID, uint8_t>> reverse_color_set(std::vector<std::pair<PieceID, uint8_t>>& v);
 
+        void make_all_child_set() const;
         const PieceSet<PieceID, _BoardSize>& all_child_set_at(size_t idx) const {return _all_child_set[idx];}
 
     protected:
@@ -352,6 +353,21 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
+    void  PieceSet<PieceID, _BoardSize>::make_all_child_set() const
+    {
+        if (_all_child_set.size() == 0)
+        {
+            // external _mutex->lock();
+            if (_all_child_set.size() == 0)
+            {
+                _all_child_set = get_all_child();
+            }
+            //external _mutex->unlock();
+        }
+    }
+
+    // called by TBH<PieceID, _BoardSize>::find_score_children_tb (THREAD SPLITTING) - initiated by TBH_N::build() (main thread)
+    template <typename PieceID, typename uint8_t _BoardSize>
     bool PieceSet<PieceID, _BoardSize>::find_all_child_index(PieceColor color_pos, const _Board& pos, bool isPromo, bool isCapture, size_t& ret_all_child_index) const
     {
         uint16_t cnt_piece_c;
@@ -364,8 +380,12 @@ namespace chess
         cnt_piece_board_c_oppo  = pos.cnt_all_piece(c_oppo);
 
         bool child_ok;
-        if (_all_child_set.size() == 0) 
-            _all_child_set = get_all_child();
+
+        if (_all_child_set.size() == 0)
+        {
+            // external lock...
+            make_all_child_set();
+        }
 
         for (size_t j = 0; j < _all_child_set.size(); j++)
         {

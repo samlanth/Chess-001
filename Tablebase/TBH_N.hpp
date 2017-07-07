@@ -83,10 +83,6 @@ namespace chess
     {
         for (size_t i = 0; i < _tbh_children.size(); i++)
         {
-            if ((i == 3)&(NPIECE == 4))
-            {
-                int debug = 1;
-            }
             _tbh_children[i]->build(verbose);
         }
         return build_base(verbose);

@@ -16,7 +16,9 @@ namespace chess
     class TBH_Manager
     {
     private:
-        TBH_Manager() {}
+        TBH_Manager() 
+        {
+        }
         TBH_Manager(const TBH_Manager&)               = delete;
         TBH_Manager & operator=(const TBH_Manager &)  = delete;
         TBH_Manager(TBH_Manager&&)                    = delete;
@@ -28,6 +30,7 @@ namespace chess
             {
                 _instance.release();
             }
+            clear();
         }
         static const TBH_Manager* instance();
         void clear() const;
@@ -58,7 +61,7 @@ namespace chess
         _map_tbh.clear();
     }
 
-    // add 
+    // add - called by TB_Manager::add()
     template <typename PieceID, typename uint8_t _BoardSize>
     TBH<PieceID, _BoardSize>* TBH_Manager<PieceID, _BoardSize>::add(TB_TYPE t, const PieceSet<PieceID, _BoardSize>& ps, TBH_OPTION option) const
     {
@@ -92,6 +95,14 @@ namespace chess
             {
                 _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 4>(ps, TB_TYPE::tb_3v1, option);
             }
+            else if (t == TB_TYPE::tb_4v1)
+            {
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 5>(ps, TB_TYPE::tb_4v1, option);
+            }
+            else if (t == TB_TYPE::tb_3v2)
+            {
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 5>(ps, TB_TYPE::tb_3v2, option);
+            }
             else
             {
                 assert(false);
@@ -113,6 +124,8 @@ namespace chess
         {
             if      (t == TB_TYPE::tb_2v1_sym) _map_tbh_sym[name] = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 3>(ref, TB_TYPE::tb_2v1_sym);
             else if (t == TB_TYPE::tb_3v1_sym) _map_tbh_sym[name] = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 4>(ref, TB_TYPE::tb_3v1_sym);
+            else if (t == TB_TYPE::tb_4v1_sym) _map_tbh_sym[name] = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 5>(ref, TB_TYPE::tb_4v1_sym);
+            else if (t == TB_TYPE::tb_3v2_sym) _map_tbh_sym[name] = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 5>(ref, TB_TYPE::tb_3v2_sym);
             else
             {
                 assert(false);

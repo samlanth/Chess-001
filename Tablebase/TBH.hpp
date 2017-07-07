@@ -41,12 +41,14 @@ namespace chess
         friend class TBH_Symmetry<PieceID, _BoardSize, 2>;
         friend class TBH_Symmetry<PieceID, _BoardSize, 3>;
         friend class TBH_Symmetry<PieceID, _BoardSize, 4>;
+        friend class TBH_Symmetry<PieceID, _BoardSize, 5>;
 
     public:
         TBH(TB_TYPE t, const PieceSet<PieceID, _BoardSize>& ps, uint8_t np, TBH_OPTION option) 
             : TBH_Base(), _type(t), _NPIECE(np), _pieceSet({ ps.wset(), ps.bset() }), _option(option)
         {
             _piecesID = PieceSet<PieceID, _BoardSize>::ps_to_pieces(ps);
+            _pieceSet.make_all_child_set(); //...
         }
         virtual ~TBH();
 
@@ -78,6 +80,7 @@ namespace chess
         PieceSet<PieceID, _BoardSize>   _pieceSet;
         TBH_OPTION                      _option;        // none, try_load_on_build, force_rebuild, memory_map_on_build
         std::vector<PieceID>            _piecesID;
+        mutable std::recursive_mutex    _mutex;
 
         // TB w+b
         TablebaseBase<PieceID, _BoardSize>* _TB_W = nullptr;    // Not owner
@@ -111,6 +114,8 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline bool TBH<PieceID, _BoardSize>::save()  const
     {
+        std::lock_guard<std::recursive_mutex> lock(_mutex);
+
         if ((_TB_W == nullptr) || (_TB_B == nullptr)) return false;
         for (size_t i = 0; i < _tbh_children.size(); i++)
         {
@@ -125,6 +130,8 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline bool TBH<PieceID, _BoardSize>::load()
     {
+        std::lock_guard<std::recursive_mutex> lock(_mutex);
+
         if ((_TB_W == nullptr) || (_TB_B == nullptr)) return false;
         if (is_build()) return true;
         for (size_t i = 0; i < _tbh_children.size(); i++)
@@ -140,6 +147,8 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline void TBH<PieceID, _BoardSize>::print() const
     {
+        std::lock_guard<std::recursive_mutex> lock(_mutex);
+
         if ((_TB_W == nullptr) || (_TB_B == nullptr)) return;
         _TB_W->print();
         _TB_B->print();
@@ -173,6 +182,8 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline bool TBH<PieceID, _BoardSize>::find_tbh_children(PieceSet<PieceID, _BoardSize>  ps, PieceColor color_to_play, size_t& ret_index) const
     {
+        std::lock_guard<std::recursive_mutex> lock(_mutex);
+
         for (size_t i = 0; i < _tb_children_info.size(); i++)
         {
             if (_tb_children_info[i]._ps.name(color_to_play) == ps.name(color_to_play))
@@ -196,6 +207,8 @@ namespace chess
         uint16_t    ret_instance;
         std::vector<uint16_t> ret_child_sq;
         std::vector<PieceID> ret_child_id;
+
+        std::lock_guard<std::recursive_mutex> lock(_mutex);
 
         if (_pieceSet.find_all_child_index(color_pos, pos, isPromo, isCapture, ret_child_index))
         {

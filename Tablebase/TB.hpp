@@ -34,7 +34,7 @@ namespace chess
 
     TB_TYPE sym_tb_type(TB_TYPE t)
     {
-        if (t == TB_TYPE::tb_2v1) return TB_TYPE::tb_2v1_sym;
+        if      (t == TB_TYPE::tb_2v1) return TB_TYPE::tb_2v1_sym;
         else if (t == TB_TYPE::tb_3v1) return TB_TYPE::tb_3v1_sym;
         else if (t == TB_TYPE::tb_4v1) return TB_TYPE::tb_4v1_sym;
         else if (t == TB_TYPE::tb_3v2) return TB_TYPE::tb_3v2_sym;
@@ -43,14 +43,18 @@ namespace chess
 
     std::string TB_TYPE_to_string(TB_TYPE t)
     {
-        if (t == TB_TYPE::tb_0vX)       return "tb_0vX";
-        else if (t == TB_TYPE::tb_Xv0)  return "tb_Xv0";
-        else if (t == TB_TYPE::tb_1v1)  return "tb_1v1";
-        else if (t == TB_TYPE::tb_2v1)  return "tb_2v1";
-        else if (t == TB_TYPE::tb_2v1_sym) return "tb_2v1_sym";
-        else if (t == TB_TYPE::tb_3v1)  return "tb_3v1";
-        else if (t == TB_TYPE::tb_3v1_sym) return "tb_3v1_sym";
-        else if (t == TB_TYPE::tb_2v2)  return "tb_2v2";
+        if (t == TB_TYPE::tb_0vX)           return "tb_0vX";
+        else if (t == TB_TYPE::tb_Xv0)      return "tb_Xv0";
+        else if (t == TB_TYPE::tb_1v1)      return "tb_1v1";
+        else if (t == TB_TYPE::tb_2v1)      return "tb_2v1";
+        else if (t == TB_TYPE::tb_2v2)      return "tb_2v2";
+        else if (t == TB_TYPE::tb_2v1_sym)  return "tb_2v1_sym";
+        else if (t == TB_TYPE::tb_3v1)      return "tb_3v1";
+        else if (t == TB_TYPE::tb_3v1_sym)  return "tb_3v1_sym";
+        else if (t == TB_TYPE::tb_4v1)      return "tb_4v1";
+        else if (t == TB_TYPE::tb_3v2)      return "tb_3v2";
+        else if (t == TB_TYPE::tb_4v1_sym)  return "tb_4v1_sym";
+        else if (t == TB_TYPE::tb_3v2_sym)  return "tb_3v2_sym";
         return "tb_unknown";
     }
 
@@ -82,33 +86,37 @@ namespace chess
         using _Board = Board<PieceID, _BoardSize>;
         using _Move = Move<PieceID>;
 
-        friend class TBH_1<PieceID, _BoardSize>;
-        friend class TBH_2<PieceID, _BoardSize>;
-        friend class TBH_3<PieceID, _BoardSize>;
         friend class TBH_Symmetry<PieceID, _BoardSize, 1>;
         friend class TBH_Symmetry<PieceID, _BoardSize, 2>;
         friend class TBH_Symmetry<PieceID, _BoardSize, 3>;
         friend class TBH_Symmetry<PieceID, _BoardSize, 4>;
+        friend class TBH_Symmetry<PieceID, _BoardSize, 5>;
 
         template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
-        uint64_t friend set_mate_score_v(PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb);
+        uint64_t friend set_mate_score_v(   PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb,
+                                            size_t from, size_t to);
 
         template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
-        uint64_t friend setup_marker_v(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb, Tablebase<PieceID, _BoardSize, NPIECE>* tb_oppo);
+        uint64_t friend setup_marker_v(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb, Tablebase<PieceID, _BoardSize, NPIECE>* tb_oppo,
+            size_t from, size_t to);
 
         template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
-        uint64_t friend process_marker_v(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb, Tablebase<PieceID, _BoardSize, NPIECE>* tb_oppo);
+        uint64_t friend process_marker_v(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb, Tablebase<PieceID, _BoardSize, NPIECE>* tb_oppo,
+                                         size_t from, size_t to);
 
         template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
-        bool friend build_base_vv(TBH<PieceID, _BoardSize>* tbh, TablebaseBase<PieceID, _BoardSize>* tb_W, TablebaseBase<PieceID, _BoardSize>* tb_B, char verbose);
+        bool friend build_base_vv(  TBH<PieceID, _BoardSize>* tbh, TablebaseBase<PieceID, _BoardSize>* tb_W, TablebaseBase<PieceID, _BoardSize>* tb_B, char verbose);
 
     protected:
+        const bool                      _do_x_symmetry = false;
         const uint8_t                   _size_item = TB_size_item();
         const uint64_t                  _size_tb = TB_size(_BoardSize, NPIECE);
-        const uint64_t                  _dim[4] = { 1, 
+        const uint64_t                  _dim[5] = { 1, 
                                                     TB_size_dim(_BoardSize), 
                                                     TB_size_dim(_BoardSize) * TB_size_dim(_BoardSize), 
-                                                    TB_size_dim(_BoardSize) * TB_size_dim(_BoardSize) * TB_size_dim(_BoardSize) };
+                                                    TB_size_dim(_BoardSize) * TB_size_dim(_BoardSize) * TB_size_dim(_BoardSize),
+                                                    TB_size_dim(_BoardSize) * TB_size_dim(_BoardSize) * TB_size_dim(_BoardSize) * TB_size_dim(_BoardSize),
+        };
 
         const PieceColor                _color;         // Side to play
         const uint8_t                   _NPIECE;        // KQvK is 3 pieces
@@ -123,6 +131,7 @@ namespace chess
         Tablebase(std::vector<PieceID>& v, PieceColor c);
         virtual ~Tablebase() {}
 
+        bool do_x_symmetry() { return  _do_x_symmetry; }
         bool load() override        
         { 
             if (!load_tb()) return false;;
@@ -142,24 +151,28 @@ namespace chess
         void        print_dtc(int n)    const;
         uint8_t     checksum_dtc()      const;
 
+        // score_v
         ExactScore score_v(const std::vector<uint16_t>& sq)  const 
         {
             assert(_NPIECE == sq.size());
             return score_at_idx(index_item_v(sq));
         }
 
+        // set_dtc_v
         void set_dtc_v(std::vector<uint16_t>& sq, uint8_t dtc)
         {
             assert(_NPIECE == sq.size());
             set_dtc_at_idx(index_dtc_v(sq), dtc);
         }
 
+        // set_score_v
         void set_score_v(std::vector<uint16_t>& sq, ExactScore sc)
         {
             assert(_NPIECE == sq.size());
             set_score_at_idx(index_item_v(sq), sc);
         }
 
+        // set_marker_v
         void set_marker_v(const std::vector<uint16_t>& sq, bool v)
         {
             assert(_NPIECE == sq.size());
@@ -172,12 +185,14 @@ namespace chess
             square_at_index_vv(0, idx, sq);
         }
 
+        // set_marker_v
         bool marker_v(std::vector<uint16_t>& sq)
         {
             assert(_NPIECE == sq.size());
             return bit(index_item_v(sq), 2);
         }
 
+        // dtc_v
         uint8_t dtc_v(const std::vector<uint16_t>& sq)  const 
         {
             assert(_NPIECE == sq.size());
@@ -222,6 +237,34 @@ namespace chess
             }
         }
 
+        void translate_x(std::vector<uint16_t>& sq)  const
+        {
+            uint16_t x;
+            uint16_t y;
+            for (size_t i = 0; i < sq.size(); i++)
+            {
+                x = (uint16_t)(sq[i] % _BoardSize);
+                y = (uint16_t)(sq[i] / _BoardSize);
+                sq[i] = (y * _BoardSize) + (_BoardSize - x);
+            }
+        }
+
+        bool can_translate_x(const std::vector<uint16_t>& sq)  const
+        {
+            PieceID WKid = _Piece::get_id(PieceName::K, PieceColor::W);
+            for (size_t i = 0; i < sq.size(); i++)
+            {
+                if (_piecesID[i] == WKid)
+                {
+                    if ((sq[i] % _BoardSize) > _BoardSize / 2)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
     protected:
         bool save_tb() const;
         bool save_tb_dtc() const;
@@ -229,17 +272,43 @@ namespace chess
         bool read_tb_dtc();
         bool load_tb();
  
-        uint16_t square(uint8_t x, uint8_t y) { return __BoardSize*y + x; }
+        uint16_t square(uint8_t x, uint8_t y) { return _BoardSize*y + x; }
 
         uint64_t index_item_v(const std::vector<uint16_t>& sq)  const
         {
+            if (_do_x_symmetry)
+            {
+                if (can_translate_x(sq))
+                {
+                    std::vector<uint16_t> sq_copy = sq;
+                    translate_x(sq_copy);
+
+                    uint64_t n = 0;
+                    for (size_t i = 0; i < sq_copy.size(); i++) n += (_dim[(sq_copy.size() - (i + 1))] * sq_copy[i]);
+                    return n * _size_item;
+                }
+            }
+
             uint64_t n = 0;
-            for (size_t i = 0; i < sq.size(); i++) n += (_dim[(sq.size() - (i+1))] * sq[i]);
+            for (size_t i = 0; i < sq.size(); i++) n += (_dim[(sq.size() - (i + 1))] * sq[i]);
             return n * _size_item;
         }
 
         uint64_t index_dtc_v(const std::vector<uint16_t>& sq)  const
         {
+            if (_do_x_symmetry)
+            {
+                if (can_translate_x(sq))
+                {
+                    std::vector<uint16_t> sq_copy = sq;
+                    translate_x(sq_copy);
+
+                    uint64_t n = 0;
+                    for (size_t i = 0; i < sq_copy.size(); i++) n += (_dim[(sq_copy.size() - (i + 1))] * sq_copy[i]);
+                    return n;
+                }
+            }
+
             uint64_t n = 0;
             for (size_t i = 0; i < sq.size(); i++) n += (_dim[(sq.size() - (i + 1))] * sq[i]);
             return n;
