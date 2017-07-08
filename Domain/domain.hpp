@@ -292,7 +292,7 @@ namespace chess
         virtual bool has_known_score_move() const { return true; }
         virtual ExactScore get_known_score_move(const _Board& position, const std::vector<_Move>& m, size_t& ret_mv_idx) const
         { 
-            if (position.is_allow_self_check())
+            if (position.allow_self_check())
             {
                 if (position.can_capture_opposite_king(m, ret_mv_idx))
                 {
@@ -399,7 +399,7 @@ namespace chess
         virtual bool has_known_score_move() const { return true; }
         virtual ExactScore get_known_score_move(const _Board& position, const std::vector<_Move>& m, size_t& ret_mv_idx) const
         {
-            if (position.is_allow_self_check())
+            if (position.allow_self_check())
             {
                 if (position.can_capture_opposite_king(m, ret_mv_idx))
                 {

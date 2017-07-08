@@ -4,7 +4,7 @@
 //=================================================================================================
 //
 // SymmetryTablebase
-//  number white pieces n_w < number black pieces n_b
+// The number white pieces n_w < number black pieces n_b
 //
 //
 #ifndef _AL_CHESS_TABLEBASE_SymmetryTablebase_HPP

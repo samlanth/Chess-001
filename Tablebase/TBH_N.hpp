@@ -3,7 +3,7 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// TBH_N   : handle N pieces TB (W to playor B to play)
+// TBH_N   : Generic handler of N pieces TB (W to play or B to play)
 //
 //
 #ifndef _AL_CHESS_TABLEBASE_TBH_N_HPP

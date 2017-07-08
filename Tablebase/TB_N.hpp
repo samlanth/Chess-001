@@ -3,6 +3,7 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
+// Generic TB of N pieces
 //
 //
 #ifndef _AL_CHESS_TABLEBASE_TB_N_HPP

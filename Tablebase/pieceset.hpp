@@ -3,7 +3,7 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// PieceSet - To keep track of W/B piece combinations when capture/promo
+// PieceSet - To keep track of W/B pieces and their combinations when capture/promo
 //
 //
 #ifndef _AL_CHESS_TABLEBASE_PIECESET_HPP

@@ -25,10 +25,7 @@ namespace chess
         using _Move = Move<PieceID>;
 
     public:
-        Board(  bool set_classic = false,
-                bool allow_self_check = true,
-                bool check_repeating_move_draw = false,
-                bool check_50_moves_draw = false);
+        Board(bool set_classic = false);
 
         Board(const Board&)                 = default;
         Board & operator=(const Board &)    = default;
@@ -73,24 +70,29 @@ namespace chess
         bool is_final(const std::vector<_Move>& m) const;
         ExactScore final_score(const std::vector<_Move>& m) const;
         ExactScore minmax_score(const std::vector<_Move>& m);
+
         bool is_last_move_promo() const;
         bool is_last_move_capture() const;
         bool is_last_move_pawn() const;
 
         const std::vector<_Move>    generate_moves(bool is_recursive_call = false);
         const std::list<_Move>      get_history_moves() const { return _history_moves; }
+        size_t get_histo_size()     const { return _history_moves.size(); }
+        _Move last_history_move()   const { return _history_moves.back(); }
 
-        bool is_allow_self_check()          const { return _allow_self_check; }
-        bool is_check_repeating_move_draw() const { return _check_repeating_move_draw; }
-        bool is_check_50_moves_draw()       const { return _check_50_moves_draw; }
-        size_t get_histo_size()             const { return _history_moves.size(); }
-        const std::string to_str() const;
 
-        bool allow_self_check()   const          { return _allow_self_check;}
-        bool check_repeating_move_draw() const   { return _check_repeating_move_draw; }
-        bool check_50_moves_draw()   const       { return _check_50_moves_draw;}
+        const std::string to_str()  const;
 
-        _Move last_history_move() const { return _history_moves.back(); }
+        static void reset_to_default_option();
+        static bool allow_self_check()              { return _allow_self_check;}
+        static bool check_repeating_move_draw()     { return _check_repeating_move_draw; }
+        static bool check_50_moves_draw()           { return _check_50_moves_draw;}
+        static bool promo_Q_only()                  { return _promo_Q_only; }
+        static void set_allow_self_check(bool v)            { _allow_self_check = v; }
+        static void set_check_repeating_move_draw(bool v)   { _check_repeating_move_draw = v; }
+        static void set_check_50_moves_draw(bool v)         { _check_50_moves_draw = v; }
+        static void set_promo_Q_only(bool v)                { _promo_Q_only = v; }
+
         uint16_t get_square_ofpiece(PieceName n, PieceColor c, bool check_2nd_instance = false) const;
         uint16_t get_square_ofpiece_instance(PieceName n, PieceColor c, uint16_t instance) const;
 
@@ -101,22 +103,35 @@ namespace chess
             _history_moves.clear();
         }
 
-        Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KQK(bool no_check = false) const;
-        Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KPK(bool no_check = false) const;
-        Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KPKP(bool no_check = false) const;
+        static Board<PieceID, _BoardSize> get_random_position_KQK(bool no_check = false);
+        static Board<PieceID, _BoardSize> get_random_position_KPK(bool no_check = false);
+        static Board<PieceID, _BoardSize> get_random_position_KPKP(bool no_check = false);
 
     private:
         PieceColor              _color_toplay;
         std::vector<PieceID>    _cells;
+        std::list<_Move>        _history_moves;     // History
 
         // Features
-        bool _allow_self_check;
-        bool _check_repeating_move_draw;
-        bool _check_50_moves_draw;
-
-        // History
-        std::list<_Move> _history_moves; 
+        static bool _allow_self_check;
+        static bool _check_repeating_move_draw;
+        static bool _check_50_moves_draw;
+        static bool _promo_Q_only;                 // Promo Queen only or all
     };
+
+    template <typename PieceID, typename uint8_t _BoardSize> bool Board<PieceID, _BoardSize>::_allow_self_check = true;
+    template <typename PieceID, typename uint8_t _BoardSize> bool Board<PieceID, _BoardSize>::_check_repeating_move_draw = false;
+    template <typename PieceID, typename uint8_t _BoardSize> bool Board<PieceID, _BoardSize>::_check_50_moves_draw = false;
+    template <typename PieceID, typename uint8_t _BoardSize> bool Board<PieceID, _BoardSize>::_promo_Q_only = true;
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline void Board<PieceID, _BoardSize>::reset_to_default_option()
+    {
+        Board<PieceID, _BoardSize>::_allow_self_check = true;
+        Board<PieceID, _BoardSize>::_check_repeating_move_draw = false;
+        Board<PieceID, _BoardSize>::_check_50_moves_draw = false;
+        Board<PieceID, _BoardSize>::_promo_Q_only = true;
+    }
 
     template <typename PieceID, typename uint8_t _BoardSize>
     inline bool Board<PieceID, _BoardSize>::legal_pos(char option) const
@@ -167,6 +182,7 @@ namespace chess
         os << bool_to_int(play_board.allow_self_check());           os << " ";
         os << bool_to_int(play_board.check_repeating_move_draw());  os << " ";
         os << bool_to_int(play_board.check_50_moves_draw());        os << " ";
+        os << bool_to_int(play_board.promo_Q_only());               os << " ";
 
         os << (int)_pieces.size() << " ";
         for (auto &v : _pieces) { os << (int)v; os << " "; } // ...
@@ -188,18 +204,10 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     std::vector<Move<PieceID>> generate_moves_no_self_check(Board<PieceID, _BoardSize>&, std::vector<Move<PieceID>>& m, size_t from, size_t to);
 
-    // Board()
+    // Board() - ct()
     template <typename PieceID, typename uint8_t _BoardSize>
-    Board<PieceID, _BoardSize>::Board(
-                bool set_classic,
-                bool allow_self_check,
-                bool check_repeating_move_draw,
-                bool check_50_moves_draw)
-        : 
-                _cells(_BoardSize*_BoardSize),
-                _allow_self_check(allow_self_check),
-                _check_repeating_move_draw(check_repeating_move_draw),
-                _check_50_moves_draw(check_50_moves_draw)
+    Board<PieceID, _BoardSize>::Board(bool set_classic)
+        : _cells(_BoardSize*_BoardSize)
     {
         _color_toplay = PieceColor::none;
         PieceID emptyid = _Piece::empty_id();
@@ -287,7 +295,7 @@ namespace chess
         if (cnt  > 1) return xy_next;
         if (cnt == 1) return xy_1;
 
-        //assert(false);
+        // assert(false);
         return -1; // invalid
     }
 
@@ -391,6 +399,7 @@ namespace chess
         }
         return cnt;
     }
+
     template <typename PieceID, typename uint8_t _BoardSize>
     inline uint16_t Board<PieceID, _BoardSize>::cnt_piece(PieceID id) const
     {
@@ -446,6 +455,7 @@ namespace chess
         }
         return cnt;
     }
+
     // cnt_move_oppo
     template <typename PieceID, typename uint8_t _BoardSize>
     uint16_t Board<PieceID, _BoardSize>::cnt_move_oppo(PieceName n, PieceColor c, const std::vector<_Move>& m) const
@@ -522,32 +532,26 @@ namespace chess
             apply_move(mv);
             m_child = generate_moves();
             sc = final_score(m_child);
-            //if (sc != ExactScore::UNKNOWN)
-            //{
-            //    undo_move();
-            //    return ExactScore::UNKNOWN;
-            //}
-            //else
+
+            if (get_color() == PieceColor::B)
             {
-                if (get_color() == PieceColor::B)
+                if (sc == ExactScore::WIN) max_score = ExactScore::WIN;
+                else if (sc == ExactScore::DRAW)
                 {
-                    if (sc == ExactScore::WIN) max_score = ExactScore::WIN;
-                    else if (sc == ExactScore::DRAW)
-                    {
-                        if (max_score != ExactScore::WIN)  max_score = ExactScore::DRAW;
-                    }
-                    else max_score = ExactScore::LOSS;
+                    if (max_score != ExactScore::WIN)  max_score = ExactScore::DRAW;
                 }
-                else
-                {
-                    if (sc == ExactScore::LOSS) max_score = ExactScore::LOSS;
-                    else if (sc == ExactScore::DRAW)
-                    {
-                        if (max_score != ExactScore::LOSS)  max_score = ExactScore::DRAW;
-                    }
-                    else max_score = ExactScore::WIN;
-                }
+                else max_score = ExactScore::LOSS;
             }
+            else
+            {
+                if (sc == ExactScore::LOSS) max_score = ExactScore::LOSS;
+                else if (sc == ExactScore::DRAW)
+                {
+                    if (max_score != ExactScore::LOSS)  max_score = ExactScore::DRAW;
+                }
+                else max_score = ExactScore::WIN;
+            }
+
             undo_move();
         }
         return max_score;
@@ -571,7 +575,7 @@ namespace chess
         if (!has_piece(PieceName::K, PieceColor::B)) return true;
         if (m.size() == 0) return true;
 
-        if (!_allow_self_check)
+        if (!Board<PieceID, _BoardSize>::_allow_self_check)
         {
             // No extra processing required:
             // 1 - K checkmated then (m.size() == 0) - already checked
@@ -579,15 +583,16 @@ namespace chess
             // 3 - Draw then (m.size() == 0) - already checked
         }
 
-        if (_check_repeating_move_draw)
+        if (Board<PieceID, _BoardSize>::_check_repeating_move_draw)
         {
             // ...
         }
 
-        if (_check_50_moves_draw)
+        if (Board<PieceID, _BoardSize>::_check_50_moves_draw)
         {
             // ...
         }
+
         return false;
     }
 
@@ -601,12 +606,11 @@ namespace chess
         {
             _cells.at(index_at(m.src_x + m.mu.x * 1, m.src_y - m.mu.y * 1)) = _Piece::empty_id();
         }
-        else if (m.mu.context_extra == "Q") 
-            _cells.at(index_at(m.dst_x, m.dst_y)) = _Piece::get_id(PieceName::Q, _color_toplay);
+        else if (m.mu.context_extra == "Q") _cells.at(index_at(m.dst_x, m.dst_y)) = _Piece::get_id(PieceName::Q, _color_toplay);
         else if (m.mu.context_extra == "R") _cells.at(index_at(m.dst_x, m.dst_y)) = _Piece::get_id(PieceName::R, _color_toplay);
         else if (m.mu.context_extra == "B") _cells.at(index_at(m.dst_x, m.dst_y)) = _Piece::get_id(PieceName::B, _color_toplay);
         else if (m.mu.context_extra == "N") _cells.at(index_at(m.dst_x, m.dst_y)) = _Piece::get_id(PieceName::N, _color_toplay);
-        else if (m.mu.context_extra == "castlingK_R") _cells.at(index_at(7, m.dst_y)) = _Piece::get_id(PieceName::R, _color_toplay);
+        else if (m.mu.context_extra == "castlingK_R") _cells.at(index_at(_BoardSize-1, m.dst_y)) = _Piece::get_id(PieceName::R, _color_toplay);
         else if (m.mu.context_extra == "castlingQ_R") _cells.at(index_at(3, m.dst_y)) = _Piece::get_id(PieceName::R, _color_toplay);
         _history_moves.push_back(m);
         set_opposite_color();
@@ -631,7 +635,7 @@ namespace chess
                 _cells.at(index_at(mh.dst_x, mh.dst_y)) = mh.prev_src_id;
             }
         }
-        //castling...
+        // castling...
         set_opposite_color();
     }
 
@@ -682,15 +686,15 @@ namespace chess
                                         ((mu.flag_spec == "castlingK") || (mu.flag_spec == "castlingQ"))
                                     )
                                 {
-                                    if (_BoardSize >= 8)
+                                    if (_BoardSize >= 8) // ...
                                     {
-                                        uint8_t rank_y = (p_src->get_color() == PieceColor::W) ? 0 : 7;
+                                        uint8_t rank_y = (p_src->get_color() == PieceColor::W) ? 0 : _BoardSize-1;
                                         if ((mu.flag_spec == "castlingK") && (mv.get_state_castling(p_src->get_color(), PieceName::K)))
                                         {
-                                            if ((get_pieceid_at(4, rank_y) == _Piece::get_id(PieceName::K, p_src->get_color())) &&
-                                                (get_pieceid_at(5, rank_y) == _Piece::empty_id()) &&
-                                                (get_pieceid_at(6, rank_y) == _Piece::empty_id()) &&
-                                                (get_pieceid_at(7, rank_y) == _Piece::get_id(PieceName::R, p_src->get_color()))
+                                            if ((get_pieceid_at(_BoardSize - 4, rank_y) == _Piece::get_id(PieceName::K, p_src->get_color())) &&
+                                                (get_pieceid_at(_BoardSize - 3, rank_y) == _Piece::empty_id()) &&
+                                                (get_pieceid_at(_BoardSize - 2, rank_y) == _Piece::empty_id()) &&
+                                                (get_pieceid_at(_BoardSize - 1, rank_y) == _Piece::get_id(PieceName::R, p_src->get_color()))
                                                 )
                                             {
                                                 mv.mu.context_extra = "castlingK_R";
@@ -729,7 +733,6 @@ namespace chess
                                             if ( ((mu.flag_spec == "y1") && (j == 1)) ||
                                                  ((mu.flag_spec == "y6") && (j == _BoardSize-2)) )
                                             {
-                                                //if (_BoardSize >= 8)
                                                 {
                                                     uint8_t prev_x = (mu.x > 1) ? 1 : mu.x;
                                                     uint8_t prev_y = (mu.y > 1) ? 1 : mu.y;
@@ -743,10 +746,9 @@ namespace chess
                                                 }
                                             }
                                             // en passant
-                                            else if ( ((mu.flag_spec == "y5_ep") && (j == 5) && (get_color() == PieceColor::W) && (_history_moves.size() > 0)) ||
+                                            else if ( ((mu.flag_spec == "y5_ep") && (j == _BoardSize - 3) && (get_color() == PieceColor::W) && (_history_moves.size() > 0)) ||
                                                       ((mu.flag_spec == "y2_ep") && (j == 2) && (get_color() == PieceColor::B) && (_history_moves.size() > 0)) )
                                             {
-                                                if (_BoardSize >= 8)
                                                 {
                                                     if (mv.get_state_ep(get_color(), i))
                                                     {
@@ -770,13 +772,18 @@ namespace chess
                                                 // promo
                                                 if ( ((p_src->color == PieceColor::W) && (j == _BoardSize-2)) || ((p_src->color == PieceColor::B) && (j == 1)))
                                                 {
-                                                    //if (_BoardSize >= 8)
+                                                    if (Board<PieceID, _BoardSize>::_promo_Q_only)
                                                     {
                                                         _Move mvQ = mv; mvQ.mu.context_extra = "Q"; m.push_back(mvQ);
-                                                        //_Move mvR = mv; mvR.mu.context_extra = "R"; m.push_back(mvR);
-                                                        //_Move mvN = mv; mvN.mu.context_extra = "N"; m.push_back(mvN);
-                                                        //_Move mvB = mv; mvB.mu.context_extra = "B"; m.push_back(mvB);
                                                     }
+                                                    else
+                                                    {
+                                                        _Move mvQ = mv; mvQ.mu.context_extra = "Q"; m.push_back(mvQ);
+                                                        _Move mvR = mv; mvR.mu.context_extra = "R"; m.push_back(mvR);
+                                                        _Move mvN = mv; mvN.mu.context_extra = "N"; m.push_back(mvN);
+                                                        _Move mvB = mv; mvB.mu.context_extra = "B"; m.push_back(mvB);
+                                                    }
+             
                                                 }
                                                 else
                                                 {
@@ -813,12 +820,16 @@ namespace chess
                                                 // promo
                                                 if ( ((p_src->color == PieceColor::W) && (j == _BoardSize-2)) || ((p_src->color == PieceColor::B) && (j == 1)))
                                                 {
-                                                    //if (_BoardSize >= 8)
+                                                    if (Board<PieceID, _BoardSize>::_promo_Q_only)
                                                     {
                                                         _Move mvQ = mv; mvQ.mu.context_extra = "Q"; m.push_back(mvQ);
-                                                        //_Move mvR = mv; mvR.mu.context_extra = "R"; m.push_back(mvR);
-                                                        //_Move mvN = mv; mvN.mu.context_extra = "N"; m.push_back(mvN);
-                                                        //_Move mvB = mv; mvB.mu.context_extra = "B"; m.push_back(mvB);
+                                                    }
+                                                    else
+                                                    {
+                                                        _Move mvQ = mv; mvQ.mu.context_extra = "Q"; m.push_back(mvQ);
+                                                        _Move mvR = mv; mvR.mu.context_extra = "R"; m.push_back(mvR);
+                                                        _Move mvN = mv; mvN.mu.context_extra = "N"; m.push_back(mvN);
+                                                        _Move mvB = mv; mvB.mu.context_extra = "B"; m.push_back(mvB);
                                                     }
                                                 }
                                                 else
@@ -845,7 +856,7 @@ namespace chess
         {
             // ok no more recursive
         }
-        else if (!_allow_self_check)  // Splitting computation into multi thread
+        else if (!Board<PieceID, _BoardSize>::_allow_self_check)  // Splitting computation into multi thread
         {
             unsigned concurrenty = std::thread::hardware_concurrency();
             if (concurrenty < 2) concurrenty = 2;
@@ -984,7 +995,7 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KQK(bool no_check) const
+    Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KQK(bool no_check) 
     {
         uint8_t wQ = 0;
         uint8_t wK = 0;
@@ -1018,7 +1029,7 @@ namespace chess
         return b;
     }
     template <typename PieceID, typename uint8_t _BoardSize>
-    Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KPK(bool no_check) const
+    Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KPK(bool no_check)
     {
         uint8_t wP = 0;
         uint8_t wK = 0;
@@ -1053,7 +1064,7 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KPKP(bool no_check) const
+    Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KPKP(bool no_check)
     {
         uint8_t wP = 0;
         uint8_t wK = 0;

@@ -3,7 +3,7 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// Tablebase
+// Tablebase (TB)
 //
 //
 #ifndef _AL_CHESS_TABLEBASE_TB_HPP

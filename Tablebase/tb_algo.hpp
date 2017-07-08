@@ -3,7 +3,7 @@
 //                    Copyright (C) 2017 Alain Lanthier - All Rights Reserved                      
 //=================================================================================================
 //
-// algo for TB
+// Algorithms (multithread capable) for TB generation
 //
 //
 #ifndef _AL_CHESS_TABLEBASE_TB_ALGO_HPP
