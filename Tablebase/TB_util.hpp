@@ -76,9 +76,13 @@ namespace chess
                 v_id = pos.get_piecesID();        // sorted
                 for (auto& id : v_id)
                 {
-                    //..repeat..
-                    v_sq.push_back(pos.get_square_ofpiece(  _Piece::get(id)->get_name(), _Piece::get(id)->get_color()));
+                    // Set an ordering of repeating piece on board ...
+                    v_sq.push_back(pos.get_square_ofpiece(_Piece::get(id)->get_name(), _Piece::get(id)->get_color()));
                 }
+                
+                // Set an ordering of repeating position in the TB
+                TablebaseBase<PieceID, _BoardSize>::order_sq_v(v_sq, v_id);
+
                 mv_sq.push_back(v_sq);
                 child_is_promo[k] = pos.is_last_move_promo();
                 child_is_capture[k] = pos.is_last_move_capture();

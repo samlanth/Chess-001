@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
 
     // Test TB
     {
-        bool DO_BUILD = true;
+        bool DO_BUILD = false;
         {
             chess::TB_Manager<uint8_t, 6>::instance()->clear();
             std::vector<uint8_t> ws;
@@ -37,34 +37,34 @@ int main(int argc, char* argv[])
             TBH_KQvK.load();
 
             // check sym
-            if (!DO_BUILD)
-            {
-                //chess::TablebaseBase<uint8_t, 6>* sym_tb_w;
-                //chess::TablebaseBase<uint8_t, 6>* sym_tb_b;
-                //{
-                //    // ref is B
-                //    chess::PieceSet<uint8_t, 6> master(((chess::Tablebase<uint8_t, 6, 3>*)(TBH_KQvK.TB_B()))->piecesID());
-                //    chess::PieceSet<uint8_t, 6> reverse({ chess::PieceSet<uint8_t, 6>::reverse_color_set(master.bset()), chess::PieceSet<uint8_t, 6>::reverse_color_set(master.wset()) });
-                //    sym_tb_w = (chess::TablebaseBase<uint8_t, 6>*)new chess::SymmetryTablebase<uint8_t, 6, 3>(( chess::Tablebase<uint8_t, 6, 3>*)TBH_KQvK.TB_B_const());
-                //    chess::TB_Manager<uint8_t, 6>::instance()->add_sym(reverse.name(chess::PieceColor::W), sym_tb_w);
-                //    sym_tb_w->load();
-                //    std::cout << "check_score B KQvK vs sym W kVKQ: " << ((chess::SymmetryTablebase<uint8_t, 6, 3>*)(sym_tb_w))->check_score() << std::endl;
-                //}
-                //{
-                //    // ref is W
-                //    chess::PieceSet<uint8_t, 6> master(((chess::Tablebase<uint8_t, 6, 3>*)(TBH_KQvK.TB_W()))->piecesID());
-                //    chess::PieceSet<uint8_t, 6> reverse({ chess::PieceSet<uint8_t, 6>::reverse_color_set(master.bset()), chess::PieceSet<uint8_t, 6>::reverse_color_set(master.wset()) });
-                //    sym_tb_b = (chess::TablebaseBase<uint8_t, 6>*)new chess::SymmetryTablebase<uint8_t, 6, 3>((chess::Tablebase<uint8_t, 6, 3>*)TBH_KQvK.TB_W_const());
-                //    chess::TB_Manager<uint8_t, 6>::instance()->add_sym(reverse.name(chess::PieceColor::B), sym_tb_b);
-                //    sym_tb_b->load();
-                //    assert(sym_tb_b->is_build());
-                //    std::cout << "check_score W KQvK vs sym B kVKQ: " << ((chess::SymmetryTablebase<uint8_t, 6, 3>*)(sym_tb_b))->check_score() << std::endl;
-                //}
+            //if (!DO_BUILD)
+            //{
+            //    chess::TablebaseBase<uint8_t, 6>* sym_tb_w;
+            //    chess::TablebaseBase<uint8_t, 6>* sym_tb_b;
+            //    {
+            //        // ref is B
+            //        chess::PieceSet<uint8_t, 6> master(((chess::Tablebase<uint8_t, 6, 3>*)(TBH_KQvK.TB_B()))->piecesID());
+            //        chess::PieceSet<uint8_t, 6> reverse({ chess::PieceSet<uint8_t, 6>::reverse_color_set(master.bset()), chess::PieceSet<uint8_t, 6>::reverse_color_set(master.wset()) });
+            //        sym_tb_w = (chess::TablebaseBase<uint8_t, 6>*)new chess::SymmetryTablebase<uint8_t, 6, 3>(( chess::Tablebase<uint8_t, 6, 3>*)TBH_KQvK.TB_B_const());
+            //        chess::TB_Manager<uint8_t, 6>::instance()->add_sym(reverse.name(chess::PieceColor::W), sym_tb_w);
+            //        sym_tb_w->load();
+            //        std::cout << "check_score B KQvK vs sym W kVKQ: " << ((chess::SymmetryTablebase<uint8_t, 6, 3>*)(sym_tb_w))->check_score() << std::endl;
+            //    }
+            //    {
+            //        // ref is W
+            //        chess::PieceSet<uint8_t, 6> master(((chess::Tablebase<uint8_t, 6, 3>*)(TBH_KQvK.TB_W()))->piecesID());
+            //        chess::PieceSet<uint8_t, 6> reverse({ chess::PieceSet<uint8_t, 6>::reverse_color_set(master.bset()), chess::PieceSet<uint8_t, 6>::reverse_color_set(master.wset()) });
+            //        sym_tb_b = (chess::TablebaseBase<uint8_t, 6>*)new chess::SymmetryTablebase<uint8_t, 6, 3>((chess::Tablebase<uint8_t, 6, 3>*)TBH_KQvK.TB_W_const());
+            //        chess::TB_Manager<uint8_t, 6>::instance()->add_sym(reverse.name(chess::PieceColor::B), sym_tb_b);
+            //        sym_tb_b->load();
+            //        assert(sym_tb_b->is_build());
+            //        std::cout << "check_score W KQvK vs sym B kVKQ: " << ((chess::SymmetryTablebase<uint8_t, 6, 3>*)(sym_tb_b))->check_score() << std::endl;
+            //    }
 
-                //std::vector<uint16_t> sq = { 26, 10, 31 }; // B to play in KvKQ (sym)
-                //std::cout << "B to play in KvKQ (sym) " << chess::ExactScore_to_string(sym_tb_b->score_v(sq)) << " vs LOSS ";
-                //for (size_t z = 0; z < sq.size(); z++) std::cout << (int)sq[z] << " "; std::cout << std::endl;
-            }
+            //    std::vector<uint16_t> sq = { 26, 10, 31 }; // B to play in KvKQ (sym)
+            //    std::cout << "B to play in KvKQ (sym) " << chess::ExactScore_to_string(sym_tb_b->score_v(sq)) << " vs LOSS ";
+            //    for (size_t z = 0; z < sq.size(); z++) std::cout << (int)sq[z] << " "; std::cout << std::endl;
+            //}
         }
 
         {

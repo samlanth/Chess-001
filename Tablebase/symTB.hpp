@@ -111,6 +111,7 @@ namespace chess
                 if (std::count(sq.begin(), sq.end(), sq[z]) > 1) { legal_pos = false; break; }
             }
             if (!legal_pos) continue;
+            if (refTB()->do_x_symmetry() && (refTB()->can_translate_x(sq)))  continue;
 
             std::vector<PieceID> pieces = refTB()->piecesID();
 

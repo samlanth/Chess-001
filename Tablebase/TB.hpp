@@ -76,6 +76,26 @@ namespace chess
         virtual bool        save() const = 0;
         virtual void        print() const = 0;
         virtual uint8_t     getNPIECE() const = 0;
+
+        static void order_sq_v(std::vector<uint16_t>& sq, const std::vector<PieceID>& piecesID)
+        {
+            bool not_done = true;
+            while (not_done)
+            {
+                not_done = false;
+                for (size_t i = 0; i < sq.size() - 1; i++)
+                {
+                    // sort
+                    if ((piecesID[i] == piecesID[i + 1]) && (sq[i] > sq[i + 1]))
+                    {
+                        // swap
+                        uint16_t t = sq[i];  sq[i] = sq[i + 1]; sq[i + 1] = t;
+                        not_done = true;
+                        break;
+                    }
+                }
+            }
+        }
     };
 
     // Tablebase
@@ -108,7 +128,7 @@ namespace chess
         bool friend build_base_vv(  TBH<PieceID, _BoardSize>* tbh, TablebaseBase<PieceID, _BoardSize>* tb_W, TablebaseBase<PieceID, _BoardSize>* tb_B, char verbose);
 
     protected:
-        const bool                      _do_x_symmetry = false;
+        const bool                      _do_x_symmetry = true;
         const uint8_t                   _size_item = TB_size_item();
         const uint64_t                  _size_tb = TB_size(_BoardSize, NPIECE);
         const uint64_t                  _dim[5] = { 1, 
@@ -131,7 +151,7 @@ namespace chess
         Tablebase(std::vector<PieceID>& v, PieceColor c);
         virtual ~Tablebase() {}
 
-        bool do_x_symmetry() { return  _do_x_symmetry; }
+        bool do_x_symmetry() const { return  _do_x_symmetry; }
         bool load() override        
         { 
             if (!load_tb()) return false;;
@@ -179,6 +199,7 @@ namespace chess
             set_bit(index_item_v(sq), 2, v);
         }
 
+        // raw board square
         void square_at_index_v(uint64_t idx, std::vector<uint16_t>& sq) const
         {
             assert(_NPIECE == sq.size());
@@ -204,6 +225,34 @@ namespace chess
             return TB_Manager<PieceID, _BoardSize>::instance()->name_pieces(_piecesID, _color);
         }
 
+        void translate_x(std::vector<uint16_t>& sq)  const
+        {
+            uint16_t x;
+            uint16_t y;
+            for (size_t i = 0; i < sq.size(); i++)
+            {
+                x = (uint16_t)(sq[i] % _BoardSize);
+                y = (uint16_t)(sq[i] / _BoardSize);
+                sq[i] = (y * _BoardSize) + ((_BoardSize-1) - x); // 6: 0<-->5
+            }
+        }
+
+        bool can_translate_x(const std::vector<uint16_t>& sq)  const
+        {
+            PieceID WKid = _Piece::get_id(PieceName::K, PieceColor::W);
+            for (size_t i = 0; i < sq.size(); i++)
+            {
+                if (_piecesID[i] == WKid)
+                {
+                    if ((sq[i] % _BoardSize) >= _BoardSize / 2) // 6: >= 3, 5: >=2.5
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
     protected:
         PieceID pieceID(uint8_t idx) { return _piecesID[idx]; }
         std::vector<uint64_t> get_index_dtc(uint8_t value_dtc, ExactScore value_sc) const;
@@ -219,50 +268,7 @@ namespace chess
 
         void order_sq_v(std::vector<uint16_t>& sq)  const
         {
-            bool not_done = true;
-            while (not_done)
-            {
-                not_done = false;
-                for (size_t i = 0; i < sq.size()-1; i++)
-                {
-                    // bubble sort
-                    if ((_piecesID[i] == _piecesID[i + 1]) && (sq[i] > sq[i + 1]))
-                    {
-                        // swap
-                        uint16_t t = sq[i];  sq[i] = sq[i + 1]; sq[i + 1] = t;
-                        not_done = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        void translate_x(std::vector<uint16_t>& sq)  const
-        {
-            uint16_t x;
-            uint16_t y;
-            for (size_t i = 0; i < sq.size(); i++)
-            {
-                x = (uint16_t)(sq[i] % _BoardSize);
-                y = (uint16_t)(sq[i] / _BoardSize);
-                sq[i] = (y * _BoardSize) + (_BoardSize - x);
-            }
-        }
-
-        bool can_translate_x(const std::vector<uint16_t>& sq)  const
-        {
-            PieceID WKid = _Piece::get_id(PieceName::K, PieceColor::W);
-            for (size_t i = 0; i < sq.size(); i++)
-            {
-                if (_piecesID[i] == WKid)
-                {
-                    if ((sq[i] % _BoardSize) > _BoardSize / 2)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
+            TablebaseBase<PieceID, _BoardSize>::order_sq_v(sq, _piecesID);
         }
 
     protected:

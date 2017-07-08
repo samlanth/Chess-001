@@ -482,7 +482,7 @@ namespace chess
                                             map_piece_rank[z].ret_instance);
                     }
                     // Set an ordering of repeating position in the TB
-                    tb->order_sq_v(child_sq);
+                    tb_oppo->order_sq_v(child_sq);
 
                     legal_pos = true;
                     for (size_t z = 0; z < NPIECE; z++)
@@ -697,12 +697,15 @@ namespace chess
                     if ((_work_board->cnt_all_piece() == tb->_NPIECE) && !isPromo) // same pieces as parent position
                     {
                         for (size_t z = 0; z < NPIECE; z++)
+                        {
                             child_sq[z] = _work_board->get_square_ofpiece_instance(
-                                Piece<PieceID, _BoardSize>::get(map_piece_rank[z].ret_id)->get_name(), 
-                                Piece<PieceID, _BoardSize>::get(map_piece_rank[z].ret_id)->get_color(), 
+                                Piece<PieceID, _BoardSize>::get(map_piece_rank[z].ret_id)->get_name(),
+                                Piece<PieceID, _BoardSize>::get(map_piece_rank[z].ret_id)->get_color(),
                                 map_piece_rank[z].ret_instance);
+                        }
 
-                        tb->order_sq_v(child_sq);
+                        // Set an ordering of repeating position in the TB
+                        tb_oppo->order_sq_v(child_sq);
 
                         legal_pos = true;
                         for (size_t z = 0; z < NPIECE; z++)
