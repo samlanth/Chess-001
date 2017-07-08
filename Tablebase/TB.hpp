@@ -69,7 +69,7 @@ namespace chess
         virtual bool        is_symmetry_TB() const = 0;
 
         virtual ExactScore  score_v(const std::vector<uint16_t>& sq) const = 0;
-        virtual uint8_t     dtc_v(  const std::vector<uint16_t>& sq) const = 0;
+        virtual uint8_t     dtc_v(const std::vector<uint16_t>& sq) const = 0;
 
         virtual bool        is_build() const = 0;
         virtual bool        load() = 0;
@@ -77,26 +77,29 @@ namespace chess
         virtual void        print() const = 0;
         virtual uint8_t     getNPIECE() const = 0;
 
-        static void order_sq_v(std::vector<uint16_t>& sq, const std::vector<PieceID>& piecesID)
+        static void order_sq_v(std::vector<uint16_t>& sq, const std::vector<PieceID>& piecesID);
+    };
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    inline void TablebaseBase<PieceID, _BoardSize>::order_sq_v(std::vector<uint16_t>& sq, const std::vector<PieceID>& piecesID)
+    {
+        bool not_done = true;
+        while (not_done)
         {
-            bool not_done = true;
-            while (not_done)
+            not_done = false;
+            for (size_t i = 0; i < sq.size() - 1; i++)
             {
-                not_done = false;
-                for (size_t i = 0; i < sq.size() - 1; i++)
+                // sort
+                if ((piecesID[i] == piecesID[i + 1]) && (sq[i] > sq[i + 1]))
                 {
-                    // sort
-                    if ((piecesID[i] == piecesID[i + 1]) && (sq[i] > sq[i + 1]))
-                    {
-                        // swap
-                        uint16_t t = sq[i];  sq[i] = sq[i + 1]; sq[i + 1] = t;
-                        not_done = true;
-                        break;
-                    }
+                    // swap
+                    uint16_t t = sq[i];  sq[i] = sq[i + 1]; sq[i + 1] = t;
+                    not_done = true;
+                    break;
                 }
             }
         }
-    };
+    }
 
     // Tablebase
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
@@ -113,16 +116,13 @@ namespace chess
         friend class TBH_Symmetry<PieceID, _BoardSize, 5>;
 
         template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
-        uint64_t friend set_mate_score_v(   PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb,
-                                            size_t from, size_t to);
+        uint64_t friend set_mate_score_v(   PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb, size_t from, size_t to);
 
         template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
-        uint64_t friend setup_marker_v(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb, Tablebase<PieceID, _BoardSize, NPIECE>* tb_oppo,
-            size_t from, size_t to);
+        uint64_t friend setup_marker_v(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb, Tablebase<PieceID, _BoardSize, NPIECE>* tb_oppo, size_t from, size_t to);
 
         template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
-        uint64_t friend process_marker_v(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb, Tablebase<PieceID, _BoardSize, NPIECE>* tb_oppo,
-                                         size_t from, size_t to);
+        uint64_t friend process_marker_v(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play, Tablebase<PieceID, _BoardSize, NPIECE>* tb, Tablebase<PieceID, _BoardSize, NPIECE>* tb_oppo, size_t from, size_t to);
 
         template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
         bool friend build_base_vv(  TBH<PieceID, _BoardSize>* tbh, TablebaseBase<PieceID, _BoardSize>* tb_W, TablebaseBase<PieceID, _BoardSize>* tb_B, char verbose);

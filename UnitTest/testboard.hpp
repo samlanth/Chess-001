@@ -111,7 +111,7 @@ namespace chess
                     {
                         _Move mv = m[mv_index];
                         board.apply_move(mv);
-                        if (_verbose) std::cout << board.to_str() << std::endl;
+                        if (_verbose) std::cout << board.to_str() << std::endl << std::endl;
                     }
                 }
 
@@ -119,7 +119,7 @@ namespace chess
                 for (size_t i = 0; i < h.size(); i++)
                 {
                     board.undo_move();
-                    if (_verbose) std::cout << board.to_str() << std::endl;
+                    if (_verbose) std::cout << board.to_str() << std::endl << std::endl;
                 }
 
                 m = board.generate_moves();

@@ -114,7 +114,7 @@ namespace unittest
                 }
                 else
                 {
-                    std::stringstream ss_detail;
+                    //std::stringstream ss_detail;
                     if (!v.is_exception)
                         ss_detail << "Error: (id=" << v.id << ") (msg=" << v.msg_err << ") (elapsed sec= " << elapsed_seconds.count() << ")";
                     else
