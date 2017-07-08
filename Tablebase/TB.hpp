@@ -68,6 +68,7 @@ namespace chess
 
         virtual bool        is_symmetry_TB() const = 0;
 
+        virtual bool        legal(const std::vector<uint16_t>& sq) const = 0;
         virtual ExactScore  score_v(const std::vector<uint16_t>& sq) const = 0;
         virtual uint8_t     dtc_v(const std::vector<uint16_t>& sq) const = 0;
 
@@ -101,6 +102,15 @@ namespace chess
         }
     }
 
+    template <typename PieceID, typename uint8_t _BoardSize>
+    struct STRUCT_PIECE_RANK
+    {
+        PieceID     ret_id;
+        uint16_t    ret_count;
+        uint16_t    rank_ret_id;
+        uint16_t    ret_instance;
+    };
+
     // Tablebase
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
     class Tablebase : public TablebaseBase<PieceID, _BoardSize>
@@ -127,6 +137,21 @@ namespace chess
         template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
         bool friend build_base_vv(  TBH<PieceID, _BoardSize>* tbh, TablebaseBase<PieceID, _BoardSize>* tb_W, TablebaseBase<PieceID, _BoardSize>* tb_B, char verbose);
 
+        template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE >
+        ExactScore friend generate_child_info(TBH<PieceID, _BoardSize>* tbh, PieceColor color_to_play,
+            Tablebase<PieceID, _BoardSize, NPIECE>* tb, Tablebase<PieceID, _BoardSize, NPIECE>* tb_oppo,
+            Board<PieceID, _BoardSize>* _work_board,
+            std::vector<ExactScore>&    child_sc,
+            std::vector<uint8_t>&       child_dtc,
+            std::vector<bool>&          child_is_promo,
+            std::vector<bool>&          child_is_capture,
+            std::vector<bool>&          child_is_pawn,
+            std::vector<uint16_t>&      child_sq,
+            std::map<size_t, STRUCT_PIECE_RANK<PieceID, _BoardSize>>& map_piece_rank,
+            bool&                       exist_child_score,
+            uint8_t&                    ret_dtc,
+            size_t&                     ret_idx);
+
     protected:
         const bool                      _do_x_symmetry = true;
         const uint8_t                   _size_item = TB_size_item();
@@ -152,6 +177,8 @@ namespace chess
         virtual ~Tablebase() {}
 
         bool do_x_symmetry() const { return  _do_x_symmetry; }
+        bool legal(const std::vector<uint16_t>& sq) const override;
+
         bool load() override        
         { 
             if (!load_tb()) return false;;
@@ -244,7 +271,9 @@ namespace chess
             {
                 if (_piecesID[i] == WKid)
                 {
-                    if ((sq[i] % _BoardSize) >= _BoardSize / 2) // 6: >= 3, 5: >=2.5
+                    double x = sq[i] % _BoardSize;
+                    double b = _BoardSize;
+                    if (x >= (b / 2.0)) // 6: >= 3, 5: >=2.5
                     {
                         return true;
                     }
@@ -256,6 +285,8 @@ namespace chess
     protected:
         PieceID pieceID(uint8_t idx) { return _piecesID[idx]; }
         std::vector<uint64_t> get_index_dtc(uint8_t value_dtc, ExactScore value_sc) const;
+
+        bool valid_index(uint64_t index, Board<PieceID, _BoardSize>& _work_board, std::vector<uint16_t>& ret_sq) const;
 
         void square_at_index_vv(size_t n, uint64_t idx, std::vector<uint16_t>& sq)  const
         {
@@ -374,6 +405,47 @@ namespace chess
         void writeBits(std::ostream& os) const;
         void readBits(std::istream& is);
     };
+
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
+    inline bool Tablebase<PieceID, _BoardSize, NPIECE>::legal(const std::vector<uint16_t>& sq) const
+    {
+        if (sq.size() != NPIECE) return false;
+        for (size_t z = 0; z < NPIECE; z++)
+        {
+            if (std::count(sq.begin(), sq.end(), sq[z]) > 1) 
+                return false;
+        }
+        Board<PieceID, _BoardSize> work_board;
+        work_board.clear();
+        work_board.set_color(this->color());
+        for (size_t z = 0; z < NPIECE; z++)  work_board.set_pieceid_at(this->_piecesID[z], sq[z]);
+        if (!work_board.legal_pos())
+            return false;
+
+        return true;
+    }
+
+    template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>
+    inline bool Tablebase<PieceID, _BoardSize, NPIECE>::valid_index(uint64_t index, Board<PieceID, _BoardSize>& _work_board, std::vector<uint16_t>& sq) const
+    {
+        if (sq.size() != NPIECE) return false;
+        this->square_at_index_v(index, sq);
+        for (size_t z = 0; z < NPIECE; z++)
+        {
+            if (std::count(sq.begin(), sq.end(), sq[z]) > 1)
+                return false;
+        }
+        if (this->do_x_symmetry() && (this->can_translate_x(sq)))
+            return false;
+
+        _work_board.clear();
+        _work_board.set_color(this->color());
+        for (size_t z = 0; z < NPIECE; z++)  _work_board.set_pieceid_at(this->_piecesID[z], sq[z]);
+        if (!_work_board.legal_pos())
+            return false;
+
+        return true;
+    }
 
     // print
     template <typename PieceID, typename uint8_t _BoardSize, uint8_t NPIECE>

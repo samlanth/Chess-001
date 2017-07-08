@@ -163,7 +163,7 @@ namespace chess
                     if (_verbose)
                     {
                         std::cout << "press any key to continu...";
-                        _getch();
+                        int a = _getch();
                         std::cout << std::endl;
                     }
                 }

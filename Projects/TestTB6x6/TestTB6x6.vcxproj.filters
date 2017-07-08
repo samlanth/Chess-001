@@ -5,10 +5,60 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="Source Files\Chess">
+      <UniqueIdentifier>{df8f3a88-1c89-491a-ad07-b8f2a5317d36}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\UnitTest\main_testTB6x6.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Tablebase\pieceset.hpp">
+      <Filter>Source Files\Chess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tablebase\symTB.hpp">
+      <Filter>Source Files\Chess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tablebase\TB.hpp">
+      <Filter>Source Files\Chess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tablebase\TB_algo.hpp">
+      <Filter>Source Files\Chess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tablebase\TB_mgr.hpp">
+      <Filter>Source Files\Chess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tablebase\TB_N.hpp">
+      <Filter>Source Files\Chess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tablebase\TB_util.hpp">
+      <Filter>Source Files\Chess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tablebase\TBH.hpp">
+      <Filter>Source Files\Chess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tablebase\TBH_mgr.hpp">
+      <Filter>Source Files\Chess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tablebase\TBH_N.hpp">
+      <Filter>Source Files\Chess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Core\board.hpp">
+      <Filter>Source Files\Chess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Core\chess.hpp">
+      <Filter>Source Files\Chess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Core\move.hpp">
+      <Filter>Source Files\Chess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Core\piece.hpp">
+      <Filter>Source Files\Chess</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Core\util.hpp">
+      <Filter>Source Files\Chess</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

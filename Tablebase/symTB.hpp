@@ -21,6 +21,11 @@ namespace chess
         ~SymmetryTablebase() {}
 
         bool is_symmetry_TB() const override { return true; }
+        bool legal(const std::vector<uint16_t>& sq) const override 
+        { 
+            return _refTB->legal(reverse_order_sq(sq, false));
+        }
+
         bool is_build() const       override { return _refTB->is_build(); }
         bool load()                 override 
         { 

@@ -34,7 +34,7 @@ namespace chess
         ~Board()                            = default;
 
         // ...
-        bool legal_pos(char option = 0) const;  // 0==just check pawn row
+        bool legal_pos(char option = 0) const;  // 0==just check pawn rows
 
         const uint8_t index_at(uint8_t x, uint8_t y) const { return _BoardSize * y + x; }
         const _Piece* piece_at(uint8_t x, uint8_t y) const { return _Piece::get(_cells.at(index_at(x, y))); }
@@ -103,9 +103,9 @@ namespace chess
             _history_moves.clear();
         }
 
-        static Board<PieceID, _BoardSize> get_random_position_KQK(bool no_check = false);
-        static Board<PieceID, _BoardSize> get_random_position_KPK(bool no_check = false);
-        static Board<PieceID, _BoardSize> get_random_position_KPKP(bool no_check = false);
+        static Board<PieceID, _BoardSize> get_random_position_KQK(bool no_check = false, uint64_t ncall = 0);
+        static Board<PieceID, _BoardSize> get_random_position_KPK(bool no_check = false, uint64_t ncall = 0);
+        static Board<PieceID, _BoardSize> get_random_position_KPKP(bool no_check = false, uint64_t ncall = 0);
 
     private:
         PieceColor              _color_toplay;
@@ -733,6 +733,7 @@ namespace chess
                                             if ( ((mu.flag_spec == "y1") && (j == 1)) ||
                                                  ((mu.flag_spec == "y6") && (j == _BoardSize-2)) )
                                             {
+                                                if (_BoardSize >= 5)    // otherwise pawn can promo in 1 move
                                                 {
                                                     uint8_t prev_x = (mu.x > 1) ? 1 : mu.x;
                                                     uint8_t prev_y = (mu.y > 1) ? 1 : mu.y;
@@ -995,8 +996,10 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KQK(bool no_check) 
+    Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KQK(bool no_check, uint64_t ncall)
     {
+        ncall++;
+        uint64_t n = 0;
         uint8_t wQ = 0;
         uint8_t wK = 0;
         uint8_t bK = 0;
@@ -1005,6 +1008,12 @@ namespace chess
             wQ = (std::rand() % (_BoardSize*_BoardSize));
             wK = (std::rand() % (_BoardSize*_BoardSize));
             bK = (std::rand() % (_BoardSize*_BoardSize));
+            n++;
+            if (n > 100)
+            {
+                no_check = false;
+                break;
+            }
         }
         Board<PieceID, _BoardSize>  b;
         b.set_pieceid_at(_Piece::get_id(PieceName::Q, PieceColor::W), wQ % _BoardSize, ((uint8_t)(wQ / _BoardSize)));
@@ -1012,25 +1021,28 @@ namespace chess
         b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::B), bK % _BoardSize, ((uint8_t)(bK / _BoardSize)));
         b.set_color(PieceColor::W);
 
+        if (ncall > 100) no_check = false;
         if (no_check)
         {
             if (b.is_in_check())
             {
-                return get_random_position_KQK(no_check);
+                return get_random_position_KQK(no_check, ncall);
             }
             else
             {
                 std::vector<_Move> m = b.generate_moves();
                 size_t mv;
                 if (b.can_capture_opposite_king(m, mv))
-                    return get_random_position_KQK(no_check);
+                    return get_random_position_KQK(no_check, ncall);
             }
         }
         return b;
     }
     template <typename PieceID, typename uint8_t _BoardSize>
-    Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KPK(bool no_check)
+    Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KPK(bool no_check, uint64_t ncall)
     {
+        ncall++;
+        uint64_t n = 0;
         uint8_t wP = 0;
         uint8_t wK = 0;
         uint8_t bK = 0;
@@ -1039,6 +1051,12 @@ namespace chess
             wP = (std::rand() % (_BoardSize*_BoardSize));
             wK = (std::rand() % (_BoardSize*_BoardSize));
             bK = (std::rand() % (_BoardSize*_BoardSize));
+            n++;
+            if (n > 100)
+            {
+                no_check = false;
+                break;
+            }
         }
         Board<PieceID, _BoardSize>  b;
         b.set_pieceid_at(_Piece::get_id(PieceName::P, PieceColor::W), wP % _BoardSize, ((uint8_t)(wP / _BoardSize)));
@@ -1046,26 +1064,29 @@ namespace chess
         b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::B), bK % _BoardSize, ((uint8_t)(bK / _BoardSize)));
         b.set_color(PieceColor::W);
 
+        if (ncall > 100) no_check = false;
         if (no_check)
         {
             if (b.is_in_check())
             {
-                return get_random_position_KPK(no_check);
+                return get_random_position_KPK(no_check, ncall);
             }
             else
             {
                 std::vector<_Move> m = b.generate_moves();
                 size_t mv;
                 if (b.can_capture_opposite_king(m, mv))
-                    return get_random_position_KPK(no_check);
+                    return get_random_position_KPK(no_check, ncall);
             }
         }
         return b;
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KPKP(bool no_check)
+    Board<PieceID, _BoardSize> Board<PieceID, _BoardSize>::get_random_position_KPKP(bool no_check, uint64_t ncall)
     {
+        ncall++;
+        uint64_t n = 0;
         uint8_t wP = 0;
         uint8_t wK = 0;
         uint8_t bK = 0;
@@ -1078,27 +1099,36 @@ namespace chess
             wK = (std::rand() % (_BoardSize*_BoardSize));
             bK = (std::rand() % (_BoardSize*_BoardSize));
             bP = (std::rand() % (_BoardSize*_BoardSize));
+            n++;
+            if (n > 100)
+            {
+                no_check = false;
+                break;
+            }
+
         }
         Board<PieceID, _BoardSize>  b;
         b.set_pieceid_at(_Piece::get_id(PieceName::P, PieceColor::W), wP % _BoardSize, ((uint8_t)(wP / _BoardSize)));
         b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::W), wK % _BoardSize, ((uint8_t)(wK / _BoardSize)));
         b.set_pieceid_at(_Piece::get_id(PieceName::K, PieceColor::B), bK % _BoardSize, ((uint8_t)(bK / _BoardSize)));
         b.set_pieceid_at(_Piece::get_id(PieceName::P, PieceColor::B), bP % _BoardSize, ((uint8_t)(bP / _BoardSize)));
-        //b.set_pieceid_at(_Piece::get_id(PieceName::Q, PieceColor::B), bP % _BoardSize, ((uint8_t)(bP / _BoardSize)));
         b.set_color(PieceColor::W);
 
+        if (ncall > 100) no_check = false;
         if (no_check)
         {
             if (b.is_in_check())
             {
-                return get_random_position_KPKP(no_check);
+                return get_random_position_KPKP(no_check, ncall);
             }
             else
             {
                 std::vector<_Move> m = b.generate_moves();
                 size_t mv;
                 if (b.can_capture_opposite_king(m, mv))
-                    return get_random_position_KPKP(no_check);
+                {
+                    return get_random_position_KPKP(no_check, ncall);
+                }
             }
         }
         return b;

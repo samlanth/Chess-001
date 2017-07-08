@@ -23,17 +23,18 @@ namespace chess
         TablebaseUtil() {}
         virtual ~TablebaseUtil() {}
 
-        bool  expand_position(_Board& pos, char verbose = 0);   // Follow optimal play
+        bool  expand_position(_Board& pos, uint16_t max_pos = 30, char verbose = 0);   // Follow optimal play
     };
 
     // expand_position
     template <typename PieceID, typename uint8_t _BoardSize>
-    bool TablebaseUtil<PieceID, _BoardSize>::expand_position(_Board& pos, char verbose)
+    bool TablebaseUtil<PieceID, _BoardSize>::expand_position(_Board& pos, uint16_t max_pos, char verbose)
     {
         std::vector<_Move> m = pos.generate_moves();
         if (pos.is_final(m))
             return true;
 
+        uint16_t n = 0;
         uint8_t NPIECE;
         std::vector<uint8_t>    v_dtc;
         std::vector<ExactScore> v_sc;
@@ -49,7 +50,8 @@ namespace chess
         if (verbose) std::cout << "expanding position:\n" << pos.to_str() << std::endl << std::endl;
         while (!pos.is_final(m))
         {
-            if (pos.get_histo_size() > 256) return false;
+            if (n >= max_pos) return false;
+            //if (pos.get_histo_size() > 256) return false;
 
             parent_color = pos.get_color();
             v_dtc.clear(); 
@@ -68,7 +70,7 @@ namespace chess
             }
 
             for (size_t k = 0; k < m.size(); k++)
-            {
+            {            
                 pos.apply_move(m[k]);
 
                 v_sq.clear();
@@ -160,6 +162,7 @@ namespace chess
                     }
                 }
                 pos.apply_move(m[ret_idx]);
+                n++;
                 if (verbose)
                 {
                     std::cout << pos.to_str() << std::endl;

@@ -10,7 +10,7 @@
 
 using namespace chess;
 
-const uint8_t _BoardSize = 6;       // Board size is 6x6
+const uint8_t _BoardSize = 6;       // Board size is 6x6    (can be 2 to 255)
 using _PieceID = uint8_t;           // PieceID type is uint8_t
 
 using _Piece = Piece<_PieceID, _BoardSize>; 
@@ -25,8 +25,10 @@ int main(int argc, char* argv[])
     bool DO_BUILD = true; 
     _TB_Manager::instance()->clear();
     _Board::reset_to_default_option();
+    srand((unsigned int)time(NULL));
 
     // KQvK
+    if (_BoardSize >= 2)
     {
         // Making the KQvK tablebases (white or black to play) and all their children as necessary.
         // Saving in persistence_root_folder\\CFG_6unsignedchar\\tablebase
@@ -69,13 +71,17 @@ int main(int argc, char* argv[])
             }
 
             // check a position score in the symmetrical TB
-            std::vector<uint16_t> squares = { 26, 10, 31 }; // B to play in KvKQ (sym)
-            std::cout << "B to play in KvKQ (sym) " << ExactScore_to_string(sym_tb_b->score_v(squares)) << " vs LOSS ";
-            for (size_t z = 0; z < squares.size(); z++) std::cout << (int)squares[z] << " "; std::cout << std::endl;
+            if (_BoardSize >= 6)
+            {
+                std::vector<uint16_t> squares = { 26, 10, 31 }; // B to play in KvKQ (sym)
+                std::cout << "B to play in KvKQ (sym) " << ExactScore_to_string(sym_tb_b->score_v(squares)) << " vs LOSS ";
+                for (size_t z = 0; z < squares.size(); z++) std::cout << (int)squares[z] << " "; std::cout << std::endl;
+            }
         }
     }
 
     // KPvK
+    if (_BoardSize >= 2)
     {
         std::vector<_PieceID> ws1;
         std::vector<_PieceID> bs1;
@@ -92,6 +98,7 @@ int main(int argc, char* argv[])
     }
 
     // KQvKQ
+    if (_BoardSize >= 2)
     {
         std::vector<_PieceID> w4;
         std::vector<_PieceID> b4;
@@ -109,6 +116,7 @@ int main(int argc, char* argv[])
     }
 
     // KPvKQ
+    if (_BoardSize >= 2)
     {
         std::vector<_PieceID> w4;
         std::vector<_PieceID> b4;
@@ -126,6 +134,7 @@ int main(int argc, char* argv[])
     }
 
     // KPPvK
+    if (_BoardSize >= 3)
     {
         std::vector<_PieceID> w4;
         std::vector<_PieceID> b4;
@@ -143,6 +152,7 @@ int main(int argc, char* argv[])
     }
 
     // KQvKP
+    if (_BoardSize >= 2)
     {
         std::vector<_PieceID> w4;
         std::vector<_PieceID> b4;
@@ -158,20 +168,14 @@ int main(int argc, char* argv[])
         if (DO_BUILD) TBH_4X.save();
         TBH_4X.load();
 
-        std::vector<uint16_t> sq = { 35, 11, 16, 15 }; // B to play on KQvKP
-        std::cout << "B to play on KQvKP " << ExactScore_to_string(TBH_4X.TB_B()->score_v(sq)) << " vs LOSS ";
-        for (size_t z = 0; z < sq.size(); z++) std::cout << (int)sq[z] << " "; std::cout << std::endl;
-
-        // Testing and expand a position on screen if error
-        if (TBH_4X.TB_B()->score_v(sq) != ExactScore::LOSS)
+        if (_BoardSize >= 6)
         {
-            Board<_PieceID, _BoardSize> work_board;
-            work_board.clear();
-            work_board.set_color(PieceColor::B);
-            for (size_t z = 0; z < sq.size(); z++) work_board.set_pieceid_at(_PieceSet::ps_to_pieces(ps4)[z], sq[z]);
-            std::cout << work_board.to_str() << std::endl;
+            std::vector<uint16_t> sq = { 35, 11, 16, 15 }; // B to play on KQvKP
+            std::cout << "B to play on KQvKP " << ExactScore_to_string(TBH_4X.TB_B()->score_v(sq)) << " vs LOSS ";
+            for (size_t z = 0; z < sq.size(); z++) std::cout << (int)sq[z] << " "; std::cout << std::endl;
 
-            // expand a position
+            // Testing and expand a position on screen if error
+            if (TBH_4X.TB_B()->score_v(sq) != ExactScore::LOSS)
             {
                 Board<_PieceID, _BoardSize> work_board;
                 work_board.clear();
@@ -179,32 +183,30 @@ int main(int argc, char* argv[])
                 for (size_t z = 0; z < sq.size(); z++) work_board.set_pieceid_at(_PieceSet::ps_to_pieces(ps4)[z], sq[z]);
                 std::cout << work_board.to_str() << std::endl;
 
-                Board<_PieceID, _BoardSize> b = work_board;
-                Board<_PieceID, _BoardSize> bt = work_board;
-                TablebaseUtil<_PieceID, _BoardSize> tbu;
-                std::cout << "===================================" << std::endl;
-                tbu.expand_position(bt, 1);
-                std::vector<Move<_PieceID>>  m = b.generate_moves();
-                std::list<Move<_PieceID>>  mh = bt.get_history_moves();
-                int n = 0;
-                while (!b.is_final(m))
+                // expand a position
                 {
-                    if (mh.size() == 0) break;
-                    b.apply_move(mh.front()); mh.pop_front();
-                    std::cout << b.to_str() << std::endl << std::endl;
-                    m = b.generate_moves();
-                    n++;
-                    if (n > 10) break;
+                    Board<_PieceID, _BoardSize> work_board;
+                    work_board.clear();
+                    work_board.set_color(PieceColor::B);
+                    for (size_t z = 0; z < sq.size(); z++) work_board.set_pieceid_at(_PieceSet::ps_to_pieces(ps4)[z], sq[z]);
+                    std::cout << work_board.to_str() << std::endl;
+
+                    Board<_PieceID, _BoardSize> b = work_board;
+                    Board<_PieceID, _BoardSize> bt = work_board;
+                    TablebaseUtil<_PieceID, _BoardSize> tbu;
+                    std::cout << "===================================" << std::endl;
+                    tbu.expand_position(bt, 30, 1);
                 }
             }
-        }
 
-        sq = { 35, 6, 16, 15 }; // W to play on KQvKP
-        std::cout << "W to play on KQvKP " << ExactScore_to_string(TBH_4X.TB_W()->score_v(sq)) << " vs WIN ";
-        for (size_t z = 0; z < sq.size(); z++) std::cout << (int)sq[z] << " "; std::cout << std::endl;
+            sq = { 35, 6, 16, 15 }; // W to play on KQvKP
+            std::cout << "W to play on KQvKP " << ExactScore_to_string(TBH_4X.TB_W()->score_v(sq)) << " vs WIN ";
+            for (size_t z = 0; z < sq.size(); z++) std::cout << (int)sq[z] << " "; std::cout << std::endl;
+        }
     }
 
     // KPvKP
+    if (_BoardSize >= 2)
     {
         std::vector<_PieceID> w4;
         std::vector<_PieceID> b4;
@@ -231,24 +233,12 @@ int main(int argc, char* argv[])
 
             std::cout << "===================================" << std::endl;
             std::cout << bt.to_str() << std::endl << std::endl;
-            tbu.expand_position(bt, 1);
-
-            std::vector<Move<_PieceID>>  m = b.generate_moves();
-            std::list<Move<_PieceID>>  mh = bt.get_history_moves();
-            int n = 0;
-            while (!b.is_final(m))
-            {
-                if (mh.size() == 0) break;
-                b.apply_move(mh.front()); mh.pop_front();
-                std::cout << b.to_str() << std::endl << std::endl;
-                m = b.generate_moves();
-                n++;
-                if (n > 30) break;
-            }
+            tbu.expand_position(bt, 30, 1);
         }
     }
 
     // KPPvK
+    if (_BoardSize >= 3)
     {
         std::vector<_PieceID> w4;
         std::vector<_PieceID> b4;
@@ -266,6 +256,7 @@ int main(int argc, char* argv[])
     }
 
     // KPPvKP
+    if (_BoardSize >= 3)
     {
         std::vector<_PieceID> w5;
         std::vector<_PieceID> b5;

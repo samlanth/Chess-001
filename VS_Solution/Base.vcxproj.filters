@@ -25,9 +25,6 @@
     <Filter Include="ChessGA">
       <UniqueIdentifier>{4dcc54cb-8c55-47d5-ab8d-ed4c898a5d58}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Tablebase">
-      <UniqueIdentifier>{694f2286-a2ab-4282-8b45-cd13fca13647}</UniqueIdentifier>
-    </Filter>
     <Filter Include="UnitTest">
       <UniqueIdentifier>{44f220d9-ca84-4819-af8d-2c2d4242fc88}</UniqueIdentifier>
     </Filter>
@@ -37,6 +34,9 @@
     <Filter Include="Solution">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="TB">
+      <UniqueIdentifier>{318dea3d-4a9a-47a1-995c-7faa623db1e4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -142,34 +142,34 @@
       <Filter>UnitTest</Filter>
     </ClInclude>
     <ClInclude Include="..\Tablebase\pieceset.hpp">
-      <Filter>Tablebase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Tablebase\TBH.hpp">
-      <Filter>Tablebase</Filter>
+      <Filter>TB</Filter>
     </ClInclude>
     <ClInclude Include="..\Tablebase\symTB.hpp">
-      <Filter>Tablebase</Filter>
+      <Filter>TB</Filter>
     </ClInclude>
     <ClInclude Include="..\Tablebase\TB.hpp">
-      <Filter>Tablebase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Tablebase\TB_mgr.hpp">
-      <Filter>Tablebase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Tablebase\TB_util.hpp">
-      <Filter>Tablebase</Filter>
+      <Filter>TB</Filter>
     </ClInclude>
     <ClInclude Include="..\Tablebase\TB_algo.hpp">
-      <Filter>Tablebase</Filter>
+      <Filter>TB</Filter>
     </ClInclude>
-    <ClInclude Include="..\Tablebase\TBH_mgr.hpp">
-      <Filter>Tablebase</Filter>
+    <ClInclude Include="..\Tablebase\TB_mgr.hpp">
+      <Filter>TB</Filter>
     </ClInclude>
     <ClInclude Include="..\Tablebase\TB_N.hpp">
-      <Filter>Tablebase</Filter>
+      <Filter>TB</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Tablebase\TB_util.hpp">
+      <Filter>TB</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Tablebase\TBH.hpp">
+      <Filter>TB</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Tablebase\TBH_mgr.hpp">
+      <Filter>TB</Filter>
     </ClInclude>
     <ClInclude Include="..\Tablebase\TBH_N.hpp">
-      <Filter>Tablebase</Filter>
+      <Filter>TB</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

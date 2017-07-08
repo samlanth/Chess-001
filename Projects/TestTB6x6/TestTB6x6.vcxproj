@@ -21,6 +21,23 @@
   <ItemGroup>
     <ClCompile Include="..\..\UnitTest\main_testTB6x6.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Core\board.hpp" />
+    <ClInclude Include="..\..\Core\chess.hpp" />
+    <ClInclude Include="..\..\Core\move.hpp" />
+    <ClInclude Include="..\..\Core\piece.hpp" />
+    <ClInclude Include="..\..\Core\util.hpp" />
+    <ClInclude Include="..\..\Tablebase\pieceset.hpp" />
+    <ClInclude Include="..\..\Tablebase\symTB.hpp" />
+    <ClInclude Include="..\..\Tablebase\TB.hpp" />
+    <ClInclude Include="..\..\Tablebase\TBH.hpp" />
+    <ClInclude Include="..\..\Tablebase\TBH_mgr.hpp" />
+    <ClInclude Include="..\..\Tablebase\TBH_N.hpp" />
+    <ClInclude Include="..\..\Tablebase\TB_algo.hpp" />
+    <ClInclude Include="..\..\Tablebase\TB_mgr.hpp" />
+    <ClInclude Include="..\..\Tablebase\TB_N.hpp" />
+    <ClInclude Include="..\..\Tablebase\TB_util.hpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9C53B105-DB80-4648-92D5-C42307A6AD37}</ProjectGuid>
     <RootNamespace>TestTB6x6</RootNamespace>
@@ -110,6 +127,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
