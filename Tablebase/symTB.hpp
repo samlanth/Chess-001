@@ -26,7 +26,7 @@ namespace chess
             return _refTB->legal(reverse_order_sq(sq, false));
         }
 
-        bool is_build() const       override { return _refTB->is_build(); }
+        bool is_build_and_loaded() const       override { return _refTB->is_build_and_loaded(); }
         bool load()                 override 
         { 
             if (_refTB->load())
@@ -49,7 +49,7 @@ namespace chess
         }
         bool save() const           override { return true; /*_refTB->save();*/ }
         void print() const          override {}
-        uint8_t getNPIECE() const   override { return _refTB->getNPIECE(); }
+        uint8_t num_piece() const   override { return _refTB->num_piece(); }
 
         ExactScore score_v(const std::vector<uint16_t>& sq) const override   
         { 
@@ -185,7 +185,7 @@ namespace chess
         }
         bool save() const override          { return _refTBH->save();  }
         bool build(char verbose) override   { return _refTBH->build(verbose); }
-        bool is_build() const override      { return _refTBH->is_build(); }
+        bool is_build_and_loaded() const override      { return _refTBH->is_build_and_loaded(); }
 
         TBH<PieceID, _BoardSize>* symTBH() const  { return _refTBH; }
 

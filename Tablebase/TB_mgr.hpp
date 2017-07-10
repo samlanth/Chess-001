@@ -325,25 +325,29 @@ namespace chess
         std::vector<STRUCT_TBH<PieceID, _BoardSize>> v;
         uint16_t nw; 
         uint16_t nb;
+        uint16_t nwK;
+        uint16_t nbK;
 
         // LOCK
         std::lock_guard<std::recursive_mutex> lock(*_mutex);
 
-        set.make_all_child_set(); // PRE_LOAD
+        set.make_all_child_set(); // BUILD it (while in LOCK)
         std::vector<PieceSet<PieceID, _BoardSize>> vz = set.get_all_child();
 
         for (size_t i = 0; i < vz.size(); i++)
         {
             nw = vz[i].count_all_piece(PieceColor::W);
             nb = vz[i].count_all_piece(PieceColor::B);
-
+            nwK = vz[i].count_one_piecename(PieceColor::W, PieceName::K);
+            nbK = vz[i].count_one_piecename(PieceColor::B, PieceName::K);
+            
             STRUCT_TBH<PieceID, _BoardSize> struct_tbh(vz[i]);
             struct_tbh._t = TB_TYPE::tb_unknown;
             struct_tbh._nw = nw;
             struct_tbh._nb = nb;
             struct_tbh._tbh = nullptr;
 
-            if (nb == 0)                        
+            if ((nb == 0) || (nbK == 0)) 
             { 
                 PieceSet<PieceID, _BoardSize> ps(vz[i].wset(), vz[i].bset()); ps.collapse_to_one_piece();
                 struct_tbh._t = TB_TYPE::tb_Xv0;
@@ -354,7 +358,7 @@ namespace chess
                     v.push_back(struct_tbh);
                 }
             } 
-            else if (nw == 0)                   
+            else if ((nw == 0) || (nwK == 0))
             { 
                 PieceSet<PieceID, _BoardSize> ps(vz[i].wset(), vz[i].bset()); ps.collapse_to_one_piece();
                 struct_tbh._t = TB_TYPE::tb_0vX;

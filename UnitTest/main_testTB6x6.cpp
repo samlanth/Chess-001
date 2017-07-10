@@ -10,15 +10,20 @@
 
 using namespace chess;
 
-const uint8_t _BoardSize = 6;       // Board size is 6x6    (can be 2 to 255)
-using _PieceID = uint8_t;           // PieceID type is uint8_t
+const uint8_t _BoardSize = 6;           // Board size is 6x6    (can be 2 to 255)
+using _PieceID = uint8_t;               // PieceID type is uint8_t
 
+// useful define
 using _Piece = Piece<_PieceID, _BoardSize>; 
 using _Board = Board<_PieceID, _BoardSize>;
 using _Move  = Move<_PieceID>;
 using _PieceSet = PieceSet<_PieceID, _BoardSize>;
 using _TBHandler_3 = TBH_N<_PieceID, _BoardSize, 3>;
 using _TB_Manager = TB_Manager<_PieceID, _BoardSize>;
+
+#define HAS_RAM_FOR_TB4
+#define HAS_RAM_FOR_TB5
+
 
 int main(int argc, char* argv[])
 {
@@ -66,7 +71,7 @@ int main(int argc, char* argv[])
                 sym_tb_b = (TablebaseBase<_PieceID, _BoardSize>*)new SymmetryTablebase<_PieceID, _BoardSize, 3>((Tablebase<_PieceID, _BoardSize, 3>*)TBH_KQvK.TB_W_const());
                 TB_Manager<_PieceID, _BoardSize>::instance()->add_sym(reverse.name(PieceColor::B), sym_tb_b);
                 sym_tb_b->load();
-                assert(sym_tb_b->is_build());
+                assert(sym_tb_b->is_build_and_loaded());
                 std::cout << "check_score W KQvK vs sym B kVKQ: " << ((SymmetryTablebase<_PieceID, _BoardSize, 3>*)(sym_tb_b))->check_score() << std::endl;
             }
 
@@ -97,6 +102,7 @@ int main(int argc, char* argv[])
         TBH_KPvK.load();
     }
 
+#ifdef HAS_RAM_FOR_TB4
     // KQvKQ
     if (_BoardSize >= 2)
     {
@@ -254,7 +260,9 @@ int main(int argc, char* argv[])
         if (DO_BUILD) TBH_KPPvK.save();
         TBH_KPPvK.load();
     }
+#endif
 
+#ifdef HAS_RAM_FOR_TB5
     // KPPvKP
     if (_BoardSize >= 3)
     {
@@ -273,6 +281,7 @@ int main(int argc, char* argv[])
         if (DO_BUILD) TBH_KPPvKP.save();
         TBH_KPPvKP.load();
     }
+#endif
 
     return 0;
 }

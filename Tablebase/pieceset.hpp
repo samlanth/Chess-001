@@ -64,7 +64,7 @@ namespace chess
         std::vector<std::vector<std::pair<PieceID, uint8_t>>>   _wchildren;     // all white combination with 1 piece less + promo (not both)
         std::vector<std::vector<std::pair<PieceID, uint8_t>>>   _bchildren;     // all black combination with 1 piece less + promo (not both)
         mutable std::vector<PieceSet<PieceID, _BoardSize>>      _all_child_set; 
-                       
+
         bool validate();
         void remove_one_piecename(PieceColor c, PieceName n);
         void add_one_Q(PieceColor c);
@@ -357,12 +357,11 @@ namespace chess
     {
         if (_all_child_set.size() == 0)
         {
-            // external _mutex->lock();
+            // external lock - see make_all_child_TBH
             if (_all_child_set.size() == 0)
             {
                 _all_child_set = get_all_child();
             }
-            //external _mutex->unlock();
         }
     }
 
@@ -383,7 +382,7 @@ namespace chess
 
         if (_all_child_set.size() == 0)
         {
-            // external lock...
+            // external lock - see make_all_child_TBH
             make_all_child_set();
         }
 
@@ -424,7 +423,7 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     inline std::vector<PieceSet<PieceID, _BoardSize>>  PieceSet<PieceID, _BoardSize>::get_all_child() const
     {
-        // Reject if no wK, bK
+        // Reject if not at least wK or bK
 
         // 1 piece capture
         std::vector<PieceSet<PieceID, _BoardSize>> v;
@@ -712,31 +711,27 @@ namespace chess
     template <typename PieceID, typename uint8_t _BoardSize>
     bool PieceSet<PieceID, _BoardSize>::is_same(const PieceSet<PieceID, _BoardSize>& v) const
     {
-        //..
         if (count_all_piece(PieceColor::W) != v.count_all_piece(PieceColor::W)) return false;
         if (count_all_piece(PieceColor::B) != v.count_all_piece(PieceColor::B)) return false;
 
+        for (size_t i = 0; i < _wset.size(); i++)
         {
-            for (size_t i = 0; i < _wset.size(); i++)
+            if (_wset[i].second > 0)
             {
-                if (_wset[i].second > 0)
-                {
-                    if (_wset[i].second != v.count_one_piece(PieceColor::W, _wset[i].first))
-                        return false;
-                }
+                if (_wset[i].second != v.count_one_piece(PieceColor::W, _wset[i].first))
+                    return false;
             }
         }
 
+        for (size_t i = 0; i < _bset.size(); i++)
         {
-            for (size_t i = 0; i < _bset.size(); i++)
+            if (_bset[i].second > 0)
             {
-                if (_bset[i].second > 0)
-                {
-                    if (_bset[i].second != v.count_one_piece(PieceColor::B, _bset[i].first))
-                        return false;
-                }
+                if (_bset[i].second != v.count_one_piece(PieceColor::B, _bset[i].first))
+                    return false;
             }
         }
+
         return true;
     }
 };

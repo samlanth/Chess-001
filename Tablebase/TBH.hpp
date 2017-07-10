@@ -24,7 +24,7 @@ namespace chess
         virtual bool load() = 0;
         virtual bool save() const = 0;
         virtual bool build(char verbose) = 0;
-        virtual bool is_build() const = 0;
+        virtual bool is_build_and_loaded() const = 0;
     };
 
     // TBH
@@ -55,10 +55,10 @@ namespace chess
         virtual bool is_symmetry_TBH() const override  { return false; }
         virtual bool load() override;
         virtual bool save() const override;
-        virtual bool is_build() const  override
+        virtual bool is_build_and_loaded() const  override
         {   
             if ((_TB_W == nullptr) || (_TB_B == nullptr)) return false;
-            return _TB_W->is_build() && _TB_B->is_build(); 
+            return _TB_W->is_build_and_loaded() && _TB_B->is_build_and_loaded(); 
         }
         virtual void print() const;
         virtual bool find_score_children_tb(const _Board& pos, PieceColor color_pos, bool isPromo, bool isCapture, ExactScore& ret_sc, uint8_t& ret_dtc) const;
@@ -133,7 +133,7 @@ namespace chess
         std::lock_guard<std::recursive_mutex> lock(_mutex);
 
         if ((_TB_W == nullptr) || (_TB_B == nullptr)) return false;
-        if (is_build()) return true;
+        if (is_build_and_loaded()) return true;
         for (size_t i = 0; i < _tbh_children.size(); i++)
         {
             if (!_tbh_children[i]->load())
@@ -208,7 +208,31 @@ namespace chess
         std::vector<uint16_t> ret_child_sq;
         std::vector<PieceID> ret_child_id;
 
-        std::lock_guard<std::recursive_mutex> lock(_mutex);
+        bool has_wk = pos.has_piece(PieceName::K, PieceColor::W);
+        bool has_bk = pos.has_piece(PieceName::K, PieceColor::B);
+
+        if (!has_wk && has_bk)
+        {
+            // Black win
+            ret_sc = ExactScore::LOSS;
+            ret_dtc = 0;
+            return true;
+        }
+        if (has_wk && !has_bk)
+        {
+            // White win
+            ret_sc = ExactScore::WIN;
+            ret_dtc = 0;
+            return true;
+        }
+        if (!has_wk && !has_bk)
+        {
+            assert(false);
+        }
+
+
+        // LOCK ? - Only reading children TB (all_child_set must have been created)
+        //std::lock_guard<std::recursive_mutex> lock(_mutex);
 
         if (_pieceSet.find_all_child_index(color_pos, pos, isPromo, isCapture, ret_child_index))
         {
@@ -217,7 +241,7 @@ namespace chess
             // get square of uniform piece ordering
             ret_child_sq.clear();
             ret_child_id.clear();
-            for (size_t i = 0; i < get_NPIECE(); i++) // child is capture (N-1) piece or promo (N) piece or both (N-1) pieces
+            for (size_t i = 0; i < get_NPIECE(); i++) // N piece at most: child is capture (N-1) piece or promo (N) piece or both (N-1) pieces
             {
                 rank_ret_id = child_set.find_rank_index(i, ret_id, ret_count, ret_instance);
                 if (ret_count > 0)
@@ -238,7 +262,7 @@ namespace chess
                     TablebaseBase<PieceID, _BoardSize>*  t = TB_Manager<PieceID, _BoardSize>::instance()->find_sym(tb_name);
                     if (t != nullptr)
                     {
-                        assert(t->is_build());
+                        assert(t->is_build_and_loaded());
                         ret_sc = t->score_v(ret_child_sq);
                         ret_dtc = t->dtc_v(ret_child_sq);
                     }
@@ -252,13 +276,13 @@ namespace chess
                 {
                     if (color_pos == PieceColor::W)
                     {
-                        assert(_tbh_children[ret_idx]->TB_W()->is_build());
+                        assert(_tbh_children[ret_idx]->TB_W()->is_build_and_loaded());
                         ret_sc = _tbh_children[ret_idx]->TB_W()->score_v(ret_child_sq);
                         ret_dtc = _tbh_children[ret_idx]->TB_W()->dtc_v(ret_child_sq);
                     }
                     else
                     {
-                        assert(_tbh_children[ret_idx]->TB_B()->is_build());
+                        assert(_tbh_children[ret_idx]->TB_B()->is_build_and_loaded());
                         ret_sc = _tbh_children[ret_idx]->TB_B()->score_v(ret_child_sq);
                         ret_dtc = _tbh_children[ret_idx]->TB_B()->dtc_v(ret_child_sq);
                     }
