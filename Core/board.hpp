@@ -1048,6 +1048,7 @@ namespace chess
         uint8_t bK = 0;
         while ((wK == bK) || (wK == wP) || (bK == wP) || (((uint8_t)(wP / _BoardSize)) == (_BoardSize - 1)) || (((uint8_t)(wP / _BoardSize)) == (0)))
         {
+            // use std::mt19937_64 ...
             wP = (std::rand() % (_BoardSize*_BoardSize));
             wK = (std::rand() % (_BoardSize*_BoardSize));
             bK = (std::rand() % (_BoardSize*_BoardSize));

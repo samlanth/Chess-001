@@ -23,6 +23,7 @@
 #include <bitset>
 #include <cmath>
 #include <array>
+#include <set>
 
 
 namespace chess

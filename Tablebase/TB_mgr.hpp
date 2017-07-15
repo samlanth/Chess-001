@@ -36,37 +36,14 @@ namespace chess
         static const TB_Manager* instance();
         void clear() const;
 
-        bool add(const std::string& name, Tablebase<PieceID, _BoardSize, 1>* tb) const;
-        bool add(const std::string& name, Tablebase<PieceID, _BoardSize, 2>* tb) const;
-        bool add(const std::string& name, Tablebase<PieceID, _BoardSize, 3>* tb) const;
-        bool add(const std::string& name, Tablebase<PieceID, _BoardSize, 4>* tb) const;
-        bool add(const std::string& name, Tablebase<PieceID, _BoardSize, 5>* tb) const;
+        bool add_N(  const std::string& name, TablebaseBase<PieceID, _BoardSize>* tb) const;
         bool add_sym(const std::string& name, TablebaseBase<PieceID, _BoardSize>* tb) const;
  
+        TablebaseBase<PieceID, _BoardSize>*  find_N(  const std::string& name) const; 
         TablebaseBase<PieceID, _BoardSize>*  find_sym(const std::string& name) const;
+        TablebaseBase<PieceID, _BoardSize>*  find_N(uint8_t N, const std::string& name) const { return find_N(name); }
 
-        Tablebase<PieceID, _BoardSize, 1>* find_1(const std::string& name) const;
-        Tablebase<PieceID, _BoardSize, 2>* find_2(const std::string& name) const;
-        Tablebase<PieceID, _BoardSize, 3>* find_3(const std::string& name) const;
-        Tablebase<PieceID, _BoardSize, 4>* find_4(const std::string& name) const;
-        Tablebase<PieceID, _BoardSize, 5>* find_5(const std::string& name) const;
-
-        TablebaseBase<PieceID, _BoardSize>* find_N(uint8_t N, const std::string& name) const
-        {
-            TablebaseBase<PieceID, _BoardSize>* t;
-            if      (N == 1) t = (TablebaseBase<PieceID, _BoardSize>*)find_1(name);
-            else if (N == 2) t = (TablebaseBase<PieceID, _BoardSize>*)find_2(name);
-            else if (N == 3) t = (TablebaseBase<PieceID, _BoardSize>*)find_3(name);
-            else if (N == 4) t = (TablebaseBase<PieceID, _BoardSize>*)find_4(name);
-            else if (N == 5) t = (TablebaseBase<PieceID, _BoardSize>*)find_5(name);
-            else
-            {
-                return nullptr;
-            }
-            return t;
-        }
-
-        std::vector<STRUCT_TBH<PieceID, _BoardSize>> make_all_child_TBH(const PieceSet<PieceID, _BoardSize>& set, TBH_OPTION option) const;
+        std::vector<STRUCT_TBH<PieceID, _BoardSize>> make_all_child_TBH(const PieceSet<PieceID, _BoardSize>& set, TBH_IO_MODE iomode, TBH_OPTION option) const;
 
     public:
         static std::string name_pieces(const std::vector<PieceID>& v, PieceColor color_to_play)
@@ -78,13 +55,14 @@ namespace chess
             return str_pieces;
         }
 
+        static uint64_t _TB_MAX_SIZE;       // TB size limit for RAM
+        static uint16_t _TB_MINMAX_DEPTH;   // Partial TB iterative minmax search limit
+        static uint16_t _TB_MAX_DTC;
+        static uint64_t new_TB_setup_size(uint64_t boardsize, uint64_t N) { return std::min<uint64_t>(_TB_MAX_SIZE, TB_FULL_SIZE(boardsize, N)); }
+
     private:
-        // Would be owner of TB... unique_ptr/weak_ptr
-        mutable std::map<std::string, Tablebase<PieceID, _BoardSize, 1>*>  _tbs1;
-        mutable std::map<std::string, Tablebase<PieceID, _BoardSize, 2>*>  _tbs2;
-        mutable std::map<std::string, Tablebase<PieceID, _BoardSize, 3>*>  _tbs3;
-        mutable std::map<std::string, Tablebase<PieceID, _BoardSize, 4>*>  _tbs4;
-        mutable std::map<std::string, Tablebase<PieceID, _BoardSize, 5>*>  _tbs5;
+        // owner... unique_ptr/weak_ptr
+        mutable std::map<std::string, TablebaseBase<PieceID, _BoardSize>*> _tbN;
         mutable std::map<std::string, TablebaseBase<PieceID, _BoardSize>*> _tbsym;
 
         static std::unique_ptr<TB_Manager>  _instance;
@@ -98,14 +76,22 @@ namespace chess
     std::unique_ptr<TB_Manager<PieceID, _BoardSize>>
     TB_Manager<PieceID, _BoardSize>::_instance = nullptr;
 
+    // _TB_MAX_SIZE
+    template <typename PieceID, typename uint8_t _BoardSize>
+    uint64_t TB_Manager<PieceID, _BoardSize>::_TB_MAX_SIZE = 8000000;
+
+    // _TB_MINMAX_DEPTH
+    template <typename PieceID, typename uint8_t _BoardSize>
+    uint16_t TB_Manager<PieceID, _BoardSize>::_TB_MINMAX_DEPTH = 2;
+
+    // _TB_MAX_DTC
+    template <typename PieceID, typename uint8_t _BoardSize>
+    uint16_t TB_Manager<PieceID, _BoardSize>::_TB_MAX_DTC = 255;//0..255;
+
     template <typename PieceID, typename uint8_t _BoardSize>
     inline void TB_Manager<PieceID, _BoardSize>::clear() const
     {
-        _tbs1.clear();
-        _tbs2.clear();
-        _tbs3.clear();
-        _tbs4.clear();
-        _tbs5.clear();
+        _tbN.clear();
         _tbsym.clear();
     }
 
@@ -115,6 +101,7 @@ namespace chess
     {
         if (_instance == nullptr) return false;
 
+        // LOCK
         std::lock_guard<std::recursive_mutex> lock(*_mutex);
 
         auto iter = _tbsym.find(name);
@@ -125,82 +112,19 @@ namespace chess
         return true;
     }
 
-    // add 1
+    // add_N
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline bool TB_Manager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 1>* tb) const
+    bool TB_Manager<PieceID, _BoardSize>::add_N(const std::string& name, TablebaseBase<PieceID, _BoardSize>* tb) const
     {
         if (_instance == nullptr) return false;
 
+        // LOCK
         std::lock_guard<std::recursive_mutex> lock(*_mutex);
 
-        auto iter = _tbs1.find(name);
-        if (iter == _tbs1.end())
+        auto iter = _tbN.find(name);
+        if (iter == _tbN.end())
         {
-            _tbs1[name] = tb;
-        }
-        return true;
-    }
-
-    // add 2
-    template <typename PieceID, typename uint8_t _BoardSize>
-    inline bool TB_Manager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 2>* tb) const
-    {
-        if (_instance == nullptr) return false;
-
-        std::lock_guard<std::recursive_mutex> lock(*_mutex);
-
-        auto iter = _tbs2.find(name);
-        if (iter == _tbs2.end())
-        {
-            _tbs2[name] = tb;
-        }
-        return true;
-    }
-
-    // add 3
-    template <typename PieceID, typename uint8_t _BoardSize>
-    inline bool TB_Manager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 3>* tb) const
-    {
-        if (_instance == nullptr) return false;
-
-        std::lock_guard<std::recursive_mutex> lock(*_mutex);
-
-        auto iter = _tbs3.find(name);
-        if (iter == _tbs3.end())
-        {
-            _tbs3[name] = tb;
-        }
-        return true;
-    }
-
-    // add 4
-    template <typename PieceID, typename uint8_t _BoardSize>
-    inline bool TB_Manager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 4>* tb) const
-    {
-        if (_instance == nullptr) return false;
-
-        std::lock_guard<std::recursive_mutex> lock(*_mutex);
-
-        auto iter = _tbs4.find(name);
-        if (iter == _tbs4.end())
-        {
-            _tbs4[name] = tb;
-        }
-        return true;
-    }
-
-    // add 5
-    template <typename PieceID, typename uint8_t _BoardSize>
-    inline bool TB_Manager<PieceID, _BoardSize>::add(const std::string& name, Tablebase<PieceID, _BoardSize, 5>* tb) const
-    {
-        if (_instance == nullptr) return false;
-
-        std::lock_guard<std::recursive_mutex> lock(*_mutex);
-
-        auto iter = _tbs5.find(name);
-        if (iter == _tbs5.end())
-        {
-            _tbs5[name] = tb;
+            _tbN[name] = tb;
         }
         return true;
     }
@@ -219,73 +143,16 @@ namespace chess
         return nullptr;
     }
 
-
-    // find_1
+    // find_N
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline Tablebase<PieceID, _BoardSize, 1>*  TB_Manager<PieceID, _BoardSize>::find_1(const std::string& name) const
+    inline TablebaseBase<PieceID, _BoardSize>*  TB_Manager<PieceID, _BoardSize>::find_N(const std::string& name) const
     {
         if (_instance == nullptr) return nullptr;
 
-        auto iter = _tbs1.find(name);
-        if (iter != _tbs1.end())
+        auto iter = _tbN.find(name);
+        if (iter != _tbN.end())
         {
-            return _tbs1[name];
-        }
-        return nullptr;
-    }
-
-    // find_2
-    template <typename PieceID, typename uint8_t _BoardSize>
-    inline Tablebase<PieceID, _BoardSize, 2>*  TB_Manager<PieceID, _BoardSize>::find_2(const std::string& name) const
-    {
-        if (_instance == nullptr) return nullptr;
-
-        auto iter = _tbs2.find(name);
-        if (iter != _tbs2.end())
-        {
-            return _tbs2[name];
-        }
-        return nullptr;
-    }
-
-    // find_3
-    template <typename PieceID, typename uint8_t _BoardSize>
-    inline Tablebase<PieceID, _BoardSize, 3>*  TB_Manager<PieceID, _BoardSize>::find_3(const std::string& name) const
-    {
-        if (_instance == nullptr) return nullptr;
-
-        auto iter = _tbs3.find(name);
-        if (iter != _tbs3.end())
-        {
-            return _tbs3[name];
-        }
-        return nullptr;
-    }
-
-    // find_4
-    template <typename PieceID, typename uint8_t _BoardSize>
-    inline Tablebase<PieceID, _BoardSize, 4>*  TB_Manager<PieceID, _BoardSize>::find_4(const std::string& name) const
-    {
-        if (_instance == nullptr) return nullptr;
-
-        auto iter = _tbs4.find(name);
-        if (iter != _tbs4.end())
-        {
-            return _tbs4[name];
-        }
-        return nullptr;
-    }
-
-    // find_5
-    template <typename PieceID, typename uint8_t _BoardSize>
-    inline Tablebase<PieceID, _BoardSize, 5>*  TB_Manager<PieceID, _BoardSize>::find_5(const std::string& name) const
-    {
-        if (_instance == nullptr) return nullptr;
-
-        auto iter = _tbs5.find(name);
-        if (iter != _tbs5.end())
-        {
-            return _tbs5[name];
+            return _tbN[name];
         }
         return nullptr;
     }
@@ -320,7 +187,7 @@ namespace chess
 
     // make_all_child_TBH() - Create all TB children handler of a TB - called on new TBH_N()
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline std::vector<STRUCT_TBH<PieceID, _BoardSize>> TB_Manager<PieceID, _BoardSize>::make_all_child_TBH(const PieceSet<PieceID, _BoardSize>& set, TBH_OPTION option) const
+    inline std::vector<STRUCT_TBH<PieceID, _BoardSize>> TB_Manager<PieceID, _BoardSize>::make_all_child_TBH(const PieceSet<PieceID, _BoardSize>& set, TBH_IO_MODE iomode, TBH_OPTION option) const
     {
         std::vector<STRUCT_TBH<PieceID, _BoardSize>> v;
         uint16_t nw; 
@@ -333,6 +200,9 @@ namespace chess
 
         set.make_all_child_set(); // BUILD it (while in LOCK)
         std::vector<PieceSet<PieceID, _BoardSize>> vz = set.get_all_child();
+
+        TBH_IO_MODE childmode = iomode;
+        if (iomode == TBH_IO_MODE::tb_and_child) childmode = TBH_IO_MODE::tb_only;
 
         for (size_t i = 0; i < vz.size(); i++)
         {
@@ -354,7 +224,7 @@ namespace chess
                 size_t ret_idx;bool found = check_tbh_exist(v, struct_tbh._t, ps, ret_idx);
                 if (found == false)
                 {
-                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_Xv0, ps, option);
+                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_Xv0, ps, childmode, option);
                     v.push_back(struct_tbh);
                 }
             } 
@@ -365,81 +235,40 @@ namespace chess
                 size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, ps, ret_idx);
                 if (found == false)
                 {
-                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_0vX, ps, option);
+                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_0vX, ps, childmode, option);
                     v.push_back(struct_tbh);
                 }
             }
-            else if ((nb == 1) && (nw == 1))   
-            { 
-                struct_tbh._t = TB_TYPE::tb_1v1;
-                size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, vz[i], ret_idx);
-                if (found == false)
-                {
-                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_1v1, vz[i], option);
-                    v.push_back(struct_tbh);
-                }
-            } 
-            else if ((nw == 2) && (nb == 1))
+            else if (nw > nb) // normal
             {
-                struct_tbh._t = TB_TYPE::tb_2v1;
+                struct_tbh._t = tb_type_NM(nw, nb);
                 size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, vz[i], ret_idx);
                 if (found == false)
                 {
-                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_2v1, vz[i], option);
+                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(struct_tbh._t, vz[i], childmode, option);
                     v.push_back(struct_tbh);
                 }
             }
-            else if ((nw == 2) && (nb == 2)) // promo 2v2
+            else if (nw == nb) // promo NvN
             {
-                struct_tbh._t = TB_TYPE::tb_2v2;
+                struct_tbh._t = tb_type_NM(nw, nb);
                 size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, vz[i], ret_idx);
                 if (found == false)
                 {
-                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_2v2, vz[i], option);
+                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(struct_tbh._t, vz[i], childmode, option);
                     v.push_back(struct_tbh);
                 }
             }
-            else if ((nw == 1) && (nb == 2))
+            else if (nw < nb) // sym
             {
-                // master TB - lookup 
-                struct_tbh._t = TB_TYPE::tb_2v1;
+                // Find master TB
+                struct_tbh._t = tb_type_NM(nb, nw); // reversed
                 PieceSet<PieceID, _BoardSize> copy(vz[i].wset(), vz[i].bset());
                 PieceSet<PieceID, _BoardSize> r({ PieceSet<PieceID, _BoardSize>::reverse_color_set(copy.bset()), PieceSet<PieceID, _BoardSize>::reverse_color_set(copy.wset()) });
                 size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, r, ret_idx);
                 if (found == false)
                 {
-                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_2v1, r, option);
-                    assert(r.count_all_piece(PieceColor::W) >= r.count_all_piece(PieceColor::B));
-                    struct_tbh._ps = r;
-                    struct_tbh._nw = nb;    // reversed
-                    struct_tbh._nb = nw;
-                    v.push_back(struct_tbh);
-
-                    assert(struct_tbh._tbh != nullptr);
-                }
-                else
-                {
-                    struct_tbh._tbh = v[ret_idx]._tbh;
-                }
- 
-                // sym TB
-                STRUCT_TBH<PieceID, _BoardSize> struct_tbh_sym(vz[i]);
-                struct_tbh_sym._t = TB_TYPE::tb_2v1_sym;
-                struct_tbh_sym._nw = nw;
-                struct_tbh_sym._nb = nb;
-                struct_tbh_sym._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add_sym(TB_TYPE::tb_2v1_sym, struct_tbh._tbh);
-                v.push_back(struct_tbh_sym);
-            }
-            else if ((nw == 1) && (nb == 3))
-            {
-                // master TB - lookup if not already in
-                struct_tbh._t = TB_TYPE::tb_3v1;
-                PieceSet<PieceID, _BoardSize> copy(vz[i].wset(), vz[i].bset());
-                PieceSet<PieceID, _BoardSize> r({ PieceSet<PieceID, _BoardSize>::reverse_color_set(copy.bset()), PieceSet<PieceID, _BoardSize>::reverse_color_set(copy.wset()) });
-                size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, r, ret_idx);
-                if (found == false)
-                {
-                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_3v1, r, option);
+                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(struct_tbh._t, r, childmode, option);
                     assert(r.count_all_piece(PieceColor::W) >= r.count_all_piece(PieceColor::B));
                     struct_tbh._ps = r;
                     struct_tbh._nw = nb;    // reversed
@@ -455,102 +284,10 @@ namespace chess
 
                 // sym TB
                 STRUCT_TBH<PieceID, _BoardSize> struct_tbh_sym(vz[i]);
-                struct_tbh_sym._t = TB_TYPE::tb_3v1_sym;
+                struct_tbh_sym._t = tb_type_NM(nw, nb);
                 struct_tbh_sym._nw = nw;
                 struct_tbh_sym._nb = nb;
-                struct_tbh_sym._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add_sym(TB_TYPE::tb_3v1_sym, struct_tbh._tbh);
-                v.push_back(struct_tbh_sym);
-            }
-            else if ((nw == 3) && (nb == 1))
-            {
-                struct_tbh._t = TB_TYPE::tb_3v1;
-                size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, vz[i], ret_idx);
-                if (found == false)
-                {
-                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_3v1, vz[i], option);
-                    v.push_back(struct_tbh);
-                }
-            }
-            else if ((nw == 3) && (nb == 2))
-            {
-                struct_tbh._t = TB_TYPE::tb_3v2;
-                size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, vz[i], ret_idx);
-                if (found == false)
-                {
-                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_3v2, vz[i], option);
-                    v.push_back(struct_tbh);
-                }
-            }
-            else if ((nw == 4) && (nb == 1))
-            {
-                struct_tbh._t = TB_TYPE::tb_4v1;
-                size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, vz[i], ret_idx);
-                if (found == false)
-                {
-                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_4v1, vz[i], option);
-                    v.push_back(struct_tbh);
-                }
-            }
-            else if ((nw == 1) && (nb == 4))
-            {
-                // master TB - lookup if not already in
-                struct_tbh._t = TB_TYPE::tb_4v1;
-                PieceSet<PieceID, _BoardSize> copy(vz[i].wset(), vz[i].bset());
-                PieceSet<PieceID, _BoardSize> r({ PieceSet<PieceID, _BoardSize>::reverse_color_set(copy.bset()), PieceSet<PieceID, _BoardSize>::reverse_color_set(copy.wset()) });
-                size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, r, ret_idx);
-                if (found == false)
-                {
-                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_4v1, r, option);
-                    assert(r.count_all_piece(PieceColor::W) >= r.count_all_piece(PieceColor::B));
-                    struct_tbh._ps = r;
-                    struct_tbh._nw = nb;    // reversed
-                    struct_tbh._nb = nw;
-                    v.push_back(struct_tbh);
-
-                    assert(struct_tbh._tbh != nullptr);
-                }
-                else
-                {
-                    struct_tbh._tbh = v[ret_idx]._tbh;
-                }
-
-                // sym TB
-                STRUCT_TBH<PieceID, _BoardSize> struct_tbh_sym(vz[i]);
-                struct_tbh_sym._t = TB_TYPE::tb_4v1_sym;
-                struct_tbh_sym._nw = nw;
-                struct_tbh_sym._nb = nb;
-                struct_tbh_sym._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add_sym(TB_TYPE::tb_4v1_sym, struct_tbh._tbh);
-                v.push_back(struct_tbh_sym);
-            }
-            else if ((nw == 2) && (nb == 3))
-            {
-                // master TB - lookup if not already in
-                struct_tbh._t = TB_TYPE::tb_3v2;
-                PieceSet<PieceID, _BoardSize> copy(vz[i].wset(), vz[i].bset());
-                PieceSet<PieceID, _BoardSize> r({ PieceSet<PieceID, _BoardSize>::reverse_color_set(copy.bset()), PieceSet<PieceID, _BoardSize>::reverse_color_set(copy.wset()) });
-                size_t ret_idx; bool found = check_tbh_exist(v, struct_tbh._t, r, ret_idx);
-                if (found == false)
-                {
-                    struct_tbh._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add(TB_TYPE::tb_3v2, r, option);
-                    assert(r.count_all_piece(PieceColor::W) >= r.count_all_piece(PieceColor::B));
-                    struct_tbh._ps = r;
-                    struct_tbh._nw = nb;    // reversed
-                    struct_tbh._nb = nw;
-                    v.push_back(struct_tbh);
-
-                    assert(struct_tbh._tbh != nullptr);
-                }
-                else
-                {
-                    struct_tbh._tbh = v[ret_idx]._tbh;
-                }
-
-                // sym TB
-                STRUCT_TBH<PieceID, _BoardSize> struct_tbh_sym(vz[i]);
-                struct_tbh_sym._t = TB_TYPE::tb_3v2_sym;
-                struct_tbh_sym._nw = nw;
-                struct_tbh_sym._nb = nb;
-                struct_tbh_sym._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add_sym(TB_TYPE::tb_3v2_sym, struct_tbh._tbh);
+                struct_tbh_sym._tbh = TBH_Manager<PieceID, _BoardSize>::instance()->add_sym(struct_tbh_sym._t, struct_tbh._tbh);
                 v.push_back(struct_tbh_sym);
             }
         }

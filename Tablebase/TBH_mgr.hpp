@@ -35,7 +35,7 @@ namespace chess
         static const TBH_Manager* instance();
         void clear() const;
 
-        TBH<PieceID, _BoardSize>* add(TB_TYPE t, const PieceSet<PieceID, _BoardSize>& ps, TBH_OPTION option) const;
+        TBH<PieceID, _BoardSize>* add( TB_TYPE t, const PieceSet<PieceID, _BoardSize>& ps, TBH_IO_MODE iomode, TBH_OPTION option) const;
         TBH<PieceID, _BoardSize>* find(TB_TYPE t, const PieceSet<PieceID, _BoardSize>& ps) const;
 
         TBH<PieceID, _BoardSize>* add_sym( TB_TYPE t, TBH<PieceID, _BoardSize>* ref) const;
@@ -63,7 +63,7 @@ namespace chess
 
     // add - called by TB_Manager::add()
     template <typename PieceID, typename uint8_t _BoardSize>
-    TBH<PieceID, _BoardSize>* TBH_Manager<PieceID, _BoardSize>::add(TB_TYPE t, const PieceSet<PieceID, _BoardSize>& ps, TBH_OPTION option) const
+    TBH<PieceID, _BoardSize>* TBH_Manager<PieceID, _BoardSize>::add(TB_TYPE t, const PieceSet<PieceID, _BoardSize>& ps, TBH_IO_MODE iomode, TBH_OPTION option) const
     {
         if (_instance == nullptr) return false;
 
@@ -73,35 +73,59 @@ namespace chess
         {
             if (t == TB_TYPE::tb_Xv0)
             {
-                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 1>(ps, TB_TYPE::tb_Xv0, option);
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 1>(ps, TB_TYPE::tb_Xv0, iomode, option);
             }
             else if (t == TB_TYPE::tb_0vX)
             {
-                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 1>(ps, TB_TYPE::tb_0vX, option);
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 1>(ps, TB_TYPE::tb_0vX, iomode, option);
             }
             else if (t == TB_TYPE::tb_1v1)
             {
-                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 2>(ps, TB_TYPE::tb_1v1, option);
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 2>(ps, TB_TYPE::tb_1v1, iomode, option);
             }
             else if (t == TB_TYPE::tb_2v1)
             {
-                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 3>(ps, TB_TYPE::tb_2v1, option);
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 3>(ps, TB_TYPE::tb_2v1, iomode, option);
             }
             else if (t == TB_TYPE::tb_2v2)
             {
-                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 4>(ps, TB_TYPE::tb_2v2, option);
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 4>(ps, TB_TYPE::tb_2v2, iomode, option);
             }
             else if (t == TB_TYPE::tb_3v1)
             {
-                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 4>(ps, TB_TYPE::tb_3v1, option);
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 4>(ps, TB_TYPE::tb_3v1, iomode, option);
             }
             else if (t == TB_TYPE::tb_4v1)
             {
-                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 5>(ps, TB_TYPE::tb_4v1, option);
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 5>(ps, TB_TYPE::tb_4v1, iomode, option);
             }
             else if (t == TB_TYPE::tb_3v2)
             {
-                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 5>(ps, TB_TYPE::tb_3v2, option);
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 5>(ps, TB_TYPE::tb_3v2, iomode, option);
+            }
+            else if (t == TB_TYPE::tb_5v1)
+            {
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 6>(ps, TB_TYPE::tb_5v1, iomode, option);
+            }
+            else if (t == TB_TYPE::tb_4v2)
+            {
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 6>(ps, TB_TYPE::tb_4v2, iomode, option);
+            }
+            else if (t == TB_TYPE::tb_3v3)
+            {
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 6>(ps, TB_TYPE::tb_3v3, iomode, option);
+            }
+            else if (t == TB_TYPE::tb_6v1)
+            {
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 7>(ps, TB_TYPE::tb_6v1, iomode, option);
+            }
+            else if (t == TB_TYPE::tb_5v2)
+            {
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 7>(ps, TB_TYPE::tb_5v2, iomode, option);
+            }
+            else if (t == TB_TYPE::tb_4v3)
+            {
+                _map_tbh[name] = (TBH<PieceID, _BoardSize>*)new TBH_N<PieceID, _BoardSize, 7>(ps, TB_TYPE::tb_4v3, iomode, option);
             }
             else
             {
@@ -122,10 +146,16 @@ namespace chess
         auto iter = _map_tbh_sym.find(name);
         if (iter == _map_tbh_sym.end())
         {
-            if      (t == TB_TYPE::tb_2v1_sym) _map_tbh_sym[name] = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 3>(ref, TB_TYPE::tb_2v1_sym);
+            if      (t == TB_TYPE::tb_2v1_sym) 
+                _map_tbh_sym[name] = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 3>(ref, TB_TYPE::tb_2v1_sym);
             else if (t == TB_TYPE::tb_3v1_sym) _map_tbh_sym[name] = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 4>(ref, TB_TYPE::tb_3v1_sym);
             else if (t == TB_TYPE::tb_4v1_sym) _map_tbh_sym[name] = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 5>(ref, TB_TYPE::tb_4v1_sym);
             else if (t == TB_TYPE::tb_3v2_sym) _map_tbh_sym[name] = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 5>(ref, TB_TYPE::tb_3v2_sym);
+            else if (t == TB_TYPE::tb_5v1_sym) _map_tbh_sym[name] = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 6>(ref, TB_TYPE::tb_5v1_sym);
+            else if (t == TB_TYPE::tb_4v2_sym) _map_tbh_sym[name] = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 6>(ref, TB_TYPE::tb_4v2_sym);
+            else if (t == TB_TYPE::tb_6v1_sym) _map_tbh_sym[name] = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 7>(ref, TB_TYPE::tb_6v1_sym);
+            else if (t == TB_TYPE::tb_5v2_sym) _map_tbh_sym[name] = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 7>(ref, TB_TYPE::tb_5v2_sym);
+            else if (t == TB_TYPE::tb_4v3_sym) _map_tbh_sym[name] = (TBH<PieceID, _BoardSize>*)new TBH_Symmetry<PieceID, _BoardSize, 7>(ref, TB_TYPE::tb_4v3_sym);
             else
             {
                 assert(false);

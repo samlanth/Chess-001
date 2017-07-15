@@ -26,7 +26,8 @@ namespace chess
             return _refTB->legal(reverse_order_sq(sq, false));
         }
 
-        bool is_build_and_loaded() const       override { return _refTB->is_build_and_loaded(); }
+        bool is_full_type()         const override { return _refTB->is_full_type(); }
+        bool is_build_and_loaded()  const override { return _refTB->is_build_and_loaded(); }
         bool load()                 override 
         { 
             if (_refTB->load())
@@ -154,10 +155,10 @@ namespace chess
         ~TBH_Symmetry() {}
 
         bool is_symmetry_TBH() const override { return true; }
-        bool load() override               
+        bool load(TBH_IO_MODE mode) override               
         { 
             assert(_type == sym_tb_type(symTBH()->tb_type()));
-            if (_refTBH->load())
+            if (_refTBH->load(mode))
             {
                 // ex: white_to_play 2v1 score <==> reverse score of black_to_play 1v2 (sym_tb is when nw < nb)
                 PieceSet<PieceID, _BoardSize> master(_refTBH->_piecesID);
@@ -183,11 +184,17 @@ namespace chess
             }
             return true;
         }
-        bool save() const override          { return _refTBH->save();  }
-        bool build(char verbose) override   { return _refTBH->build(verbose); }
-        bool is_build_and_loaded() const override      { return _refTBH->is_build_and_loaded(); }
+        bool save() const override { return _refTBH->save();  }
+        bool build(TBH_IO_MODE mode, char verbose) override 
+        { 
+            return _refTBH->build(mode, verbose); 
+        }
+        bool is_build_and_loaded() const override 
+        { 
+            return _refTBH->is_build_and_loaded(); 
+        }
 
-        TBH<PieceID, _BoardSize>* symTBH() const  { return _refTBH; }
+        TBH<PieceID, _BoardSize>* symTBH() const { return _refTBH; }
 
     protected:
         TB_TYPE                   _type;

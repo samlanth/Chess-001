@@ -46,6 +46,8 @@ namespace chess
         std::vector<PieceSet> get_all_child() const;
         bool find_all_child_index(PieceColor c, const _Board& pos, bool isPromo, bool isCapture, size_t& ret_all_child_index) const;
 
+        std::map<size_t, STRUCT_PIECE_RANK<PieceID, _BoardSize>>& map_piece_rank();
+
         std::vector<std::pair<PieceID, uint8_t>> merge() const;
         static std::vector<PieceID> to_pieces(const std::vector<std::pair<PieceID, uint8_t>>& v);
         static std::vector<PieceID> ps_to_pieces(const PieceSet<PieceID, _BoardSize>& v);
@@ -64,6 +66,8 @@ namespace chess
         std::vector<std::vector<std::pair<PieceID, uint8_t>>>   _wchildren;     // all white combination with 1 piece less + promo (not both)
         std::vector<std::vector<std::pair<PieceID, uint8_t>>>   _bchildren;     // all black combination with 1 piece less + promo (not both)
         mutable std::vector<PieceSet<PieceID, _BoardSize>>      _all_child_set; 
+
+        std::map<size_t, STRUCT_PIECE_RANK<PieceID, _BoardSize>> _map_piece_rank;
 
         bool validate();
         void remove_one_piecename(PieceColor c, PieceName n);
@@ -557,7 +561,7 @@ namespace chess
         {
             if (v[i].first == id)
             { 
-                n++;
+                n += v[i].second;
                 found = true;
             }
         }
@@ -734,6 +738,26 @@ namespace chess
 
         return true;
     }
+
+    template <typename PieceID, typename uint8_t _BoardSize>
+    std::map<size_t, STRUCT_PIECE_RANK<PieceID, _BoardSize>>& PieceSet<PieceID, _BoardSize>::map_piece_rank()
+    {
+        if (_map_piece_rank.size() == 0)
+        {
+            std::vector<PieceID> v_id = PieceSet<PieceID, _BoardSize>::ps_to_pieces(*this);
+            for (size_t z = 0; z < v_id.size(); z++)
+            {
+                STRUCT_PIECE_RANK<PieceID, _BoardSize> r;
+                r.rank_ret_id = this->find_rank_index(z, r.ret_id, r.ret_count, r.ret_instance);
+                if (r.ret_count > 0)
+                {
+                    _map_piece_rank[z] = r;
+                }
+            }
+        }
+        return _map_piece_rank;
+    }
+
 };
 #endif
 

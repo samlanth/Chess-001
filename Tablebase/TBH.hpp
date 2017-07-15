@@ -21,9 +21,9 @@ namespace chess
         virtual ~TBH_Base() {}
 
         virtual bool is_symmetry_TBH() const = 0;
-        virtual bool load() = 0;
+        virtual bool load(TBH_IO_MODE mode) = 0;
         virtual bool save() const = 0;
-        virtual bool build(char verbose) = 0;
+        virtual bool build(TBH_IO_MODE mode, char verbose) = 0;
         virtual bool is_build_and_loaded() const = 0;
     };
 
@@ -42,9 +42,11 @@ namespace chess
         friend class TBH_Symmetry<PieceID, _BoardSize, 3>;
         friend class TBH_Symmetry<PieceID, _BoardSize, 4>;
         friend class TBH_Symmetry<PieceID, _BoardSize, 5>;
+        friend class TBH_Symmetry<PieceID, _BoardSize, 6>;
+        friend class TBH_Symmetry<PieceID, _BoardSize, 7>;
 
     public:
-        TBH(TB_TYPE t, const PieceSet<PieceID, _BoardSize>& ps, uint8_t np, TBH_OPTION option) 
+        TBH(TB_TYPE t, const PieceSet<PieceID, _BoardSize>& ps, uint8_t np, TBH_IO_MODE mode, TBH_OPTION option)
             : TBH_Base(), _type(t), _NPIECE(np), _pieceSet({ ps.wset(), ps.bset() }), _option(option)
         {
             _piecesID = PieceSet<PieceID, _BoardSize>::ps_to_pieces(ps);
@@ -53,7 +55,7 @@ namespace chess
         virtual ~TBH();
 
         virtual bool is_symmetry_TBH() const override  { return false; }
-        virtual bool load() override;
+        virtual bool load(TBH_IO_MODE mode) override;
         virtual bool save() const override;
         virtual bool is_build_and_loaded() const  override
         {   
@@ -128,16 +130,22 @@ namespace chess
     }
 
     template <typename PieceID, typename uint8_t _BoardSize>
-    inline bool TBH<PieceID, _BoardSize>::load()
+    inline bool TBH<PieceID, _BoardSize>::load(TBH_IO_MODE mode)
     {
         std::lock_guard<std::recursive_mutex> lock(_mutex);
 
         if ((_TB_W == nullptr) || (_TB_B == nullptr)) return false;
         if (is_build_and_loaded()) return true;
-        for (size_t i = 0; i < _tbh_children.size(); i++)
+
+        TBH_IO_MODE childmode = mode;
+        if (mode == TBH_IO_MODE::tb_and_child) childmode = TBH_IO_MODE::tb_only;
+        if (mode != TBH_IO_MODE::tb_only)
         {
-            if (!_tbh_children[i]->load())
-             return false;
+            for (size_t i = 0; i < _tbh_children.size(); i++)
+            {
+                if (!_tbh_children[i]->load(childmode))
+                    return false;
+            }
         }
         if (!_TB_W->load()) return false;
         if (!_TB_B->load()) return false;
@@ -262,6 +270,15 @@ namespace chess
                     TablebaseBase<PieceID, _BoardSize>*  t = TB_Manager<PieceID, _BoardSize>::instance()->find_sym(tb_name);
                     if (t != nullptr)
                     {
+                        if (!t->is_build_and_loaded())
+                        {
+                            if (t->load() == false)
+                            {
+                                std::stringstream ss_detail;
+                                ss_detail << "find_score_children_tb TB sym not builded or not loaded "<< tb_name <<"\n";
+                                std::cerr << ss_detail.str();
+                            }
+                        }
                         assert(t->is_build_and_loaded());
                         ret_sc = t->score_v(ret_child_sq);
                         ret_dtc = t->dtc_v(ret_child_sq);
@@ -276,12 +293,30 @@ namespace chess
                 {
                     if (color_pos == PieceColor::W)
                     {
+                        if (!_tbh_children[ret_idx]->TB_W()->is_build_and_loaded())
+                        {
+                            if (_tbh_children[ret_idx]->TB_W()->load() == false) 
+                            {
+                                std::stringstream ss_detail;
+                                ss_detail << "find_score_children_tb TB not builded or not loaded " << child_set.name(PieceColor::W) << "\n";
+                                std::cerr << ss_detail.str();
+                            }
+                        }
                         assert(_tbh_children[ret_idx]->TB_W()->is_build_and_loaded());
                         ret_sc = _tbh_children[ret_idx]->TB_W()->score_v(ret_child_sq);
                         ret_dtc = _tbh_children[ret_idx]->TB_W()->dtc_v(ret_child_sq);
                     }
                     else
                     {
+                        if (!_tbh_children[ret_idx]->TB_B()->is_build_and_loaded())
+                        {
+                            if (_tbh_children[ret_idx]->TB_B()->load() == false)
+                            {
+                                std::stringstream ss_detail;
+                                ss_detail << "find_score_children_tb TB not builded or not loaded " <<  child_set.name(PieceColor::B)  << "\n";
+                                std::cerr << ss_detail.str();
+                            }
+                        }
                         assert(_tbh_children[ret_idx]->TB_B()->is_build_and_loaded());
                         ret_sc = _tbh_children[ret_idx]->TB_B()->score_v(ret_child_sq);
                         ret_dtc = _tbh_children[ret_idx]->TB_B()->dtc_v(ret_child_sq);
