@@ -4,7 +4,7 @@
 //=================================================================================================
 //
 //  ChessGeneticAlgorithm<T, PARAM_NBIT>
-//
+//éésam
 //
 #ifndef _AL_CHESS_CHESSGA_CHESSGENALGO_HPP
 #define _AL_CHESS_CHESSGA_CHESSGENALGO_HPP
